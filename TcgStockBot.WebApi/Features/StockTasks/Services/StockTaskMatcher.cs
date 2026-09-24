@@ -78,10 +78,22 @@ internal static class StockTaskMatcher
             : MatchOutcome.Match;
     }
 
-    /// <summary>Whole-word phrase match, so "box" does not match "boxes".</summary>
+    /// <summary>
+    /// Whole-word phrase match, so "box" does not match "boxes". A keyword can list alternatives separated by "|"
+    /// ("booster box|booster display" = either one), and an alternative ending in "*" matches the start of a word
+    /// ("op*" matches "OP-15" and "OP10").
+    /// </summary>
     private static bool ContainsPhrase(string normalizedTitle, string keyword)
     {
-        var phrase = string.Join(' ', TextNormalizer.Words(keyword));
-        return phrase.Length == 0 || $" {normalizedTitle} ".Contains($" {phrase} ", StringComparison.Ordinal);
+        var paddedTitle = $" {normalizedTitle} ";
+        var alternatives = keyword.Split('|')
+            .Select(static alternative => alternative.Trim())
+            .Select(static alternative => (IsPrefix: alternative.EndsWith('*'), Phrase: string.Join(' ', TextNormalizer.Words(alternative.TrimEnd('*')))))
+            .Where(static alternative => alternative.Phrase.Length > 0)
+            .ToList();
+
+        return alternatives.Count == 0 || alternatives.Any(alternative => alternative.IsPrefix
+            ? paddedTitle.Contains($" {alternative.Phrase}", StringComparison.Ordinal)
+            : paddedTitle.Contains($" {alternative.Phrase} ", StringComparison.Ordinal));
     }
 }

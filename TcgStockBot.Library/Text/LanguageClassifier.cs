@@ -23,7 +23,7 @@ public static partial class LanguageClassifier
     [
         "portugues", "portuguesa", "espanol", "espanhol", "espanhola", "castellano",
         "frances", "francesa", "francais", "deutsch", "alemao", "alema", "italiano", "italiana",
-        "korean", "coreano", "chinese", "chines",
+        "korean", "coreano", "coreana", "chinese", "chines", "chinesa",
     ];
 
     private static readonly HashSet<string> EnglishCodes = ["en", "eng"];
@@ -31,7 +31,7 @@ public static partial class LanguageClassifier
     private static readonly HashSet<string> JapaneseCodes = ["jp", "jap", "jpn"];
 
     private static readonly HashSet<string> OtherLanguageCodes =
-        ["pt", "es", "esp", "fr", "de", "it", "kr", "cn", "zh"];
+        ["pt", "es", "esp", "fr", "de", "it", "kr", "kor", "cn", "ch", "chn", "zh", "tw"];
 
     /// <summary>
     /// Classifies a product title.
