@@ -4,6 +4,21 @@ Monitoriza lojas portuguesas de Pokémon TCG e avisa-te (WhatsApp e/ou email) qu
 **em stock, na versão inglesa e ao preço máximo que definiste ou abaixo**. Tem um dashboard web para
 veres o que se passa e configurares tarefas e lojas. Só monitoriza e avisa: a compra fazes tu.
 
+## ⚠️ Configuração de Segredos
+
+**IMPORTANTE:** Nunca commites segredos para o Git! 
+
+Os seguintes ficheiros NÃO devem ser incluídos no repositório:
+- `.env` - Variáveis de ambiente (passwords, API keys)
+- `**/appsettings.Development.json` - Configuração local de desenvolvimento
+
+**Como configurar localmente:**
+1. Copia `.env.example` para `.env` e preenche com os teus valores
+2. Copia `TcgStockBot.WebApi/appsettings.Development.json.example` para `TcgStockBot.WebApi/appsettings.Development.json`
+3. Faz o mesmo para `TcgStockBot.Website/appsettings.Development.json` (se necessário)
+
+Estes ficheiros estão em `.gitignore` e **nunca serão committed**.
+
 ## Estrutura da solução
 
 ```
