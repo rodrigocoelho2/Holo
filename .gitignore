@@ -488,4 +488,5 @@ $RECYCLE.BIN/
 # Docker secrets and bot data
 .env
 **/data/
+**/appsettings.Development.json
 
