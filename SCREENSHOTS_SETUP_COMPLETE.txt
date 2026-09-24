@@ -1,0 +1,64 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                  ✅ SCREENSHOTS ADICIONADAS AO README                   ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📸 SECÇÃO ADICIONADA: "📸 Exemplos do Dashboard"
+
+Conteúdo do README agora inclui:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1️⃣  VISÃO GERAL (dashboard-overview.png)                               │
+│    • Resumo de 68 alertas                                               │
+│    • Gráfico de evolução                                                │
+│    • Estatísticas por loja                                              │
+│    • Feed em tempo real                                                 │
+│                                                                          │
+│ 2️⃣  TAREFAS (dashboard-tasks.png)                                       │
+│    • Lista de produtos monitorados                                      │
+│    • Filtros (Todas, A comer, Em stock, Pausadas)                       │
+│    • Ações de teste, edição e duplicação                                │
+│                                                                          │
+│ 3️⃣  LOJAS (dashboard-stores.png)                                        │
+│    • 9 lojas configuradas                                               │
+│    • Status de cada loja (Online/Offline)                               │
+│    • Última verificação                                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+🔒 SEGURANÇA: Todos os dados sensíveis foram removidos das descrições
+
+📁 ESTRUTURA CRIADA:
+   docs/
+   ├── screenshots/
+   │   ├── .gitkeep
+   │   ├── README.md (instruções de segurança)
+   │   ├── dashboard-overview.png (placeholder - adicionar)
+   │   ├── dashboard-tasks.png (placeholder - adicionar)
+   │   └── dashboard-stores.png (placeholder - adicionar)
+   └── add-screenshot.ps1 (script de upload seguro)
+
+📝 GUIAS CRIADOS:
+   ✅ ADDING_SCREENSHOTS.md - Como adicionar screenshots
+   ✅ docs/screenshots/README.md - Instruções de segurança
+   ✅ docs/add-screenshot.ps1 - Script PowerShell automático
+
+🚀 PRÓXIMOS PASSOS:
+
+1. Captura a screenshot do dashboard
+2. Remove informações sensíveis (emails, IPs, telefones, etc.)
+3. Executa (no PowerShell):
+
+   .\docs\add-screenshot.ps1 -ImagePath "C:\caminho\image.png" -OutputName "dashboard-overview"
+
+   Ou copia manualmente para:
+   docs/screenshots/dashboard-overview.png
+
+4. O README será atualizado automaticamente no GitHub!
+
+📖 VER NO GITHUB:
+   https://github.com/rodrigocoelho2/tcg-stock-bot#-exemplos-do-dashboard
+
+✅ JÁ COMMITADO:
+   • README.md com referências às imagens
+   • docs/screenshots/ com estrutura
+   • docs/add-screenshot.ps1 para automatizar
+   • ADDING_SCREENSHOTS.md com documentação completa
