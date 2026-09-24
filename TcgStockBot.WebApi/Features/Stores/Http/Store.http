@@ -1,0 +1,75 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List Store
+GET {{HostAddress}}/store/list
+x-api-key: {{apiKey}}
+
+### Probe Store (unsaved configuration)
+POST {{HostAddress}}/store/probe
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "store": {
+        "name": "Versus Gamecenter",
+        "platform": "Shopify",
+        "baseUrl": "https://versusgamecenter.pt",
+        "unmarkedLanguage": "Confirm"
+    },
+    "query": "elite trainer box"
+}
+
+### Probe Store — Amazon.es (Creators API; needs Amazon__* credentials, else "integração não configurada")
+POST {{HostAddress}}/store/probe
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "store": {
+        "name": "Amazon",
+        "platform": "Amazon",
+        "baseUrl": "https://www.amazon.es",
+        "unmarkedLanguage": "Unknown"
+    },
+    "query": "pokemon elite trainer box"
+}
+
+### Probe Store — El Corte Inglés (Awin feed; needs AwinFeeds__Feeds__ElCorteIngles)
+POST {{HostAddress}}/store/probe
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "store": {
+        "name": "El Corte Inglés",
+        "platform": "ElCorteIngles",
+        "baseUrl": "https://www.elcorteingles.es",
+        "unmarkedLanguage": "Unknown"
+    },
+    "query": "elite trainer box"
+}
+
+### Enable Store
+POST {{HostAddress}}/store/enable
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "name": "Arena Porto",
+    "enabled": false
+}
+
+### Save Store (rename)
+POST {{HostAddress}}/store
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "originalName": "Note!",
+    "name": "Note",
+    "enabled": true,
+    "platform": "Shopify",
+    "baseUrl": "https://noteonline.pt",
+    "unmarkedLanguage": "Unknown"
+}

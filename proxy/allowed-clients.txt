@@ -1,0 +1,5 @@
+# IPs or subnets allowed to use price-proxy, one per line (Squid "src" ACL).
+# Put here the IP of the tcgstockbot-webapi container on the nas-net network, e.g.:
+#   172.20.0.50/32
+# Find it with:  docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' tcgstockbot-webapi
+# With no line below, the proxy refuses everyone (safe default). Restart price-proxy after editing.

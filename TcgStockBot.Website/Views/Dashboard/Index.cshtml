@@ -1,0 +1,49 @@
+@model DashboardModel
+@{
+    ViewData["Title"] = Model.ApplicationName;
+}
+
+<div class="app" id="app" data-poll-ms="@Model.PollMilliseconds">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 6.1h6.6l-5.3 4.2 2 6.7L12 15.6l-5.9 3.9 2-6.7L2.8 8.6h6.6z" /></svg>
+            </div>
+            <div>
+                <div class="brand-name">TcgStock<span>Bot</span></div>
+                <div class="brand-version">@Model.Version · monitor</div>
+            </div>
+        </div>
+
+        <nav class="nav" id="nav"></nav>
+
+        <div class="bot-card" id="bot-card"></div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <button class="icon-button menu-button" id="menu-button" aria-label="Menu">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </button>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="topbar-actions">
+                <div class="chip" id="next-check-chip"></div>
+                <button class="button primary" id="run-now">
+                    <svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-1 7 9-11h-7z" /></svg>
+                    Verificar agora <kbd>R</kbd>
+                </button>
+            </div>
+        </header>
+
+        <main class="view" id="view"></main>
+    </div>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+<div class="modal-backdrop" id="modal"></div>
+<div class="toasts" id="toasts"></div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,15 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### Get Notification (channel state)
+GET {{HostAddress}}/notification
+x-api-key: {{apiKey}}
+
+### Test Notification (WhatsApp)
+POST {{HostAddress}}/notification/test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "channel": "WhatsApp"
+}

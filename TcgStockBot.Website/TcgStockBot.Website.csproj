@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- The dashboard (MVC). Talks to TcgStockBot.WebApi only through TcgStockBot.Sdk. -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <UserSecretsId>tcgstockbot-website-3b8e91a0</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TcgStockBot.Sdk\TcgStockBot.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TcgStockBot.UnitTest" />
+  </ItemGroup>
+
+</Project>

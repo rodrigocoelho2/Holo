@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/data/
+TcgStockBot.UnitTest/
+.git/
+.vs/
+.env
+.env.*
+*.md

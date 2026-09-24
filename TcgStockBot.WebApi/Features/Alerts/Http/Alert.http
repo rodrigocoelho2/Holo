@@ -1,0 +1,11 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List Alert
+GET {{HostAddress}}/alert/list
+x-api-key: {{apiKey}}
+
+### Reset Alert (forget what was already alerted)
+POST {{HostAddress}}/alert/reset
+Content-Type: application/json
+x-api-key: {{apiKey}}

@@ -1,0 +1,18 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### Get Setting
+GET {{HostAddress}}/setting
+x-api-key: {{apiKey}}
+
+### Save Setting
+POST {{HostAddress}}/setting
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "pollIntervalSeconds": 600,
+    "pollJitterSeconds": 120,
+    "delayBetweenRequestsSeconds": 3,
+    "userAgent": "TcgStockBot/1.0 (personal stock alert)"
+}

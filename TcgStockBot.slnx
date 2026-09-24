@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="TcgStockBot.Library/TcgStockBot.Library.csproj" />
+  <Project Path="TcgStockBot.Sdk/TcgStockBot.Sdk.csproj" />
+  <Project Path="TcgStockBot.UnitTest/TcgStockBot.UnitTest.csproj" />
+  <Project Path="TcgStockBot.WebApi/TcgStockBot.WebApi.csproj" />
+  <Project Path="TcgStockBot.Website/TcgStockBot.Website.csproj" />
+</Solution>

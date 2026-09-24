@@ -1,0 +1,41 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List StockTask
+GET {{HostAddress}}/stocktask/list
+x-api-key: {{apiKey}}
+
+### Get StockTask
+GET {{HostAddress}}/stocktask?identifier=etb
+x-api-key: {{apiKey}}
+
+### Save StockTask (new)
+POST {{HostAddress}}/stocktask
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "isNew": true,
+    "id": "perfect-order-etb",
+    "name": "Perfect Order ETB",
+    "enabled": true,
+    "storeNames": [],
+    "searchQuery": "perfect order elite trainer box",
+    "requiredKeywords": [ "perfect order", "elite trainer box" ],
+    "excludedKeywords": [ "break", "acrylic" ],
+    "maxPrice": 80
+}
+
+### Enable StockTask (all)
+POST {{HostAddress}}/stocktask/enable
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "id": null,
+    "enabled": true
+}
+
+### Delete StockTask
+DELETE {{HostAddress}}/stocktask?identifier=perfect-order-etb
+x-api-key: {{apiKey}}

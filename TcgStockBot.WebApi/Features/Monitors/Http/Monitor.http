@@ -1,0 +1,21 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### Get Monitor (live state)
+GET {{HostAddress}}/monitor
+x-api-key: {{apiKey}}
+
+### Run Monitor (check now)
+POST {{HostAddress}}/monitor/run
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+### Pause Monitor
+POST {{HostAddress}}/monitor/pause
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+### Resume Monitor
+POST {{HostAddress}}/monitor/resume
+Content-Type: application/json
+x-api-key: {{apiKey}}

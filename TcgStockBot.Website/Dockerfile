@@ -1,0 +1,25 @@
+# TcgStockBot.Website — the dashboard. Build context: the solution folder.
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY Directory.Build.props Directory.Packages.props ./
+COPY TcgStockBot.Library/TcgStockBot.Library.csproj TcgStockBot.Library/
+COPY TcgStockBot.Sdk/TcgStockBot.Sdk.csproj TcgStockBot.Sdk/
+COPY TcgStockBot.Website/TcgStockBot.Website.csproj TcgStockBot.Website/
+RUN dotnet restore TcgStockBot.Website/TcgStockBot.Website.csproj
+COPY TcgStockBot.Library/ TcgStockBot.Library/
+COPY TcgStockBot.Sdk/ TcgStockBot.Sdk/
+COPY TcgStockBot.Website/ TcgStockBot.Website/
+RUN dotnet publish TcgStockBot.Website/TcgStockBot.Website.csproj -c Release -o /app --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app .
+
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_HTTP_PORTS=8080 \
+    TZ=Europe/Lisbon
+
+EXPOSE 8080
+USER $APP_UID
+ENTRYPOINT ["dotnet", "TcgStockBot.Website.dll"]
