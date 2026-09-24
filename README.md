@@ -74,6 +74,45 @@ Atalhos: `1`–`6` mudam de página e `R` verifica logo.
 | Contar como inglês | a loja marca sempre os PT/ES/JP, por isso sem marcador = inglês |
 | **Avisar com idioma por confirmar** | avisa na mesma, e o WhatsApp, o email e o dashboard pedem para confirmares na página (usado na CentroXogo) |
 
+## 📸 Exemplos do Dashboard
+
+### Visão Geral
+Página de dashboard com resumo de alertas, gráfico de 14 dias e estatísticas por loja.
+- **Alertas enviados**: 68 alertas
+- **Em stock agora**: 0 produtos
+- **Preparo de alertas**: 16/16 lojas prontas
+- **Gráfico de evolução**: mostra a tendência de alertas ao longo do tempo
+- **Alertas por loja**: breakdown de Trap Card TCG, Versus Gamecenter, CentroXogo, Panda Collecting, etc.
+- **Feed em tempo real**: últimas verificações e alertas com timestamps
+
+![Dashboard - Visão Geral](docs/screenshots/dashboard-overview.png)
+
+### Tarefas
+Página de gestão de tarefas de monitorização. Cada tarefa vigia um produto específico em várias lojas.
+- **Filtros**: Todas, A comer 1, Em stock 2, Pausadas 1
+- **Produtos monitorados**:
+  - 30th ETB (Trap Card TCG) - há 5 h
+  - 30th en Box (Versus Gamecenter) - há 5 h
+  - 30th Ultra Premium (CentroXogo) - há 3 h
+  - 30th Booster Bundle (Panda Collecting) - há 5 h
+- **Cada tarefa mostra**: preço máximo, estado (✅ online), última verificação
+- **Ações**: Testar (Teste), Editar (Editar), Duplicar, Apagar
+
+![Dashboard - Tarefas](docs/screenshots/dashboard-tasks.png)
+
+### Lojas
+Página com todas as lojas configuradas (9 lojas no exemplo).
+- **Trap Card TCG** (Shopify) - ✅ Online
+- **Versus Gamecenter** (Shopify) - ✅ Online - confirmar idioma
+- **Panda Collecting** (WooCommerce) - ✅ Online
+- **Notel** (HTML) - ⚠️ Offline
+- **CentroXogo** (Shopify) - ✅ Online
+- **Areias Porto** (WooCommerce) - ✅ Online
+- **Continente** (Shopify) - ✅ Online
+- **Cada loja tem**: status, tipo de integração, última verificação e botões de Testar e Editar
+
+![Dashboard - Lojas](docs/screenshots/dashboard-stores.png)
+
 ## Docker no NAS UGREEN
 
 São três contentores:
