@@ -85,7 +85,7 @@ Página de dashboard com resumo de alertas, gráfico de 14 dias e estatísticas 
 - **Alertas por loja**: breakdown de Trap Card TCG, Versus Gamecenter, CentroXogo, Panda Collecting, etc.
 - **Feed em tempo real**: últimas verificações e alertas com timestamps
 
-*[Screenshot será adicionada em breve]*
+![Dashboard - Visão Geral](docs/screenshots/dashboard-overview.png)
 
 ### Tarefas
 Página de gestão de tarefas de monitorização. Cada tarefa vigia um produto específico em várias lojas.
@@ -98,7 +98,7 @@ Página de gestão de tarefas de monitorização. Cada tarefa vigia um produto e
 - **Cada tarefa mostra**: preço máximo, estado (✅ online), última verificação
 - **Ações**: Testar (Teste), Editar (Editar), Duplicar, Apagar
 
-*[Screenshot será adicionada em breve]*
+![Dashboard - Tarefas](docs/screenshots/dashboard-tasks.png)
 
 ### Lojas
 Página com todas as lojas configuradas (9 lojas no exemplo).
@@ -111,7 +111,7 @@ Página com todas as lojas configuradas (9 lojas no exemplo).
 - **Continente** (Shopify) - ✅ Online
 - **Cada loja tem**: status, tipo de integração, última verificação e botões de Testar e Editar
 
-*[Screenshot será adicionada em breve]*
+![Dashboard - Lojas](docs/screenshots/dashboard-stores.png)
 
 ## Docker no NAS UGREEN
 
