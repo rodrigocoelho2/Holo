@@ -8,7 +8,11 @@ COPY TcgStockBot.WebApi/TcgStockBot.WebApi.csproj TcgStockBot.WebApi/
 RUN dotnet restore TcgStockBot.WebApi/TcgStockBot.WebApi.csproj
 COPY TcgStockBot.Library/ TcgStockBot.Library/
 COPY TcgStockBot.WebApi/ TcgStockBot.WebApi/
-RUN dotnet publish TcgStockBot.WebApi/TcgStockBot.WebApi.csproj -c Release -o /app --no-restore
+# Files that reach the build context through a Windows/SMB share or a git checkout can be readable by their owner
+# only, and publish copies appsettings.json and wwwroot with those modes. The app runs as the non-root "app" user,
+# so make everything readable (and folders traversable) for everyone.
+RUN dotnet publish TcgStockBot.WebApi/TcgStockBot.WebApi.csproj -c Release -o /app --no-restore \
+    && chmod -R a+rX /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
