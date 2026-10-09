@@ -55,7 +55,7 @@ internal abstract class AwinFeedStoreAdapter(IOptionsMonitor<AwinFeedOptions> op
             .Where(product => words.All(product.NormalizedTitle.Contains))
             .Take(MaxResults)
             .Select(product => new StoreListing(store.Name, product.Title, product.Url, product.Price, product.InStock,
-                product.ProductId, product.Currency, product.Seller))
+                product.ProductId, product.Currency, product.Seller, product.ImageUrl))
             .ToList();
     }
 }

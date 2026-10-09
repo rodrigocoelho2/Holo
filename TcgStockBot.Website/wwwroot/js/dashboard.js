@@ -32,6 +32,7 @@ const state = {
     alerts: [],
     view: "overview",
     taskFilter: "all",
+    gameFilter: "all",
     expandedTasks: new Set(),
     onlyProducts: readPreference("onlyProducts", true),   // global "Só produtos" switch
     storeFilter: new Map(),                               // per task/store override of the global switch
@@ -244,6 +245,22 @@ function labelledSwitch(checked, label, onChange) {
 const LANGUAGES = { English: ["EN", "green"], Japanese: ["JP", "violet"], NonEnglish: ["Outro", "amber"], Unknown: ["?", "grey"] };
 
 const TASK_LANGUAGES = { English: ["EN", "Inglês"], Japanese: ["JP", "Japonês"] };
+
+/** The card games a task can belong to (TcgGame), with their pill colour. */
+const GAMES = { Pokemon: ["Pokémon", "amber"], OnePiece: ["One Piece", "red"], Lorcana: ["Lorcana", "violet"], Magic: ["Magic", "blue"], Other: ["Outro", "grey"] };
+
+const gamePill = (game) => {
+    const [label, tone] = GAMES[game] || GAMES.Pokemon;
+    return h("span", { class: `pill plain ${tone}` }, label);
+};
+
+/** The product photo the store returned (ImageUrl), or an empty square of the same size. */
+function productThumb(url, size = "") {
+    const src = safeHref(url);
+    return src
+        ? h("img", { class: `thumb ${size}`, src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" })
+        : h("span", { class: `thumb empty ${size}`, "aria-hidden": "true" });
+}
 
 const taskLanguagePill = (language) => {
     const [code, label] = TASK_LANGUAGES[language] || TASK_LANGUAGES.English;
@@ -665,9 +682,10 @@ function alertsTable(rows, full) {
             h("th", { class: "num" }, "Preço"), h("th", { class: "num" }, full ? "Data" : "Hora"), h("th", {}))),
         h("tbody", {}, rows.map((alert) => h("tr", {},
             h("td", { class: "nowrap" }, h("span", { class: "store-link" }, storeAvatar(alert.storeName), alert.storeName)),
-            h("td", { class: "title-cell" },
-                h("span", { class: "primary-text", title: alert.title }, alert.title),
-                alert.languageToConfirm ? h("span", { class: "pill amber", style: "margin-top:4px" }, "Confirmar idioma") : null),
+            h("td", { class: "title-cell" }, h("div", { class: "with-thumb" }, productThumb(alert.imageUrl),
+                h("div", {},
+                    h("span", { class: "primary-text", title: alert.title }, alert.title),
+                    alert.languageToConfirm ? h("span", { class: "pill amber", style: "margin-top:4px" }, "Confirmar idioma") : null))),
             full ? h("td", {}, alert.stockTaskName) : null,
             h("td", { class: "num" }, money(alert.price)),
             h("td", { class: "num nowrap" }, full ? dateTime(alert.at) : clock(alert.at)),
@@ -694,10 +712,12 @@ function viewTasks() {
     };
     const filters = [["all", "Todas"], ["running", "A correr"], ["instock", "Em stock"], ["error", "Com erros"], ["stopped", "Paradas"]];
     const visible = withStatus.filter(({ task, status }) =>
-        state.taskFilter === "all" ? true
+        (state.gameFilter === "all" || (task.game || "Pokemon") === state.gameFilter)
+        && (state.taskFilter === "all" ? true
             : state.taskFilter === "running" ? task.enabled
                 : state.taskFilter === "stopped" ? !task.enabled
-                    : status.key === state.taskFilter);
+                    : status.key === state.taskFilter));
+    const games = Object.keys(GAMES).filter((game) => tasks.some((task) => (task.game || "Pokemon") === game));
 
     return [
         h("div", { class: "page-head" },
@@ -713,6 +733,11 @@ function viewTasks() {
             filters.map(([key, label]) =>
                 h("button", { class: `filter ${state.taskFilter === key ? "active" : ""}`, onclick: () => { state.taskFilter = key; renderView(true); } },
                     label, h("span", { class: "count" }, counts[key]))),
+            games.length > 1 ? h("select", {
+                class: "filter-select", "aria-label": "Jogo",
+                onchange: (event) => { state.gameFilter = event.target.value; renderView(true); },
+            }, h("option", { value: "all", selected: state.gameFilter === "all" }, "Todos os jogos"),
+                games.map((game) => h("option", { value: game, selected: state.gameFilter === game }, GAMES[game][0]))) : null,
             h("div", { class: "filters-end", title: "Esconde os resultados que as lojas devolveram mas que não são o produto da tarefa" },
                 labelledSwitch(state.onlyProducts, "Só produtos (todas as lojas)", (checked) => {
                     state.onlyProducts = checked;
@@ -744,7 +769,7 @@ function taskRows(task, status) {
     const row = h("tr", { class: `clickable ${expanded ? "expanded" : ""}`, onclick: toggle },
         h("td", { style: "width:1%" }, h("span", { style: `display:inline-flex;transition:transform .15s;transform:rotate(${expanded ? 90 : 0}deg);color:var(--dim)` }, icon("chevron"))),
         h("td", {},
-            h("div", { class: "primary-text", style: "display:flex;align-items:center;gap:8px" }, taskLanguagePill(task.language), task.name || task.id),
+            h("div", { class: "primary-text", style: "display:flex;align-items:center;gap:8px" }, gamePill(task.game), taskLanguagePill(task.language), task.name || task.id),
             h("div", { class: "secondary-text" }, `“${task.searchQuery}”`)),
         h("td", {}, stores.length === 0
             ? h("span", { class: "dim" }, "nenhuma")
@@ -809,7 +834,8 @@ function listingsTable(listings, outcomeCell) {
     return h("div", { class: "table-wrap" }, h("table", {},
         h("thead", {}, h("tr", {}, h("th", {}, "Produto"), h("th", { class: "num" }, "Preço"), h("th", {}, "Stock"), h("th", {}, "Idioma"), h("th", {}, "Resultado"))),
         h("tbody", {}, listings.map((listing) => h("tr", {},
-            h("td", { class: "title-cell" }, h("span", { class: "primary-text" }, externalLink(listing.url, listing.title))),
+            h("td", { class: "title-cell" }, h("div", { class: "with-thumb" }, productThumb(listing.imageUrl, "small"),
+                h("span", { class: "primary-text" }, externalLink(listing.url, listing.title)))),
             h("td", { class: "num" }, money(listing.price)),
             h("td", {}, listing.inStock ? h("span", { class: "pill green" }, "Sim") : h("span", { class: "pill red" }, "Não")),
             h("td", {}, languagePill(listing.language)),
@@ -1072,6 +1098,7 @@ function openTaskDrawer(task, isCopy = false) {
         maxPrice: task?.maxPrice ?? "",
         storeNames: new Set(task?.storeNames || []),
         language: task?.language || "English",
+        game: task?.game || "Pokemon",
     };
     const errors = h("div", {});
     const idInput = textInput(draft.id, (value) => { draft.id = value; }, { readOnly: !isNew, placeholder: "gerado a partir do nome" });
@@ -1081,6 +1108,9 @@ function openTaskDrawer(task, isCopy = false) {
         h("div", { class: "drawer-section" },
             h("h3", {}, "Produto"),
             h("div", { class: "fields" },
+                field("Jogo", h("select", { onchange: (event) => { draft.game = event.target.value; } },
+                    Object.entries(GAMES).map(([value, [label]]) => h("option", { value, selected: draft.game === value }, label))),
+                    "Serve para agrupar e filtrar as tarefas."),
                 field("Idioma do produto", languageSwitch(draft.language, (value) => { draft.language = value; }),
                     "Japonês: só avisa quando o título diz JP / Japanese / Japonês. Não precisas de pôr “japanese” na pesquisa.", true),
                 field("Nome", textInput(draft.name, (value) => {
@@ -1126,6 +1156,7 @@ function openTaskDrawer(task, isCopy = false) {
                 excludedKeywords: splitList(draft.excludedKeywords),
                 maxPrice: Number(draft.maxPrice) || 0,
                 language: draft.language,
+                game: draft.game,
             });
             await reloadConfiguration();
             closeDrawer();
@@ -1154,6 +1185,7 @@ const TASK_IMPORT_EXAMPLE = `[
     "excludedKeywords": ["sleeves", "binder", "proxy"],
     "maxPrice": 60,
     "language": "English",
+    "game": "Pokemon",
     "storeNames": [],
     "enabled": true
   }
@@ -1164,6 +1196,7 @@ function taskToJson(task) {
     return {
         id: task.id, name: task.name, enabled: task.enabled, storeNames: task.storeNames || [], searchQuery: task.searchQuery,
         requiredKeywords: task.requiredKeywords || [], excludedKeywords: task.excludedKeywords || [], maxPrice: task.maxPrice, language: task.language,
+        game: task.game || "Pokemon",
     };
 }
 
@@ -1193,12 +1226,16 @@ function normalizeImportedTask(raw) {
     const language = ["japanese", "jp", "jpn", "japones", "japonês", "ja"].includes(languageText) ? "Japanese"
         : ["english", "en", "eng", "ingles", "inglês"].includes(languageText) ? "English" : null;
     if (!language) throw new Error(`idioma "${raw.language}" desconhecido (usa English ou Japanese)`);
+    const gameText = String(raw.game ?? "Pokemon").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+    const game = { pokemon: "Pokemon", onepiece: "OnePiece", op: "OnePiece", lorcana: "Lorcana", magic: "Magic", mtg: "Magic", magicthegathering: "Magic", other: "Other", outro: "Other" }[gameText];
+    if (!game) throw new Error(`jogo "${raw.game}" desconhecido (usa Pokemon, OnePiece, Lorcana, Magic ou Other)`);
     return {
         id, name, enabled: raw.enabled === undefined ? true : Boolean(raw.enabled),
         storeNames: list(raw.storeNames), searchQuery: String(raw.searchQuery ?? "").trim(),
         requiredKeywords: list(raw.requiredKeywords), excludedKeywords: list(raw.excludedKeywords),
         maxPrice: typeof raw.maxPrice === "number" ? raw.maxPrice : Number(String(raw.maxPrice ?? "").replace(",", ".")) || 0,
         language,
+        game,
     };
 }
 
@@ -1262,7 +1299,7 @@ function openTaskImportDrawer() {
         body: [
             h("div", { class: "drawer-section" },
                 field("Ficheiro", fileInput, "Opcional: carrega um .json em vez de colar.", true),
-                field("JSON", textarea, "Campos: id, name, searchQuery, requiredKeywords, excludedKeywords, maxPrice, language (English/Japanese), storeNames ([] = todas), enabled. Sem id, é gerado a partir do nome.", true),
+                field("JSON", textarea, "Campos: id, name, searchQuery, requiredKeywords, excludedKeywords, maxPrice, language (English/Japanese), game (Pokemon/OnePiece/Lorcana/Magic/Other), storeNames ([] = todas), enabled. Sem id, é gerado a partir do nome.", true),
                 h("div", { style: "display:flex;align-items:center;gap:12px;margin-top:8px" },
                     switchInput(updateExisting, (checked) => { updateExisting = checked; }, "Atualizar as que já existem"),
                     h("span", {}, "Atualizar as tarefas que já existem (mesmo id)"))),

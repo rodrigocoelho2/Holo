@@ -35,6 +35,7 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
         "offersV2.listings.availability",
         "offersV2.listings.merchantInfo",
         "offersV2.listings.isBuyBoxWinner",
+        "images.primary.large",
     ];
 
     /// <summary>Availability types that mean "can be ordered now" (pre-orders included).</summary>
@@ -126,11 +127,21 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
                 seller = offer.TryGetProperty("merchantInfo", out var merchant) ? GetString(merchant, "name") : null;
             }
 
-            listings.Add(new StoreListing(store.Name, title, productUrl, price, inStock, asin, currency, seller));
+            listings.Add(new StoreListing(store.Name, title, productUrl, price, inStock, asin, currency, seller, ReadImage(item)));
         }
 
         return listings;
     }
+
+    /// <summary>The "images.primary.large" resource: { "images": { "primary": { "large": { "url": … } } } }.</summary>
+    private static string? ReadImage(JsonElement item) =>
+        item.TryGetProperty("images", out var images)
+        && images.ValueKind == JsonValueKind.Object
+        && images.TryGetProperty("primary", out var primary)
+        && primary.ValueKind == JsonValueKind.Object
+        && primary.TryGetProperty("large", out var large)
+            ? StoreImageUrl.Normalize(GetString(large, "url"))
+            : null;
 
     /// <summary>The ASIN in a search text: a bare 10-character ASIN ("B0…") or "asin:XXXXXXXXXX".</summary>
     internal static string? ParseAsin(string query)

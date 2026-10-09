@@ -30,6 +30,7 @@ public sealed class StockTaskDTO
         ExcludedKeywords = [.. entity.ExcludedKeywords];
         MaxPrice = entity.MaxPrice;
         Language = entity.Language;
+        Game = entity.Game;
     }
 
     /// <summary>Gets or sets the identifier.</summary>
@@ -58,4 +59,7 @@ public sealed class StockTaskDTO
 
     /// <summary>Gets or sets the print run wanted (English or Japanese).</summary>
     public TaskLanguage Language { get; set; }
+
+    /// <summary>Gets or sets the card game.</summary>
+    public TcgGame Game { get; set; }
 }

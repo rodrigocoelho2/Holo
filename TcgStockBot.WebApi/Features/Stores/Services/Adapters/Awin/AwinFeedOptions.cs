@@ -29,7 +29,7 @@ public sealed class AwinFeedOptions
     /// Gets or sets the words a product title must contain (any of them, accents ignored) to be kept in memory.
     /// Large retailers' feeds have hundreds of thousands of products; only these are kept. Empty = keep everything.
     /// </summary>
-    public List<string> KeepKeywords { get; set; } = ["pokemon"];
+    public List<string> KeepKeywords { get; set; } = ["pokemon", "one piece", "lorcana", "gathering"];
 
     /// <summary>Gets or sets the maximum number of products kept per feed.</summary>
     public int MaxProducts { get; set; } = 5000;

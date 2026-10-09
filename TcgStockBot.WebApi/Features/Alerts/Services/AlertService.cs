@@ -93,6 +93,7 @@ internal sealed class AlertService(IAlertRepository alertRepository, TimeProvide
             Url = alert.Listing.Url.AbsoluteUri,
             Price = alert.Listing.Price,
             LanguageToConfirm = alert.LanguageToConfirm,
+            ImageUrl = alert.Listing.ImageUrl,
         }).ToList();
 
         return _alertRepository.AddHistoryAsync(entries, MaxHistoryEntries);

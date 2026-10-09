@@ -113,6 +113,10 @@ public class StockTaskMatcherTests
     public void Task_WithoutLanguage_DefaultsToEnglish() =>
         Assert.Equal(TaskLanguage.English, new StockTask().Language);
 
+    [Fact]
+    public void Task_WithoutGame_DefaultsToPokemon() =>
+        Assert.Equal(TcgGame.Pokemon, new StockTask().Game);
+
     [Theory]
     [InlineData(MatchOutcome.Match, true)]
     [InlineData(MatchOutcome.MatchLanguageToConfirm, true)]

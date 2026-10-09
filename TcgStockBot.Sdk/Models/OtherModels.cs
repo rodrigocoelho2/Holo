@@ -13,6 +13,7 @@ public sealed class AlertDTO
     public string Url { get; set; } = string.Empty;
     public decimal? Price { get; set; }
     public bool LanguageToConfirm { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>Monitoring settings, durations in seconds (mirror of the WebApi SettingDTO).</summary>

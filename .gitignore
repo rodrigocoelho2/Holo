@@ -481,12 +481,13 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Bot runtime state
-**/data/alert-state.json
 
 
 # Docker secrets and bot data
+# The bot's runtime data folder only. Not "**/data/": on Windows git ignores case, so that pattern also
+# swallowed TcgStockBot.WebApi/Extensions/Data/ (BotDataContext, RepositoryBase, JsonFile).
 .env
-**/data/
+/data/
+/TcgStockBot.WebApi/data/
 **/appsettings.Development.json
 

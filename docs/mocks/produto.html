@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>30th Celebration Elite Trainer Box · TcgStockBot (mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#0E0F12}
+a{color:#8C96F0}a:hover{color:#B3BAF7}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<template id="dc-template">
+
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0E0F12; color: #ECEEF2; font-family: 'Geist', system-ui, sans-serif">
+
+<aside style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: #0A0B0E; border-right: 1px solid #1F222A; display: flex; flex-direction: column; gap: 28px">
+<a href="radar.html" style="display: flex; align-items: center; gap: 12px; padding: 0 8px; text-decoration: none; color: #ECEEF2">
+<span style="width: 36px; height: 36px; border-radius: 10px; background: #8C96F0; color: #111318; display: flex; align-items: center; justify-content: center"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5"></path></svg></span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.01em">TcgStock Bot</span><span style="font-size: 12px; color: #A3A9B5">monitor de stock · v2</span></span>
+</a>
+<nav aria-label="Principal" style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 500; color: {{n.color}}; background: {{n.bg}}">
+<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>
+<span style="flex: 1">{{n.label}}</span>
+<sc-if value="{{n.hasCount}}" hint-placeholder-val="{{true}}"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: {{n.countBg}}; color: {{n.countColor}}">{{n.count}}</span></sc-if>
+</a>
+</sc-for>
+</nav>
+<div style="margin-top: auto; padding: 16px; border-radius: 14px; background: #15171C; border: 1px solid #23262E; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #8C96F0; box-shadow: 0 0 0 4px rgba(140,150,240,0.15)"></span>Bot a correr</div>
+<div style="font-size: 13px; line-height: 1.6; color: #A3A9B5">Próxima verificação em <span style="font-family: 'Geist Mono', monospace; color: #ECEEF2">01:42</span><br>Último ciclo: 41 s · 48 pesquisas</div>
+<div style="height: 4px; border-radius: 4px; background: #23262E; overflow: hidden"><div style="width: 62%; height: 100%; background: #8C96F0"></div></div>
+<button type="button" style="min-height: 40px; border-radius: 10px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Pausar o bot</button>
+</div>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(16px, 3vw, 44px) 56px; display: flex; flex-direction: column; gap: 32px">
+
+<a href="a-vigiar.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; font-size: 14px; color: #A3A9B5; text-decoration: none">
+<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>A vigiar</a>
+
+<section style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch">
+<div style="flex: 0 1 300px; min-width: 240px; height: 300px; border-radius: 22px; background: rgba(244,197,66,0.12); display: flex; align-items: center; justify-content: center; position: relative">
+<svg viewBox="0 0 100 100" width="190" height="190" fill="none" stroke="#F4C542" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 38L50 24L80 38V70L50 84L20 70ZM20 38L50 52L80 38M50 52V84"></path></svg>
+<span style="position: absolute; left: 16px; bottom: 14px; font-size: 12px; color: #A3A9B5">Imagem da Trap Card TCG</span>
+</div>
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; padding: 5px 10px; border-radius: 999px; background: #8C96F0; color: #111318">EM STOCK EM 1 LOJA</span>
+<span style="font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #1C1F26; color: #F4C542">Pokémon</span>
+<span style="font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #1C1F26; color: #ECEEF2">Inglês</span>
+</div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 40px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05">30th Celebration Elite Trainer Box</h1>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px">
+<div style="padding: 12px 14px; border-radius: 14px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 12px; color: #A3A9B5">Preço máximo</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; margin-top: 4px">60,00 €</div></div>
+<div style="padding: 12px 14px; border-radius: 14px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 12px; color: #A3A9B5">Melhor agora</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; margin-top: 4px; color: #8C96F0">54,99 €</div></div>
+<div style="padding: 12px 14px; border-radius: 14px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 12px; color: #A3A9B5">Lojas vigiadas</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; margin-top: 4px">9</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="width: 112px; color: #A3A9B5">Pesquisa</span><span style="font-family: 'Geist Mono', monospace; padding: 4px 10px; border-radius: 8px; background: #1C1F26">30th elite trainer box</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="width: 112px; color: #A3A9B5">Tem de ter</span>
+<span style="padding: 4px 10px; border-radius: 8px; background: rgba(140,150,240,0.10); color: #8C96F0">30th</span><span style="padding: 4px 10px; border-radius: 8px; background: rgba(140,150,240,0.10); color: #8C96F0">elite trainer</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="width: 112px; color: #A3A9B5">Não pode ter</span>
+<span style="padding: 4px 10px; border-radius: 8px; background: rgba(255,138,122,0.10); color: #FF8A7A">pokemon center</span><span style="padding: 4px 10px; border-radius: 8px; background: rgba(255,138,122,0.10); color: #FF8A7A">case</span><span style="padding: 4px 10px; border-radius: 8px; background: rgba(255,138,122,0.10); color: #FF8A7A">japanese</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto">
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 15px 'Geist', sans-serif; cursor: pointer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 3L4 14h7l-1 7 9-11h-7z"></path></svg>Verificar este agora</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 15px 'Geist', sans-serif; cursor: pointer">Editar regras</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 15px 'Geist', sans-serif; cursor: pointer">Pausar</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #2A2E37; background: transparent; color: #A3A9B5; font: 500 15px 'Geist', sans-serif; cursor: pointer">Duplicar</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: #FF8A7A; font: 500 15px 'Geist', sans-serif; cursor: pointer">Apagar</button>
+</div>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<section aria-labelledby="res-h" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div>
+<h2 id="res-h" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em">O que cada loja encontrou</h2>
+<p style="margin: 6px 0 0; font-size: 14px; color: #A3A9B5">Última pesquisa há 38 s. Cada resultado diz porque é que avisou ou não.</p>
+</div>
+<div role="group" aria-label="Mostrar" style="display: flex; padding: 4px; border-radius: 12px; background: #15171C; border: 1px solid #23262E">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="min-height: 36px; padding: 0 14px; border-radius: 9px; border: 0; background: {{t.bg}}; color: {{t.color}}; font: 500 14px 'Geist', sans-serif; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<sc-for list="{{stores}}" as="s" hint-placeholder-count="5">
+<article style="border-radius: 18px; background: #15171C; border: 1px solid #23262E; overflow: hidden">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #1F222A">
+<span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 3px; background: {{s.dotBg}}; border: {{s.dotBorder}}"></span>
+<span style="font-size: 16px; font-weight: 600">{{s.name}}</span>
+<span style="font-size: 12px; padding: 3px 8px; border-radius: 6px; background: #1C1F26; color: #A3A9B5">{{s.platform}}</span>
+<span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 12px; color: #8A919E">{{s.meta}}</span>
+</header>
+<sc-if value="{{s.hasError}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; color: #FF8A7A">
+<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.01M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"></path></svg>{{s.error}}
+<a href="lojas.html" style="margin-left: auto; font-size: 13px">Ver loja</a>
+</div>
+</sc-if>
+<ul style="list-style: none; margin: 0; padding: 0">
+<sc-for list="{{s.listings}}" as="l" hint-placeholder-count="2">
+<li style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 18px; border-top: 1px solid #1B1E24">
+<span style="flex: none; width: 52px; height: 52px; border-radius: 10px; background: rgba(244,197,66,0.12); display: flex; align-items: center; justify-content: center"><svg viewBox="0 0 100 100" width="36" height="36" fill="none" stroke="#F4C542" stroke-width="3.2" stroke-linejoin="round" aria-hidden="true"><path d="M20 38L50 24L80 38V70L50 84L20 70ZM20 38L50 52L80 38M50 52V84"></path></svg></span>
+<span style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<a href="#" style="font-size: 15px; color: #ECEEF2; text-decoration: none; line-height: 1.35">{{l.title}}</a>
+<span style="font-size: 13px; color: #8A919E">{{l.sub}}</span>
+</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 17px; min-width: 88px; text-align: right; color: {{l.priceC}}">{{l.price}}</span>
+<span style="font-size: 13px; font-weight: 500; padding: 6px 10px; border-radius: 8px; background: {{l.vBg}}; color: {{l.vC}}; min-width: 170px; text-align: center">{{l.verdict}}</span>
+</li>
+</sc-for>
+</ul>
+</article>
+</sc-for>
+<div style="font-size: 14px; color: #A3A9B5; padding: 4px 4px">Sem resultados para esta pesquisa: Worten, Fnac, Continente.</div>
+</section>
+
+<aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section aria-labelledby="hist-h" style="padding: 20px; border-radius: 20px; background: #15171C; border: 1px solid #23262E; display: flex; flex-direction: column; gap: 16px">
+<h2 id="hist-h" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700">Alertas deste produto</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<sc-for list="{{history}}" as="h" hint-placeholder-count="3">
+<li style="display: flex; gap: 14px; padding-bottom: 16px">
+<span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #8C96F0; margin-top: 5px"></span><span style="flex: 1; width: 2px; background: #23262E"></span></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #8A919E">{{h.when}}</span>
+<span style="font-size: 15px"><span style="font-weight: 600">{{h.store}}</span> · {{h.price}}</span>
+<span style="font-size: 13px; color: #A3A9B5">{{h.channels}}</span>
+</span>
+</li>
+</sc-for>
+</ol>
+</section>
+<section style="padding: 20px; border-radius: 20px; background: #15171C; border: 1px solid #23262E; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700">Lojas vigiadas</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{storeNames}}" as="n" hint-placeholder-count="8"><span style="font-size: 13px; padding: 5px 10px; border-radius: 8px; background: #1C1F26; color: #ECEEF2">{{n}}</span></sc-for>
+</div>
+</section>
+</aside>
+
+</div>
+</main>
+</div>
+</template>
+<script>
+
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(patch) { this.state = Object.assign({}, this.state, typeof patch === "function" ? patch(this.state) : patch); window.__dcRender(); }
+  forceUpdate() { window.__dcRender(); }
+}
+
+
+const ICON = {
+  radar: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0',
+  store: 'M3 9l2-5h14l2 5M4 9v11h16V9M3 9h18M9.5 20v-6h5v6',
+  sliders: 'M4 7h9M17 7h3M4 17h3M11 17h9M13 7a2 2 0 1 0 4 0a2 2 0 1 0-4 0M7 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0'
+};
+function nav(active) {
+  return [
+    ['radar', 'Radar', 'radar.html', 'radar', ''],
+    ['watch', 'A vigiar', 'a-vigiar.html', 'eye', '12'],
+    ['alerts', 'Alertas', 'alertas.html', 'bell', '3'],
+    ['stores', 'Lojas', 'lojas.html', 'store', '11'],
+    ['settings', 'Definições', 'definicoes.html', 'sliders', '']
+  ].map(([id, label, href, ic, count]) => ({
+    label, href, icon: ICON[ic], count, hasCount: count !== '',
+    color: id === active ? '#ECEEF2' : '#A3A9B5',
+    bg: id === active ? '#1E2128' : 'transparent',
+    countBg: id === 'alerts' ? '#8C96F0' : '#23262E',
+    countColor: id === 'alerts' ? '#111318' : '#A3A9B5'
+  }));
+}
+const V = {
+  match: { vBg: '#8C96F0', vC: '#111318', priceC: '#8C96F0', keep: true },
+  above: { vBg: 'rgba(245,165,36,0.14)', vC: '#F5A524', priceC: '#F5A524', keep: true },
+  no: { vBg: '#1C1F26', vC: '#A3A9B5', priceC: '#8A919E', keep: false }
+};
+const L = (title, sub, price, kind, verdict) => ({ title, sub, price, verdict, ...V[kind] });
+const STORES = [
+  { name: 'Trap Card TCG', platform: 'Shopify', meta: 'há 38 s · 312 ms', ok: true, listings: [
+    L('Pokémon TCG: 30th Celebration Elite Trainer Box', 'Em stock · Inglês', '54,99 €', 'match', 'Avisado · dentro do preço'),
+    L('30th Celebration ETB — Pokémon Center Edition', 'Em stock · Inglês', '89,90 €', 'no', 'Tem “pokemon center”')
+  ] },
+  { name: 'Versus Gamecenter', platform: 'Shopify', meta: 'há 39 s · 288 ms', ok: true, listings: [
+    L('Elite Trainer Box 30th (EN)', 'Em stock · Inglês', '64,90 €', 'above', 'Acima do máximo · +4,90 €')
+  ] },
+  { name: 'Amazon', platform: 'Amazon', meta: 'há 41 s · 690 ms', ok: true, listings: [
+    L('Pokémon 30th Celebration Elite Trainer Box', 'Em stock · vendido por terceiros', '79,99 €', 'above', 'Acima do máximo · +19,99 €')
+  ] },
+  { name: 'Panda Collecting', platform: 'WooCommerce', meta: 'há 40 s · 640 ms', ok: true, listings: [
+    L('ETB 30th Celebration Inglês', 'Esgotado · Inglês', '56,90 €', 'no', 'Esgotado')
+  ] },
+  { name: 'CentroXogo', platform: 'Shopify', meta: 'há 40 s · 301 ms', ok: true, listings: [
+    L('Elite Trainer Box 30th Celebración (ES)', 'Em stock · Espanhol', '52,90 €', 'no', 'Não é inglês'),
+    L('30th Celebration Booster Display', 'Em stock · Inglês', '189,00 €', 'no', 'Falta “elite trainer”')
+  ] },
+  { name: 'Notel', platform: 'HTML', meta: 'há 41 s · timeout', ok: false, error: 'Não respondeu depois de 3 tentativas', listings: [] }
+];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { showAll: true };
+  }
+  renderVals() {
+    const showAll = this.state.showAll;
+    const stores = STORES
+      .map((s) => ({
+        ...s,
+        hasError: !s.ok,
+        dotBg: !s.ok ? 'transparent' : (s.listings.some((l) => l.vBg === '#8C96F0') ? '#8C96F0' : (s.listings.some((l) => l.vC === '#F5A524') ? '#F5A524' : '#3A3F4A')),
+        dotBorder: s.ok ? '0' : '2px solid #FF8A7A',
+        listings: showAll ? s.listings : s.listings.filter((l) => l.keep)
+      }))
+      .filter((s) => showAll || s.listings.length > 0);
+    const tabs = [[true, 'Tudo · 7'], [false, 'Só candidatos · 3']].map(([v, label]) => ({
+      label, on: showAll === v,
+      bg: showAll === v ? '#2A2E37' : 'transparent',
+      color: showAll === v ? '#ECEEF2' : '#A3A9B5',
+      pick: () => this.setState({ showAll: v })
+    }));
+    return {
+      nav: nav('watch'),
+      tabs,
+      stores,
+      history: [
+        { when: 'Hoje, 17:08', store: 'Trap Card TCG', price: '54,99 €', channels: 'WhatsApp e email enviados' },
+        { when: '2 out, 10:12', store: 'Panda Collecting', price: '56,90 €', channels: 'WhatsApp enviado' },
+        { when: '28 set, 21:40', store: 'Trap Card TCG', price: '54,99 €', channels: 'WhatsApp e email enviados' }
+      ],
+      storeNames: ['Trap Card TCG', 'Versus Gamecenter', 'Panda Collecting', 'CentroXogo', 'Notel', 'Continente', 'Amazon', 'Worten', 'Fnac']
+    };
+  }
+}
+
+
+(function () {
+  const template = document.getElementById("dc-template").content;
+  const root = document.getElementById("dc-root");
+  const component = new Component({});
+  const WHOLE = /^\{\{\s*([^}]+?)\s*\}\}$/;
+  const HOLE = /\{\{\s*([^}]+?)\s*\}\}/g;
+  const get = (scope, path) => {
+    path = path.trim();
+    if (path === "true") return true;
+    if (path === "false") return false;
+    if (/^-?\d+(\.\d+)?$/.test(path)) return Number(path);
+    let value = scope;
+    for (const part of path.split(".")) { if (value == null) return undefined; value = value[part]; }
+    return value;
+  };
+  const text = (value, scope) => value.replace(HOLE, (_, path) => { const v = get(scope, path); return v == null ? "" : String(v); });
+  function renderAll(nodes, scope, out) { for (const node of nodes) renderNode(node, scope, out); }
+  function renderNode(node, scope, out) {
+    if (node.nodeType === 3) { out.appendChild(document.createTextNode(text(node.nodeValue, scope))); return; }
+    if (node.nodeType !== 1) return;
+    const tag = node.localName;
+    if (tag === "sc-for") {
+      const list = get(scope, WHOLE.exec(node.getAttribute("list"))[1]) || [];
+      const as = node.getAttribute("as");
+      list.forEach((item, index) => { const inner = Object.create(scope); inner[as] = item; inner.$index = index; renderAll(node.childNodes, inner, out); });
+      return;
+    }
+    if (tag === "sc-if") { if (get(scope, WHOLE.exec(node.getAttribute("value"))[1])) renderAll(node.childNodes, scope, out); return; }
+    const element = node.cloneNode(false);
+    for (const attribute of [...node.attributes]) {
+      const whole = WHOLE.exec(attribute.value);
+      if (attribute.name.startsWith("on") && whole) {
+        element.removeAttribute(attribute.name);
+        const handler = get(scope, whole[1]);
+        if (typeof handler === "function") element.addEventListener(attribute.name.slice(2), handler);
+      } else if (attribute.value.includes("{{")) {
+        element.setAttribute(attribute.name, whole ? String(get(scope, whole[1]) ?? "") : text(attribute.value, scope));
+      }
+    }
+    renderAll(node.childNodes, scope, element);
+    out.appendChild(element);
+  }
+  window.__dcRender = () => {
+    const fragment = document.createDocumentFragment();
+    renderAll(template.childNodes, component.renderVals(), fragment);
+    root.replaceChildren(fragment);
+  };
+  window.__dcRender();
+})();
+
+</script>
+</body>
+</html>

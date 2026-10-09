@@ -33,4 +33,7 @@ public sealed class StockTask
 
     /// <summary>Gets or sets the print run wanted. Missing in older files, which then default to English.</summary>
     public TaskLanguage Language { get; set; } = TaskLanguage.English;
+
+    /// <summary>Gets or sets the card game. Missing in older files, which then default to Pokémon.</summary>
+    public TcgGame Game { get; set; } = TcgGame.Pokemon;
 }
