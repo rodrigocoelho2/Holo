@@ -20,6 +20,7 @@ internal sealed class SettingRepository(BotDataContext dataContext) : Repository
             PollJitter = configuration.PollJitter,
             DelayBetweenRequests = configuration.DelayBetweenRequests,
             UserAgent = configuration.UserAgent,
+            AutoDisableAfterFailures = configuration.AutoDisableAfterFailures,
         });
     }
 
@@ -33,6 +34,7 @@ internal sealed class SettingRepository(BotDataContext dataContext) : Repository
             configuration.PollJitter = item.PollJitter;
             configuration.DelayBetweenRequests = item.DelayBetweenRequests;
             configuration.UserAgent = item.UserAgent;
+            configuration.AutoDisableAfterFailures = item.AutoDisableAfterFailures;
         }, CancellationToken.None);
 
         return item;

@@ -62,6 +62,19 @@ public sealed class AlertServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Clear_EmptiesTheList_ButKeepsTheMemory()
+    {
+        var searched = Searched(("Shop", "etb"));
+        var alerts = await _service.SelectNewAlertsAsync([Alert()], searched);
+        await _service.RecordAsync(alerts);
+
+        await _service.ClearAsync();
+
+        Assert.Empty((await _service.ListAsync()).Result!);
+        Assert.Empty(await _service.SelectNewAlertsAsync([Alert()], searched));   // still in stock → not alerted again
+    }
+
+    [Fact]
     public async Task Record_KeepsTheLanguageFlagInTheHistory()
     {
         await _service.RecordAsync([Alert(languageToConfirm: true)]);

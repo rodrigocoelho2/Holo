@@ -11,7 +11,17 @@ public sealed class StoreDTO
     public string BaseUrl { get; set; } = string.Empty;
     public UnmarkedLanguagePolicy UnmarkedLanguage { get; set; }
     public string WooCommerceProductsPath { get; set; } = string.Empty;
+    public string ShopifyCatalogPaths { get; set; } = string.Empty;
     public StoreHtmlSelectorDTO? Html { get; set; }
+    public string AwinFeedKey { get; set; } = string.Empty;
+    public StoreCountry Country { get; set; }
+    public StoreTier Tier { get; set; }
+    public StoreType Type { get; set; }
+    public List<string> Tags { get; set; } = [];
+    public string Notes { get; set; } = string.Empty;
+    public StoreTestResultDTO? LastTest { get; set; }
+    public int ConsecutiveFailures { get; set; }
+    public DateTimeOffset? AutoDisabledAt { get; set; }
 }
 
 /// <summary>CSS selectors of an HTML store.</summary>
@@ -36,7 +46,14 @@ public sealed class StoreSaveRequest
     public string BaseUrl { get; set; } = string.Empty;
     public UnmarkedLanguagePolicy UnmarkedLanguage { get; set; }
     public string WooCommerceProductsPath { get; set; } = "/wp-json/wc/store/v1/products";
+    public string ShopifyCatalogPaths { get; set; } = string.Empty;
     public StoreHtmlSelectorDTO? Html { get; set; }
+    public string AwinFeedKey { get; set; } = string.Empty;
+    public StoreCountry Country { get; set; } = StoreCountry.Portugal;
+    public StoreTier Tier { get; set; } = StoreTier.None;
+    public StoreType Type { get; set; } = StoreType.Unknown;
+    public List<string>? Tags { get; set; } = [];
+    public string Notes { get; set; } = string.Empty;
 }
 
 /// <summary>Output of StoreSave.</summary>
@@ -72,4 +89,47 @@ public sealed class StoreProbeResult
     public string Currency { get; set; } = "EUR";
     public string? Seller { get; set; }
     public string? ImageUrl { get; set; }
+    public bool PreOrder { get; set; }
+}
+
+/// <summary>Input of StoreTest.</summary>
+public sealed class StoreTestRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Query { get; set; } = string.Empty;
+}
+
+/// <summary>Result of a store test.</summary>
+public sealed class StoreTestResultDTO
+{
+    public string Name { get; set; } = string.Empty;
+    public DateTimeOffset At { get; set; }
+    public StoreTestStatus Status { get; set; }
+    public string Query { get; set; } = string.Empty;
+    public int Results { get; set; }
+    public int Relevant { get; set; }
+    public int Matches { get; set; }
+    public string Sample { get; set; } = string.Empty;
+    public long DurationMs { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>Input of StoreDetect.</summary>
+public sealed class StoreDetectRequest
+{
+    public string Url { get; set; } = string.Empty;
+}
+
+/// <summary>Output of StoreDetect.</summary>
+public sealed class StoreDetectResult
+{
+    public StoreDetectStatus Status { get; set; }
+    public StorePlatform Platform { get; set; } = StorePlatform.Manual;
+    public string BaseUrl { get; set; } = string.Empty;
+    public string SuggestedName { get; set; } = string.Empty;
+    public string ShopifyCatalogPaths { get; set; } = string.Empty;
+    public string WooCommerceProductsPath { get; set; } = "/wp-json/wc/store/v1/products";
+    public StoreHtmlSelectorDTO? Html { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public List<string> Evidence { get; set; } = [];
 }

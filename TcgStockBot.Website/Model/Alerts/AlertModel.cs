@@ -16,4 +16,8 @@ public sealed class AlertModel(TcgStockBotClient apiClient) : WebsiteBaseModel(a
     /// <summary>Forgets every alerted product.</summary>
     /// <returns>Success.</returns>
     public Task<AjaxDataResult<bool>> ResetAsync() => CallAsync(() => ApiClient.AlertResetAsync());
+
+    /// <summary>Empties the alert list.</summary>
+    /// <returns>Success.</returns>
+    public Task<AjaxDataResult<bool>> ClearAsync() => CallAsync(() => ApiClient.AlertClearAsync());
 }

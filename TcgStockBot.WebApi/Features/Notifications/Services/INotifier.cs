@@ -21,4 +21,13 @@ internal interface INotifier
     /// <param name="cancellationToken">Cancels the delivery.</param>
     /// <returns>A task that completes when delivered; throws when the channel fails.</returns>
     Task SendAsync(IReadOnlyList<StockAlert> alerts, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sends a short notice that is not a stock alert (e.g. stores turned off after repeated errors).
+    /// </summary>
+    /// <param name="subject">The one-line subject.</param>
+    /// <param name="text">The text.</param>
+    /// <param name="cancellationToken">Cancels the send.</param>
+    /// <returns>A task that completes when sent.</returns>
+    Task SendNoticeAsync(string subject, string text, CancellationToken cancellationToken);
 }

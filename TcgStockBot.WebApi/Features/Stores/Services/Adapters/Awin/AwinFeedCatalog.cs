@@ -21,6 +21,7 @@ namespace TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 /// <param name="InStock">Whether the feed says it is in stock.</param>
 /// <param name="ProductId">The merchant's product id, Awin's id or the EAN.</param>
 /// <param name="Seller">The merchant name in the feed.</param>
+/// <param name="PreOrder">Whether stock_status says pre-order.</param>
 /// <param name="ImageUrl">The product photo, when the feed has one.</param>
 internal sealed record AwinFeedProduct(
     string Title,
@@ -31,6 +32,7 @@ internal sealed record AwinFeedProduct(
     bool InStock,
     string? ProductId,
     string? Seller,
+    bool PreOrder = false,
     string? ImageUrl = null);
 
 /// <summary>
@@ -186,6 +188,7 @@ internal sealed class AwinFeedCatalog(
                 ParseInStock(Field(record, columns, "in_stock"), Field(record, columns, "stock_status"), Field(record, columns, "stock_quantity")),
                 IdColumns.Select(name => Field(record, columns, name)).FirstOrDefault(static value => !string.IsNullOrWhiteSpace(value)),
                 Field(record, columns, "merchant_name") is { Length: > 0 } seller ? seller : null,
+                IsPreOrderStatus(Field(record, columns, "stock_status")),
                 ImageColumns.Select(name => StoreImageUrl.Normalize(Field(record, columns, name))).FirstOrDefault(static image => image is not null)));
         }
 
@@ -223,6 +226,11 @@ internal sealed class AwinFeedCatalog(
         return status.Contains("in stock") || status.Contains("instock") || status.Contains("available") || status.Contains("preorder")
             || status.Contains("pre order") || status.Contains("disponivel") || status.Contains("em stock") || status.Contains("en stock");
     }
+
+    /// <summary>Awin stock_status "preorder" / "pre-order" / "pre_order".</summary>
+    internal static bool IsPreOrderStatus(string? stockStatus) =>
+        !string.IsNullOrWhiteSpace(stockStatus)
+        && TextNormalizer.Normalize(stockStatus).Replace("_", string.Empty).Replace("-", string.Empty).Replace(" ", string.Empty).Contains("preorder");
 
     private IReadOnlyList<AwinFeedProduct>? TryCached(FeedState state, string feedUrl, AwinFeedOptions settings)
     {

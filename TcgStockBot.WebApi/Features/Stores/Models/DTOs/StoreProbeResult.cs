@@ -36,4 +36,7 @@ public sealed class StoreProbeResult
 
     /// <summary>Gets or sets the product photo URL, when the store provides one.</summary>
     public string? ImageUrl { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether it is a pre-order (from the title or the provider's data).</summary>
+    public bool PreOrder { get; set; }
 }

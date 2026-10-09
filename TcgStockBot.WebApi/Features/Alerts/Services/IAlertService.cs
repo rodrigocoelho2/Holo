@@ -22,6 +22,12 @@ internal interface IAlertService
     Task<ServiceApiResponse<string>> ResetAsync();
 
     /// <summary>
+    /// Empties the alert list. The "already alerted" memory is kept, so products still in stock are not alerted again.
+    /// </summary>
+    /// <returns>Success.</returns>
+    Task<ServiceApiResponse<string>> ClearAsync();
+
+    /// <summary>
     /// Given what currently matches in the searches that succeeded this cycle, returns only the matches
     /// not alerted yet, and forgets matches that disappeared (sold out / removed) so a restock alerts again.
     /// A search that failed keeps its memory, so a network error never causes a duplicate alert.

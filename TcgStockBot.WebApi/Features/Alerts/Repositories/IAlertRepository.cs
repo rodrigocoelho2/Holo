@@ -22,15 +22,21 @@ internal interface IAlertRepository
     Task AddHistoryAsync(IReadOnlyList<AlertHistory> entries, int maxEntries);
 
     /// <summary>
-    /// Loads the memory of currently-alerted products (alert key → first alert time).
+    /// Deletes every history entry (the "already alerted" memory is not touched).
+    /// </summary>
+    /// <returns>A task that completes when saved.</returns>
+    Task ClearHistoryAsync();
+
+    /// <summary>
+    /// Loads the memory of currently-alerted products (alert key → first alert time and last alerted price).
     /// </summary>
     /// <returns>The memory.</returns>
-    Task<Dictionary<string, DateTimeOffset>> GetStateAsync();
+    Task<Dictionary<string, AlertMemory>> GetStateAsync();
 
     /// <summary>
     /// Replaces the memory of currently-alerted products.
     /// </summary>
     /// <param name="state">The new memory.</param>
     /// <returns>A task that completes when saved.</returns>
-    Task SaveStateAsync(Dictionary<string, DateTimeOffset> state);
+    Task SaveStateAsync(Dictionary<string, AlertMemory> state);
 }

@@ -48,4 +48,13 @@ public static class MatchOutcomeExtensions
     /// <returns>True for <see cref="MatchOutcome.Match"/> and <see cref="MatchOutcome.MatchLanguageToConfirm"/>.</returns>
     public static bool IsMatch(this MatchOutcome outcome) =>
         outcome is MatchOutcome.Match or MatchOutcome.MatchLanguageToConfirm;
+
+    /// <summary>
+    /// Whether the task recognises the product (right keywords and language), whatever its stock or price — as
+    /// opposed to the unrelated results a store search also returns.
+    /// </summary>
+    /// <param name="outcome">The outcome to test.</param>
+    /// <returns>False for missing / excluded keywords and the wrong language.</returns>
+    public static bool IsRelevant(this MatchOutcome outcome) =>
+        outcome is not (MatchOutcome.MissingKeyword or MatchOutcome.ExcludedKeyword or MatchOutcome.NotEnglish or MatchOutcome.NotJapanese);
 }

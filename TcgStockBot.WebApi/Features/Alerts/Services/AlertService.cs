@@ -15,6 +15,12 @@ internal sealed class AlertService(IAlertRepository alertRepository, TimeProvide
 {
     private const int MaxHistoryEntries = 500;
 
+    /// <summary>A drop alerts only when it is at least this share of the last alerted price…</summary>
+    private const decimal MinimumDropPercent = 0.01m;
+
+    /// <summary>…and at least this amount, so 5,49 € → 5,29 € or 129,99 € → 129,90 € stay quiet.</summary>
+    private const decimal MinimumDropAmount = 0.50m;
+
     private readonly IAlertRepository _alertRepository = alertRepository;
     private readonly TimeProvider _timeProvider = timeProvider;
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -43,6 +49,13 @@ internal sealed class AlertService(IAlertRepository alertRepository, TimeProvide
     }
 
     /// <inheritdoc />
+    public async Task<ServiceApiResponse<string>> ClearAsync()
+    {
+        await _alertRepository.ClearHistoryAsync();
+        return ServiceApiResponse<string>.Success();
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<StockAlert>> SelectNewAlertsAsync(IReadOnlyList<StockAlert> currentMatches, IReadOnlySet<string> completedSearches)
     {
         await _stateLock.WaitAsync();
@@ -60,14 +73,23 @@ internal sealed class AlertService(IAlertRepository alertRepository, TimeProvide
                 }
             }
 
-            var newAlerts = currentMatches
-                .Where(match => !state.ContainsKey(match.Key))
-                .DistinctBy(static match => match.Key)
-                .ToList();
-
-            foreach (var alert in newAlerts)
+            var newAlerts = new List<StockAlert>();
+            foreach (var match in currentMatches.DistinctBy(static match => match.Key))
             {
-                state[alert.Key] = _timeProvider.GetUtcNow();
+                if (!state.TryGetValue(match.Key, out var memory))
+                {
+                    newAlerts.Add(match);
+                    state[match.Key] = new AlertMemory { AlertedAt = _timeProvider.GetUtcNow(), Price = match.Listing.Price };
+                }
+                else if (IsPriceDrop(memory.Price, match.Listing.Price))
+                {
+                    newAlerts.Add(match with { PreviousPrice = memory.Price });
+                    memory.Price = match.Listing.Price;
+                }
+                else if (memory.Price is null)
+                {
+                    memory.Price = match.Listing.Price;   // entry from before prices were remembered: start tracking now
+                }
             }
 
             await _alertRepository.SaveStateAsync(state);
@@ -94,8 +116,23 @@ internal sealed class AlertService(IAlertRepository alertRepository, TimeProvide
             Price = alert.Listing.Price,
             LanguageToConfirm = alert.LanguageToConfirm,
             ImageUrl = alert.Listing.ImageUrl,
+            PreviousPrice = alert.PreviousPrice,
+            Msrp = alert.Msrp,
+            PreOrder = alert.Listing.PreOrder,
         }).ToList();
 
         return _alertRepository.AddHistoryAsync(entries, MaxHistoryEntries);
     }
+
+    /// <summary>
+    /// Whether the current price is low enough below the last alerted one to alert again. Only the last alerted price
+    /// counts: a price that goes up and back down to where it was does not alert twice.
+    /// </summary>
+    /// <param name="lastAlertedPrice">The price of the last alert.</param>
+    /// <param name="currentPrice">The price now.</param>
+    /// <returns>True when it is a drop worth an alert.</returns>
+    internal static bool IsPriceDrop(decimal? lastAlertedPrice, decimal? currentPrice) =>
+        lastAlertedPrice is > 0 && currentPrice is > 0
+        && lastAlertedPrice.Value - currentPrice.Value >= MinimumDropAmount
+        && lastAlertedPrice.Value - currentPrice.Value >= lastAlertedPrice.Value * MinimumDropPercent;
 }

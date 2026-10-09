@@ -90,4 +90,59 @@ public sealed class StoreServiceTests : IDisposable
         Assert.False(response.IsSuccess);
         Assert.Contains("403", response.Problems!.Title);
     }
+
+    [Theory]
+    [InlineData("", "AwinFeedKey")]
+    [InlineData("Media Markt", "AwinFeedKey")]
+    [InlineData("MediaMarktES", null)]
+    public async Task Save_Awin_NeedsASafeFeedKey(string feedKey, string? expectedError)
+    {
+        var request = Shopify("MediaMarkt");
+        request.Platform = StorePlatform.Awin;
+        request.AwinFeedKey = feedKey;
+
+        var response = await _service.SaveAsync(request);
+
+        if (expectedError is null)
+        {
+            Assert.True(response.IsSuccess);
+            Assert.Equal("MediaMarktES", Assert.Single((await _service.ListAsync()).Result!).AwinFeedKey);
+        }
+        else
+        {
+            Assert.Contains(response.Problems!.Errors, error => error.Field == expectedError);
+        }
+    }
+
+    [Fact]
+    public async Task Save_KeepsTheClassification_AndCleansTheTags()
+    {
+        var request = Shopify("Loja ES");
+        request.Country = StoreCountry.Spain;
+        request.Tier = StoreTier.A;
+        request.Type = StoreType.Specialist;
+        request.Tags = [" por testar ", "Por Testar", "", "envia para PT"];
+        request.Notes = "  nota  ";
+
+        await _service.SaveAsync(request);
+
+        var store = Assert.Single((await _service.ListAsync()).Result!);
+        Assert.Equal((StoreCountry.Spain, StoreTier.A, StoreType.Specialist), (store.Country, store.Tier, store.Type));
+        Assert.Equal(["por testar", "envia para PT"], store.Tags);
+        Assert.Equal("nota", store.Notes);
+    }
+
+    [Fact]
+    public async Task Probe_StoreWithoutIntegration_SaysSo()
+    {
+        var resolver = new StoreAdapterResolver([new ManualStoreAdapter()]);
+        var service = new StoreService(new StoreRepository(_data.Context), _taskRepository, resolver, new GlobalizationHelper());
+        var request = Shopify("Cardmarket");
+        request.Platform = StorePlatform.Manual;
+
+        var response = await service.ProbeAsync(new StoreProbeRequest { Store = request, Query = "etb" });
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains("não tem integração", response.Problems!.Title);
+    }
 }

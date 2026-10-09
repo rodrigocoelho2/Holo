@@ -1,107 +1,33 @@
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using TcgStockBot.WebApi.Extensions.Http;
 
 namespace TcgStockBot.UnitTest.Extensions;
 
 /// <summary>
-/// Optional outbound proxy, per-domain throttling, Retry-After and outbound logs. The proxy is a fake one on
-/// 127.0.0.1 that records what it receives; nothing leaves the machine.
+/// Outbound price-provider traffic: direct connection, per-domain throttling, Retry-After, timeouts and logs
+/// without secrets.
 /// </summary>
 public class OutboundHttpTests
 {
     [Fact]
-    public void ProxyDisabled_GoesDirect_AndIgnoresEnvironmentProxies()
+    public void Handler_IsDirect_AndIgnoresEnvironmentProxies()
     {
-        var options = new OutboundHttpOptions { Proxy = { Enabled = false, Url = "http://price-proxy:3128" } };
-
-        using var handler = OutboundHttpHandlerFactory.Create(options, NullLogger.Instance);
+        using var handler = OutboundHttpHandlerFactory.Create(new OutboundHttpOptions { ConnectTimeout = TimeSpan.FromSeconds(7) });
 
         Assert.False(handler.UseProxy);   // HTTP_PROXY / HTTPS_PROXY are ignored too
         Assert.Null(handler.Proxy);
-        Assert.Equal("direct", OutboundHttpHandlerFactory.ResolveRoute(options, NullLogger.Instance, out _).Label);
+        Assert.Equal(TimeSpan.FromSeconds(7), handler.ConnectTimeout);
     }
 
     [Fact]
-    public void ProxyEnabled_WithCredentials_KeepsThemOutOfTheLabel()
+    public async Task SlowSite_TimesOutAndIsLogged()
     {
-        var options = new OutboundHttpOptions { Proxy = { Enabled = true, Url = "http://bot:p%40ss@price-proxy:3128" } };
+        var options = new OutboundHttpOptions { DefaultRateLimitSeconds = 0 };
+        using var client = CreateClient(options, new SlowHandler(), out var logger);
+        client.Timeout = TimeSpan.FromMilliseconds(300);
 
-        var route = OutboundHttpHandlerFactory.ResolveRoute(options, NullLogger.Instance, out var proxy);
-
-        Assert.True(route.ViaProxy);
-        Assert.Equal("proxy price-proxy:3128", route.Label);
-        Assert.Equal(new Uri("http://price-proxy:3128/"), proxy!.Address);
-        var credential = Assert.IsType<NetworkCredential>(proxy.Credentials);
-        Assert.Equal("bot", credential.UserName);
-        Assert.Equal("p@ss", credential.Password);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("price-proxy:3128")]
-    [InlineData("https://price-proxy:3128")]
-    [InlineData("socks5://price-proxy:1080")]
-    public void ProxyEnabled_WithInvalidUrl_FallsBackToDirectAndLogsError(string url)
-    {
-        var logger = new ListLogger();
-
-        var route = OutboundHttpHandlerFactory.ResolveRoute(new OutboundHttpOptions { Proxy = { Enabled = true, Url = url } }, logger, out var proxy);
-
-        Assert.False(route.ViaProxy);
-        Assert.Null(proxy);
-        Assert.Contains(logger.Entries, static entry => entry.Level == LogLevel.Error);
-    }
-
-    [Fact]
-    public async Task ProxyEnabled_HttpRequest_IsSentToTheProxyInAbsoluteForm()
-    {
-        await using var proxy = FakeProxy.Start("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok");
-        using var client = CreateClient(new OutboundHttpOptions { Proxy = { Enabled = true, Url = proxy.Url } }, out _);
-
-        var body = await client.GetStringAsync("http://shop.test/products.json?page=1");
-
-        Assert.Equal("ok", body);
-        Assert.StartsWith("GET http://shop.test/products.json?page=1 HTTP/1.1", await proxy.RequestHead);
-    }
-
-    [Fact]
-    public async Task ProxyEnabled_HttpsRequest_OpensAConnectTunnel()
-    {
-        // The fake proxy refuses the tunnel, so the test stops right after the CONNECT line (no TLS needed).
-        await using var proxy = FakeProxy.Start("HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
-        using var client = CreateClient(new OutboundHttpOptions { Proxy = { Enabled = true, Url = proxy.Url } }, out _);
-
-        var exception = await Assert.ThrowsAsync<HttpRequestException>(() => client.GetAsync("https://www.fnac.pt/"));
-
-        Assert.StartsWith("CONNECT www.fnac.pt:443 HTTP/1.1", await proxy.RequestHead);
-        Assert.Equal(HttpRequestError.ProxyTunnelError, exception.HttpRequestError);
-    }
-
-    [Fact]
-    public async Task ProxyUnavailable_IsReportedAsSuch()
-    {
-        var closedPort = FakeProxy.FreePort();   // nothing listens here
-        using var client = CreateClient(new OutboundHttpOptions { Proxy = { Enabled = true, Url = $"http://127.0.0.1:{closedPort}" } }, out var logger);
-
-        var exception = await Assert.ThrowsAsync<OutboundProxyUnavailableException>(() => client.GetAsync("http://shop.test/"));
-
-        Assert.Equal($"127.0.0.1:{closedPort}", exception.ProxyAuthority);
-        Assert.Contains(logger.Entries, static entry => entry.Message.Contains("ProxyUnavailable"));
-    }
-
-    [Fact]
-    public async Task ProxyThatNeverAnswers_TimesOut()
-    {
-        await using var proxy = FakeProxy.Start(response: null);   // accepts, reads, never answers
-        using var client = CreateClient(new OutboundHttpOptions { Proxy = { Enabled = true, Url = proxy.Url } }, out var logger);
-        client.Timeout = TimeSpan.FromMilliseconds(500);
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.GetAsync("http://shop.test/"));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.GetAsync("https://shop.test/"));
 
         Assert.Contains(logger.Entries, static entry => entry.Message.EndsWith("Timeout"));
     }
@@ -191,40 +117,34 @@ public class OutboundHttpTests
         using var second = new HttpRequestMessage(HttpMethod.Post, "https://creatorsapi.amazon/catalog/v1/getItems").ForProvider("Amazon", "amazon.es");
 
         await Assert.ThrowsAsync<OutboundThrottledException>(() => client.SendAsync(second));
-        Assert.Contains(logger.Entries, static entry => entry.Message.StartsWith("Outbound [Amazon] POST creatorsapi.amazon/catalog/v1/searchItems via direct -> 200"));
+        Assert.Contains(logger.Entries, static entry => entry.Message.StartsWith("Outbound [Amazon] POST creatorsapi.amazon/catalog/v1/searchItems -> 200"));
     }
 
     [Fact]
-    public async Task Logs_NeverContainQueryStringsHeadersOrProxyCredentials()
+    public async Task Logs_NeverContainQueryStringsOrHeaders()
     {
-        await using var proxy = FakeProxy.Start("HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
-        var proxyUrl = proxy.Url.Replace("http://", "http://bot:proxy-password@");
-        using var client = CreateClient(new OutboundHttpOptions { Proxy = { Enabled = true, Url = proxyUrl } }, out var logger);
+        var options = new OutboundHttpOptions { DefaultRateLimitSeconds = 0 };
+        using var client = CreateClient(options, new CountingHandler(HttpStatusCode.OK), out var logger);
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, "http://shop.test/api/search?apikey=query-secret&q=etb");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://shop.test/api/search?apikey=query-secret&q=etb");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "header-secret");
         request.Headers.Add("Cookie", "session=cookie-secret");
         await client.SendAsync(request);
 
         var logged = string.Join('\n', logger.Entries.Select(static entry => entry.Message));
         Assert.Contains("shop.test/api/search", logged);
-        Assert.Contains("via proxy 127.0.0.1:", logged);
-        foreach (var secret in new[] { "query-secret", "apikey", "header-secret", "cookie-secret", "proxy-password", "bot:" })
+        foreach (var secret in new[] { "query-secret", "apikey", "header-secret", "cookie-secret" })
         {
             Assert.DoesNotContain(secret, logged);
         }
     }
 
-    private static HttpClient CreateClient(OutboundHttpOptions options, out ListLogger logger) =>
-        CreateClient(options, OutboundHttpHandlerFactory.Create(options, NullLogger.Instance), out logger);
-
     /// <summary>The same chain as Startup: OutboundTrafficHandler over the given primary handler.</summary>
     private static HttpClient CreateClient(OutboundHttpOptions options, HttpMessageHandler primary, out ListLogger logger)
     {
         logger = new ListLogger();
-        var route = OutboundHttpHandlerFactory.ResolveRoute(options, NullLogger.Instance, out _);
         var throttle = new DomainThrottle(new StaticOptionsMonitor<OutboundHttpOptions>(options), TimeProvider.System);
-        var traffic = new OutboundTrafficHandler(throttle, route, new TypedLogger<OutboundTrafficHandler>(logger)) { InnerHandler = primary };
+        var traffic = new OutboundTrafficHandler(throttle, new TypedLogger<OutboundTrafficHandler>(logger)) { InnerHandler = primary };
         return new HttpClient(traffic);
     }
 
@@ -248,69 +168,13 @@ public class OutboundHttpTests
         }
     }
 
-    /// <summary>A one-connection HTTP proxy on 127.0.0.1 that records the request head and sends a canned answer.</summary>
-    private sealed class FakeProxy : IAsyncDisposable
+    /// <summary>Never answers (until cancelled).</summary>
+    private sealed class SlowHandler : HttpMessageHandler
     {
-        private readonly TcpListener _listener;
-        private readonly CancellationTokenSource _stop = new();
-
-        private FakeProxy(string? response)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            _listener = new TcpListener(IPAddress.Loopback, 0);
-            _listener.Start();
-            RequestHead = ServeOneAsync(response);
-        }
-
-        public string Url => $"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}";
-
-        public Task<string> RequestHead { get; }
-
-        public static FakeProxy Start(string? response) => new(response);
-
-        public static int FreePort()
-        {
-            var probe = new TcpListener(IPAddress.Loopback, 0);
-            probe.Start();
-            var port = ((IPEndPoint)probe.LocalEndpoint).Port;
-            probe.Stop();
-            return port;
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _stop.CancelAsync();
-            _listener.Stop();
-            _stop.Dispose();
-        }
-
-        private async Task<string> ServeOneAsync(string? response)
-        {
-            using var client = await _listener.AcceptTcpClientAsync(_stop.Token);
-            var stream = client.GetStream();
-            var head = new StringBuilder();
-            var buffer = new byte[1024];
-
-            while (!head.ToString().Contains("\r\n\r\n"))
-            {
-                var read = await stream.ReadAsync(buffer, _stop.Token);
-                if (read == 0)
-                {
-                    break;
-                }
-
-                head.Append(Encoding.ASCII.GetString(buffer, 0, read));
-            }
-
-            if (response is null)
-            {
-                await Task.Delay(Timeout.Infinite, _stop.Token).ContinueWith(static _ => { }, TaskScheduler.Default);
-            }
-            else
-            {
-                await stream.WriteAsync(Encoding.ASCII.GetBytes(response), _stop.Token);
-            }
-
-            return head.ToString();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }
 }

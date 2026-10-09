@@ -82,7 +82,14 @@ internal sealed class NotificationService(
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<string>> NotifyAsync(IReadOnlyList<StockAlert> alerts, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<string>> NotifyAsync(IReadOnlyList<StockAlert> alerts, CancellationToken cancellationToken) =>
+        SendToEveryChannelAsync(notifier => notifier.SendAsync(alerts, cancellationToken), cancellationToken);
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<string>> NotifyNoticeAsync(string subject, string text, CancellationToken cancellationToken) =>
+        SendToEveryChannelAsync(notifier => notifier.SendNoticeAsync(subject, text, cancellationToken), cancellationToken);
+
+    private async Task<IReadOnlyList<string>> SendToEveryChannelAsync(Func<INotifier, Task> send, CancellationToken cancellationToken)
     {
         var failures = new List<string>();
 
@@ -90,7 +97,7 @@ internal sealed class NotificationService(
         {
             try
             {
-                await notifier.SendAsync(alerts, cancellationToken);
+                await send(notifier);
             }
             catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {

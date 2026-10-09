@@ -27,6 +27,8 @@ internal sealed class StoreService(
     private const string FieldName = "Name";
     private const string FieldBaseUrl = "BaseUrl";
     private const string FieldSearchUrlTemplate = "SearchUrlTemplate";
+    private const string FieldShopifyCatalogPaths = "ShopifyCatalogPaths";
+    private const string FieldAwinFeedKey = "AwinFeedKey";
     private const string FieldProductSelector = "ProductSelector";
     private const string FieldQuery = "Query";
 
@@ -52,6 +54,15 @@ internal sealed class StoreService(
         }
 
         var store = item.StoreNew();
+        var existing = item.OriginalName is null ? null : await _storeRepository.GetAsync(item.OriginalName);
+        if (existing is not null)
+        {
+            // Health is the bot's, not the form's: keep it, and start counting again when the store is turned back on.
+            store.LastTest = existing.LastTest;
+            store.ConsecutiveFailures = store.Enabled && !existing.Enabled ? 0 : existing.ConsecutiveFailures;
+            store.AutoDisabledAt = store.Enabled ? null : existing.AutoDisabledAt;
+        }
+
         await _storeRepository.SaveAsync(store, item.OriginalName);
 
         if (item.OriginalName is not null && !item.OriginalName.Equals(store.Name, StringComparison.OrdinalIgnoreCase))
@@ -85,6 +96,20 @@ internal sealed class StoreService(
         }
 
         await _storeRepository.SetEnabledAsync(item.Name, item.Enabled);
+        if (item.Enabled)
+        {
+            // Turned back on by hand: a fresh start for the failed-cycle count.
+            await _storeRepository.UpdateAsync(stores =>
+            {
+                foreach (var store in stores.Where(store => store.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    store.ConsecutiveFailures = 0;
+                    store.AutoDisabledAt = null;
+                    store.Tags.RemoveAll(static tag => tag.Equals(StoreHealthService.FailingTag, StringComparison.OrdinalIgnoreCase));
+                }
+            });
+        }
+
         return ServiceApiResponse<string>.Success();
     }
 
@@ -121,6 +146,7 @@ internal sealed class StoreService(
                 Currency = listing.Currency,
                 Seller = listing.Seller,
                 ImageUrl = listing.ImageUrl,
+                PreOrder = listing.PreOrder || PreOrderDetector.IsPreOrder(listing.Title),
             }).ToList());
         }
         catch (Exception exception)
@@ -169,6 +195,28 @@ internal sealed class StoreService(
         if (!IsHttpUrl(item.BaseUrl))
         {
             validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldBaseUrl, nameof(TranslationKeys.InvalidUrl)));
+        }
+
+        if (item.Platform == StorePlatform.Shopify && !string.IsNullOrWhiteSpace(item.ShopifyCatalogPaths)
+            && item.ShopifyCatalogPaths.Split([',', ';', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Any(static path => !path.StartsWith('/') || path.StartsWith("//", StringComparison.Ordinal) || path.Contains("://", StringComparison.Ordinal) || path.Contains('?')))
+        {
+            // Paths on the store itself only ("/collections/pokemon"): never another host.
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldShopifyCatalogPaths, nameof(TranslationKeys.InvalidUrl)));
+        }
+
+        if (item.Platform == StorePlatform.Awin)
+        {
+            // The key becomes part of a configuration name (AwinFeeds__Feeds__{key}): letters, digits and '_' only.
+            var feedKey = (item.AwinFeedKey ?? string.Empty).Trim();
+            if (feedKey.Length == 0)
+            {
+                validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldAwinFeedKey, nameof(TranslationKeys.RequiredField)));
+            }
+            else if (!feedKey.All(static character => char.IsAsciiLetterOrDigit(character) || character == '_'))
+            {
+                validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldAwinFeedKey, nameof(TranslationKeys.InvalidKey)));
+            }
         }
 
         if (item.Platform == StorePlatform.Html)

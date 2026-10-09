@@ -9,3 +9,8 @@ x-api-key: {{apiKey}}
 POST {{HostAddress}}/alert/reset
 Content-Type: application/json
 x-api-key: {{apiKey}}
+
+### Clear Alert (empty the list; the "already alerted" memory is kept)
+POST {{HostAddress}}/alert/clear
+Content-Type: application/json
+x-api-key: {{apiKey}}

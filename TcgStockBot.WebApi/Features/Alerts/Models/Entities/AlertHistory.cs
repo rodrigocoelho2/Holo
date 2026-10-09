@@ -31,4 +31,13 @@ public sealed class AlertHistory
 
     /// <summary>Gets or sets the product photo URL, when the store provided one (absent in older entries).</summary>
     public string? ImageUrl { get; set; }
+
+    /// <summary>Gets or sets the price of the previous alert, for a price-drop alert (null otherwise).</summary>
+    public decimal? PreviousPrice { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the product was a pre-order.</summary>
+    public bool PreOrder { get; set; }
+
+    /// <summary>Gets or sets the MSRP reference price at alert time (null when unknown).</summary>
+    public decimal? Msrp { get; set; }
 }

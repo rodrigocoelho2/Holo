@@ -4,17 +4,14 @@ using System.Net;
 namespace TcgStockBot.WebApi.Extensions.Http;
 
 /// <summary>
-/// Wraps every outbound store request: waits for the host's turn (throttling), logs the outcome
-/// (method, host, path, route, status, duration) and turns proxy connection failures into
-/// <see cref="OutboundProxyUnavailableException"/>. Never logs query strings, headers, cookies or bodies.
+/// Wraps every outbound store request: waits for the host's turn (throttling), honours Retry-After and logs the
+/// outcome (method, host, path, status, duration). Never logs query strings, headers, cookies or bodies.
 /// No immediate retries: the monitor already tries again on its next cycle.
 /// </summary>
 /// <param name="throttle">Per-host throttling.</param>
-/// <param name="route">The outbound route in use (proxy or direct).</param>
 /// <param name="logger">Logger.</param>
 internal sealed class OutboundTrafficHandler(
     DomainThrottle throttle,
-    OutboundRoute route,
     ILogger<OutboundTrafficHandler> logger) : DelegatingHandler
 {
     private static readonly TimeSpan DefaultRateLimitBackoff = TimeSpan.FromMinutes(5);
@@ -65,32 +62,23 @@ internal sealed class OutboundTrafficHandler(
 
             var level = status >= 400 ? LogLevel.Warning : LogLevel.Information;
             if (logger.IsEnabled(level))
-                logger.Log(level, "Outbound [{Provider}] {Method} {Target} via {Route} -> {StatusCode} in {ElapsedMs} ms",
-                    provider, request.Method, target, route.Label, status, stopwatch.ElapsedMilliseconds);
+                logger.Log(level, "Outbound [{Provider}] {Method} {Target} -> {StatusCode} in {ElapsedMs} ms",
+                    provider, request.Method, target, status, stopwatch.ElapsedMilliseconds);
 
             return response;
-        }
-        catch (HttpRequestException exception) when (route.ViaProxy
-            && exception.HttpRequestError is HttpRequestError.ConnectionError or HttpRequestError.NameResolutionError)
-        {
-            // With a proxy every TCP connection goes to the proxy, so these errors mean the proxy itself is unreachable.
-            if (logger.IsEnabled(LogLevel.Warning))
-                logger.LogWarning("Outbound [{Provider}] {Method} {Target} failed after {ElapsedMs} ms: ProxyUnavailable {Proxy} ({Error})",
-                    provider, request.Method, target, stopwatch.ElapsedMilliseconds, route.ProxyAuthority, exception.HttpRequestError);
-            throw new OutboundProxyUnavailableException(route.ProxyAuthority!, exception);
         }
         catch (HttpRequestException exception)
         {
             if (logger.IsEnabled(LogLevel.Warning))
-                logger.LogWarning("Outbound [{Provider}] {Method} {Target} via {Route} failed after {ElapsedMs} ms: {Error}",
-                    provider, request.Method, target, route.Label, stopwatch.ElapsedMilliseconds, exception.HttpRequestError);
+                logger.LogWarning("Outbound [{Provider}] {Method} {Target} failed after {ElapsedMs} ms: {Error}",
+                    provider, request.Method, target, stopwatch.ElapsedMilliseconds, exception.HttpRequestError);
             throw;
         }
         catch (OperationCanceledException)
         {
             if (logger.IsEnabled(LogLevel.Warning))
-                logger.LogWarning("Outbound [{Provider}] {Method} {Target} via {Route} failed after {ElapsedMs} ms: Timeout",
-                    provider, request.Method, target, route.Label, stopwatch.ElapsedMilliseconds);
+                logger.LogWarning("Outbound [{Provider}] {Method} {Target} failed after {ElapsedMs} ms: Timeout",
+                    provider, request.Method, target, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }

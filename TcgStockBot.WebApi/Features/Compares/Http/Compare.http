@@ -1,0 +1,20 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List Compare
+GET {{HostAddress}}/compare/list
+x-api-key: {{apiKey}}
+
+### Get Compare (identifier = "key" from the list, URL-encoded)
+GET {{HostAddress}}/compare?identifier=
+x-api-key: {{apiKey}}
+
+### Assign Compare (groupKey: a group "key", "solo" for a product of its own, or "" for back to automatic)
+POST {{HostAddress}}/compare/assign
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "historyKey": "",
+    "groupKey": "solo"
+}

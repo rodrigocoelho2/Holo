@@ -20,6 +20,7 @@ internal sealed class SettingService(
     private const string FieldPollInterval = "PollIntervalSeconds";
     private const string FieldPollJitter = "PollJitterSeconds";
     private const string FieldDelayBetweenRequests = "DelayBetweenRequestsSeconds";
+    private const string FieldAutoDisableAfterFailures = "AutoDisableAfterFailures";
     private const string FieldUserAgent = "UserAgent";
 
     private readonly ISettingRepository _settingRepository = settingRepository;
@@ -62,6 +63,11 @@ internal sealed class SettingService(
         if (item.DelayBetweenRequestsSeconds < 0)
         {
             validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldDelayBetweenRequests, nameof(TranslationKeys.NegativeValue)));
+        }
+
+        if (item.AutoDisableAfterFailures < 0)
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldAutoDisableAfterFailures, nameof(TranslationKeys.NegativeValue)));
         }
 
         if (string.IsNullOrWhiteSpace(item.UserAgent))

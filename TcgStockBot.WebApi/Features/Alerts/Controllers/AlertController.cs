@@ -62,4 +62,20 @@ internal sealed class AlertController(
         var apiResponse = await _alertService.ResetAsync();
         return apiResponse.ToActionResult();
     }
+
+    /// <summary>
+    /// Empties the alert list (the "already alerted" memory is kept, so nothing is alerted again because of it).
+    /// </summary>
+    /// <returns>No content on success.</returns>
+    [HttpPost("clear")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [SwaggerOperation(Summary = "AlertClear", OperationId = "AlertClear")]
+    public async Task<ActionResult<string>> AlertClearAsync()
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("AlertClear");
+
+        var apiResponse = await _alertService.ClearAsync();
+        return apiResponse.ToActionResult();
+    }
 }

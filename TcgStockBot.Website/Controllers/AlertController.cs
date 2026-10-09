@@ -28,4 +28,14 @@ public partial class AlertController(TcgStockBotClient apiClient) : WebsiteBaseC
         var model = new AlertModel(ApiClient);
         return Json(await model.ResetAsync());
     }
+
+    /// <summary>Empties the alert list.</summary>
+    /// <returns>JSON <c>AjaxDataResult</c>.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearAsync()
+    {
+        var model = new AlertModel(ApiClient);
+        return Json(await model.ClearAsync());
+    }
 }

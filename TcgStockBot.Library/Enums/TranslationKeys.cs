@@ -50,12 +50,6 @@ public enum TranslationKeys
     /// <summary>The request was skipped because the host is paused (throttling / Retry-After).</summary>
     StoreThrottled,
 
-    /// <summary>The outbound proxy is unreachable.</summary>
-    ProxyUnavailable,
-
-    /// <summary>The proxy could not open a connection to the store.</summary>
-    ProxyTunnelFailed,
-
     /// <summary>The store's address could not be resolved.</summary>
     DnsFailed,
 
@@ -76,4 +70,31 @@ public enum TranslationKeys
 
     /// <summary>A notification could not be sent.</summary>
     NotificationFailed,
+
+    /// <summary>A store has no integration (Manual platform): it is never searched.</summary>
+    StoreWithoutIntegration,
+
+    /// <summary>An unknown kind of product code.</summary>
+    UnknownProductKind,
+
+    /// <summary>A key that may only contain letters, digits and '_'.</summary>
+    InvalidKey,
+
+    /// <summary>Store detection found a platform.</summary>
+    StoreDetected,
+
+    /// <summary>Store detection was refused by the site.</summary>
+    StoreDetectBlocked,
+
+    /// <summary>Store detection could not reach the site.</summary>
+    StoreDetectUnreachable,
+
+    /// <summary>Store detection found no searchable platform.</summary>
+    StoreDetectUnknown,
+
+    /// <summary>The subject of the "stores turned off" notice.</summary>
+    StoresAutoDisabledSubject,
+
+    /// <summary>One line of the "stores turned off" notice.</summary>
+    StoreAutoDisabledLine,
 }
