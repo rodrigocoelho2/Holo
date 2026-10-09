@@ -42,4 +42,11 @@ internal interface IStoreRepository
     /// <param name="enabled">The new value.</param>
     /// <returns>A task that completes when saved.</returns>
     Task SetEnabledAsync(string name, bool enabled);
+
+    /// <summary>
+    /// Changes the saved stores in one atomic write (health counters, test results).
+    /// </summary>
+    /// <param name="change">The change, applied to the current list.</param>
+    /// <returns>A task.</returns>
+    Task UpdateAsync(Action<List<Store>> change);
 }

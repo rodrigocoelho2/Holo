@@ -1,19 +1,15 @@
 namespace TcgStockBot.WebApi.Extensions.Http;
 
 /// <summary>
-/// Outbound HTTP settings for the price providers (optional proxy, connect timeout, per-domain rate limits),
-/// bound from the "OutboundHttp" section. In Docker: OutboundHttp__Proxy__Enabled, OutboundHttp__Proxy__Url,
-/// OutboundHttp__RateLimits__amazon.es, …
+/// Outbound HTTP settings for the price providers (connect timeout, per-domain rate limits), bound from the
+/// "OutboundHttp" section. In Docker: OutboundHttp__RateLimits__amazon.es, OutboundHttp__DefaultRateLimitSeconds, …
 /// </summary>
 public sealed class OutboundHttpOptions
 {
     /// <summary>The configuration section name.</summary>
     public const string SectionName = "OutboundHttp";
 
-    /// <summary>Gets or sets the optional outbound proxy.</summary>
-    public OutboundProxyOptions Proxy { get; set; } = new();
-
-    /// <summary>Gets or sets how long to wait for the TCP connection (to the proxy, or to the site when direct).</summary>
+    /// <summary>Gets or sets how long to wait for the TCP connection to the site.</summary>
     public TimeSpan ConnectTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
@@ -31,16 +27,4 @@ public sealed class OutboundHttpOptions
 
     /// <summary>Gets or sets the cap applied to a site's Retry-After (429/503).</summary>
     public TimeSpan MaxBackoff { get; set; } = TimeSpan.FromHours(1);
-}
-
-/// <summary>
-/// The optional outbound HTTP proxy (e.g. the Squid container "price-proxy").
-/// </summary>
-public sealed class OutboundProxyOptions
-{
-    /// <summary>Gets or sets a value indicating whether provider requests go through <see cref="Url"/>. False = direct connection.</summary>
-    public bool Enabled { get; set; }
-
-    /// <summary>Gets or sets the proxy URL, e.g. http://price-proxy:3128. Credentials (user:pass@) are supported and never logged.</summary>
-    public string Url { get; set; } = string.Empty;
 }

@@ -29,4 +29,13 @@ internal sealed class LogNotifier(ILogger<LogNotifier> logger) : INotifier
 
         return Task.CompletedTask;
     }
+
+    /// <inheritdoc />
+    public Task SendNoticeAsync(string subject, string text, CancellationToken cancellationToken)
+    {
+        if (logger.IsEnabled(LogLevel.Warning))
+            logger.LogWarning("NOTICE: {Subject} — {Text}", subject, text);
+
+        return Task.CompletedTask;
+    }
 }

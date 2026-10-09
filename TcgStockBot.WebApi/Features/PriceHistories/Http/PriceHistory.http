@@ -1,0 +1,10 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List PriceHistory
+GET {{HostAddress}}/pricehistory/list
+x-api-key: {{apiKey}}
+
+### Get PriceHistory (identifier = "key" from the list, URL-encoded)
+GET {{HostAddress}}/pricehistory?identifier=
+x-api-key: {{apiKey}}

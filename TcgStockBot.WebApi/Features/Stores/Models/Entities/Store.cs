@@ -25,8 +25,77 @@ public sealed class Store
     /// <summary>Gets or sets the WooCommerce Store API products path.</summary>
     public string WooCommerceProductsPath { get; set; } = "/wp-json/wc/store/v1/products";
 
+    /// <summary>
+    /// Gets or sets the Shopify catalog to read instead of the search (comma-separated): "/collections/pokemon",
+    /// "/collections/a, /collections/b" or "/products.json" for the whole store. Empty = predictive search (max 10 results).
+    /// </summary>
+    public string ShopifyCatalogPaths { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the CSS selectors (HTML platform only).</summary>
     public StoreHtmlSelector? Html { get; set; }
+
+    /// <summary>
+    /// Gets or sets the feed key (Awin platform only): the feed URL is read from AwinFeeds:Feeds:{key}
+    /// (in Docker: AwinFeeds__Feeds__{key}).
+    /// </summary>
+    public string AwinFeedKey { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets where the store sells from (dashboard grouping).</summary>
+    public StoreCountry Country { get; set; } = StoreCountry.Portugal;
+
+    /// <summary>Gets or sets the MSRP tier (dashboard label).</summary>
+    public StoreTier Tier { get; set; } = StoreTier.None;
+
+    /// <summary>Gets or sets what kind of shop it is (dashboard label).</summary>
+    public StoreType Type { get; set; } = StoreType.Unknown;
+
+    /// <summary>Gets or sets free labels ("por testar", "envia para PT", "JP").</summary>
+    public List<string> Tags { get; set; } = [];
+
+    /// <summary>Gets or sets free notes (what is left to configure, why it is off).</summary>
+    public string Notes { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the result of the last test from the dashboard (null = never tested).</summary>
+    public StoreTestRecord? LastTest { get; set; }
+
+    /// <summary>Gets or sets how many check cycles in a row every search on this store failed.</summary>
+    public int ConsecutiveFailures { get; set; }
+
+    /// <summary>Gets or sets when the bot turned the store off after too many failed cycles (null = not by the bot).</summary>
+    public DateTimeOffset? AutoDisabledAt { get; set; }
+}
+
+/// <summary>
+/// The result of one store test (a search with a test text), kept on the store.
+/// </summary>
+public sealed class StoreTestRecord
+{
+    /// <summary>Gets or sets when the test ran (UTC).</summary>
+    public DateTimeOffset At { get; set; }
+
+    /// <summary>Gets or sets the outcome.</summary>
+    public StoreTestStatus Status { get; set; }
+
+    /// <summary>Gets or sets the search text used.</summary>
+    public string Query { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets how many products the store returned.</summary>
+    public int Results { get; set; }
+
+    /// <summary>Gets or sets how many of them a task recognises (right keywords and language).</summary>
+    public int Relevant { get; set; }
+
+    /// <summary>Gets or sets how many of them would alert now (in stock, at price).</summary>
+    public int Matches { get; set; }
+
+    /// <summary>Gets or sets one returned product title, as an example.</summary>
+    public string Sample { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets how long the test took.</summary>
+    public long DurationMs { get; set; }
+
+    /// <summary>Gets or sets the translated explanation of a failure (empty on success).</summary>
+    public string Message { get; set; } = string.Empty;
 }
 
 /// <summary>

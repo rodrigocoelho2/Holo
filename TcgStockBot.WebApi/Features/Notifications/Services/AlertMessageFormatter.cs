@@ -11,6 +11,7 @@ namespace TcgStockBot.WebApi.Features.Notifications.Services;
 internal static class AlertMessageFormatter
 {
     private const string LanguageWarning = "⚠️ Título sem idioma: confirma na página que é a versão inglesa.";
+    private const string PreOrderNote = "🕒 Pré-venda: confirma a data de envio na página.";
 
     private static readonly CultureInfo Portuguese = CultureInfo.GetCultureInfo("pt-PT");
 
@@ -19,9 +20,20 @@ internal static class AlertMessageFormatter
     /// </summary>
     /// <param name="alerts">The alerts.</param>
     /// <returns>The subject.</returns>
-    public static string Subject(IReadOnlyList<StockAlert> alerts) => alerts.Count == 1
-        ? $"[TCG] Em stock: {alerts[0].Listing.Title} ({alerts[0].Listing.StoreName})"
-        : $"[TCG] {alerts.Count} produtos em stock";
+    public static string Subject(IReadOnlyList<StockAlert> alerts)
+    {
+        if (alerts.Count == 1)
+        {
+            var alert = alerts[0];
+            var kind = alert.IsPriceDrop ? "Baixou de preço" : alert.Listing.PreOrder ? "Pré-venda" : "Em stock";
+            return $"[TCG] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
+        }
+
+        var drops = alerts.Count(static alert => alert.IsPriceDrop);
+        return drops == alerts.Count ? $"[TCG] {alerts.Count} descidas de preço"
+            : drops > 0 ? $"[TCG] {alerts.Count} alertas ({drops} descida(s) de preço)"
+            : $"[TCG] {alerts.Count} produtos em stock";
+    }
 
     /// <summary>
     /// The WhatsApp message (WhatsApp formatting: *bold*).
@@ -31,13 +43,24 @@ internal static class AlertMessageFormatter
     /// <returns>The message text.</returns>
     public static string WhatsApp(IReadOnlyList<StockAlert> alerts, int maxAlerts)
     {
-        var text = new StringBuilder(alerts.Count == 1 ? "🟢 *TCG em stock*" : $"🟢 *TCG: {alerts.Count} produtos em stock*");
+        var drops = alerts.Count(static alert => alert.IsPriceDrop);
+        var header = alerts.Count == 1
+            ? drops == 1 ? "🔻 *TCG: baixou de preço*" : "🟢 *TCG em stock*"
+            : drops == alerts.Count ? $"🔻 *TCG: {alerts.Count} descidas de preço*"
+            : drops > 0 ? $"🟢 *TCG: {alerts.Count} alertas ({drops} descida(s) de preço)*"
+            : $"🟢 *TCG: {alerts.Count} produtos em stock*";
+        var text = new StringBuilder(header);
 
         foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))
         {
             text.Append("\n\n*").Append(alert.Listing.Title).Append('*')
-                .Append('\n').Append(alert.Listing.StoreName).Append(" · ").Append(Price(alert.Listing.Price))
+                .Append('\n').Append(alert.Listing.StoreName).Append(" · ").Append(PriceLine(alert))
                 .Append('\n').Append(alert.Listing.Url.AbsoluteUri);
+
+            if (alert.Listing.PreOrder)
+            {
+                text.Append('\n').Append(PreOrderNote);
+            }
 
             if (alert.LanguageToConfirm)
             {
@@ -60,7 +83,8 @@ internal static class AlertMessageFormatter
     /// <returns>The text.</returns>
     public static string Text(IReadOnlyList<StockAlert> alerts) =>
         string.Join(Environment.NewLine + Environment.NewLine, alerts.Select(alert =>
-            $"{alert.Listing.Title}{Environment.NewLine}{alert.Listing.StoreName} — {Price(alert.Listing.Price)}{Environment.NewLine}{alert.Listing.Url}"
+            $"{alert.Listing.Title}{Environment.NewLine}{alert.Listing.StoreName} — {PriceLine(alert)}{Environment.NewLine}{alert.Listing.Url}"
+            + (alert.Listing.PreOrder ? Environment.NewLine + PreOrderNote : string.Empty)
             + (alert.LanguageToConfirm ? Environment.NewLine + LanguageWarning : string.Empty)));
 
     /// <summary>
@@ -75,8 +99,13 @@ internal static class AlertMessageFormatter
         {
             var listing = alert.Listing;
             html.Append("<li><p><b>").Append(WebUtility.HtmlEncode(listing.Title)).Append("</b><br/>")
-                .Append(WebUtility.HtmlEncode(listing.StoreName)).Append(" — ").Append(Price(listing.Price)).Append("<br/>")
+                .Append(WebUtility.HtmlEncode(listing.StoreName)).Append(" — ").Append(WebUtility.HtmlEncode(PriceLine(alert))).Append("<br/>")
                 .Append("Tarefa: ").Append(WebUtility.HtmlEncode(alert.StockTaskName)).Append("<br/>");
+
+            if (listing.PreOrder)
+            {
+                html.Append("<span style=\"color:#6d28d9\">").Append(WebUtility.HtmlEncode(PreOrderNote)).Append("</span><br/>");
+            }
 
             if (alert.LanguageToConfirm)
             {
@@ -87,6 +116,32 @@ internal static class AlertMessageFormatter
         }
 
         return html.Append("</ul>").ToString();
+    }
+
+    /// <summary>
+    /// "115,00 €", or "🔻 115,00 € (antes 130,00 €)" for a price drop; followed by " · MSRP 59,99 € (−8%)" when the
+    /// reference price is known.
+    /// </summary>
+    private static string PriceLine(StockAlert alert) => (alert.IsPriceDrop
+        ? $"🔻 {Price(alert.Listing.Price)} (antes {Price(alert.PreviousPrice)})"
+        : Price(alert.Listing.Price)) + MsrpPart(alert);
+
+    /// <summary>" · MSRP 59,99 € (−8%)", " · MSRP 59,99 € (=)" or empty when the MSRP or the price is unknown.</summary>
+    internal static string MsrpPart(StockAlert alert)
+    {
+        if (alert.Msrp is not > 0 || alert.Listing.Price is not > 0)
+        {
+            return string.Empty;
+        }
+
+        var percent = (int)Math.Round((alert.Listing.Price.Value - alert.Msrp.Value) / alert.Msrp.Value * 100m, MidpointRounding.AwayFromZero);
+        var difference = percent switch
+        {
+            0 => "=",
+            < 0 => $"−{-percent}%",
+            _ => $"+{percent}%",
+        };
+        return $" · MSRP {Price(alert.Msrp)} ({difference})";
     }
 
     private static string Price(decimal? price) => price?.ToString("C", Portuguese) ?? "preço desconhecido";

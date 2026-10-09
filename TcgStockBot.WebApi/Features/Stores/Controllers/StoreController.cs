@@ -16,6 +16,8 @@ namespace TcgStockBot.WebApi.Features.Stores.Controllers;
 /// </summary>
 /// <param name="logger">Logger.</param>
 /// <param name="storeService">Store business logic.</param>
+/// <param name="storeDetectService">Platform detection.</param>
+/// <param name="storeHealthService">Store tests.</param>
 [Authorize]
 [Route("store")]
 [ApiController]
@@ -26,10 +28,14 @@ namespace TcgStockBot.WebApi.Features.Stores.Controllers;
 [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
 internal sealed class StoreController(
     ILogger<StoreController> logger,
-    IStoreService storeService) : InternalControllerBase
+    IStoreService storeService,
+    IStoreDetectService storeDetectService,
+    IStoreHealthService storeHealthService) : InternalControllerBase
 {
     private readonly ILogger<StoreController> _logger = logger;
     private readonly IStoreService _storeService = storeService;
+    private readonly IStoreDetectService _storeDetectService = storeDetectService;
+    private readonly IStoreHealthService _storeHealthService = storeHealthService;
 
     /// <summary>
     /// Lists every store.
@@ -113,6 +119,41 @@ internal sealed class StoreController(
             _logger.LogInformation("StoreProbe [Name={Name}] [Query={Query}]", item.Store.Name, item.Query);
 
         var apiResponse = await _storeService.ProbeAsync(item);
+        return apiResponse.ToActionResult();
+    }
+
+    /// <summary>
+    /// Detects how a store can be searched (Shopify, WooCommerce, PrestaShop) from its address.
+    /// </summary>
+    /// <param name="item">The store address.</param>
+    /// <returns>The suggested configuration.</returns>
+    [HttpPost("detect")]
+    [ProducesResponseType<StoreDetectResult>((int)HttpStatusCode.OK)]
+    [SwaggerOperation(Summary = "StoreDetect", OperationId = "StoreDetect")]
+    public async Task<ActionResult<StoreDetectResult>> StoreDetectAsync(StoreDetectRequest item)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("StoreDetect");
+
+        var apiResponse = await _storeDetectService.DetectAsync(item);
+        return apiResponse.ToActionResult();
+    }
+
+    /// <summary>
+    /// Tests one saved store with a search and keeps the result on it.
+    /// </summary>
+    /// <param name="item">The store and the search text.</param>
+    /// <returns>The test result.</returns>
+    [HttpPost("test")]
+    [ProducesResponseType<StoreTestResultDTO>((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [SwaggerOperation(Summary = "StoreTest", OperationId = "StoreTest")]
+    public async Task<ActionResult<StoreTestResultDTO>> StoreTestAsync(StoreTestRequest item)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("StoreTest [Name={Name}]", item.Name);
+
+        var apiResponse = await _storeHealthService.TestAsync(item);
         return apiResponse.ToActionResult();
     }
 }

@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TcgStockBot.WebApi.Extensions.Authentication;
 using TcgStockBot.WebApi.Extensions.Data;
@@ -10,9 +9,13 @@ using TcgStockBot.WebApi.Extensions.Mvc;
 using TcgStockBot.WebApi.Features;
 using TcgStockBot.WebApi.Features.Alerts.Repositories;
 using TcgStockBot.WebApi.Features.Alerts.Services;
+using TcgStockBot.WebApi.Features.Compares.Repositories;
+using TcgStockBot.WebApi.Features.Compares.Services;
 using TcgStockBot.WebApi.Features.Monitors.Services;
 using TcgStockBot.WebApi.Features.Notifications.Models;
 using TcgStockBot.WebApi.Features.Notifications.Services;
+using TcgStockBot.WebApi.Features.PriceHistories.Repositories;
+using TcgStockBot.WebApi.Features.PriceHistories.Services;
 using TcgStockBot.WebApi.Features.Settings.Repositories;
 using TcgStockBot.WebApi.Features.Settings.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
@@ -22,6 +25,8 @@ using TcgStockBot.WebApi.Features.Stores.Services;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters.Amazon;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
+using TcgStockBot.WebApi.Features.Msrps.Repositories;
+using TcgStockBot.WebApi.Features.Msrps.Services;
 
 namespace TcgStockBot.WebApi;
 
@@ -66,17 +71,9 @@ internal static class TcgStockBotStartup
         // and needs a fresh DelegatingHandler each time; a singleton fails with "The 'InnerHandler' property must be null".
         services.AddTransient<UserAgentHandler>();
 
-        // Outbound HTTP: optional proxy (OutboundHttp:ProxyEnabled / ProxyUrl), per-domain throttling and request logging.
+        // Outbound HTTP for the price providers: per-domain throttling, Retry-After and request logging.
         services.Configure<OutboundHttpOptions>(configuration.GetSection(OutboundHttpOptions.SectionName));
         services.AddSingleton<DomainThrottle>();
-        services.AddSingleton(static provider =>
-        {
-            var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(OutboundHttpHandlerFactory));
-            var route = OutboundHttpHandlerFactory.ResolveRoute(provider.GetRequiredService<IOptions<OutboundHttpOptions>>().Value, logger, out _);
-            if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Outbound HTTP for price providers: {Route}", route.Label);
-            return route;
-        });
         services.AddTransient<OutboundTrafficHandler>();
 
         var storeTimeout = configuration.GetSection(TcgStockBotOptions.SectionName).Get<TcgStockBotOptions>()?.StoreRequestTimeout ?? TimeSpan.FromSeconds(30);
@@ -106,7 +103,6 @@ internal static class TcgStockBotStartup
             .RemoveAllLoggers();
 
         // The CallMeBot URL carries the phone and API key: never let the HttpClient loggers write it.
-        // Notifications are not price traffic, so they never go through the outbound proxy.
         services.AddHttpClient(WhatsAppNotifier.HttpClientName, static client => client.Timeout = TimeSpan.FromSeconds(30))
             .RemoveAllLoggers();
 
@@ -121,12 +117,16 @@ internal static class TcgStockBotStartup
         services.AddSingleton<IStoreAdapter, FnacStoreAdapter>();
         services.AddSingleton<IStoreAdapter, WortenStoreAdapter>();
         services.AddSingleton<IStoreAdapter, ElCorteInglesStoreAdapter>();
+        services.AddSingleton<IStoreAdapter, GenericAwinStoreAdapter>();
+        services.AddSingleton<IStoreAdapter, ManualStoreAdapter>();
         services.AddSingleton<IStoreAdapterResolver, StoreAdapterResolver>();
 
         // StockTasks
         services.AddSingleton<IStockTaskRepository, StockTaskRepository>();
         services.AddSingleton<IStockTaskService, StockTaskService>();
         services.AddSingleton<IStoreService, StoreService>();
+        services.AddSingleton<IStoreDetectService, StoreDetectService>();
+        services.AddSingleton<IStoreHealthService, StoreHealthService>();
 
         // Settings
         services.AddSingleton<ISettingRepository, SettingRepository>();
@@ -135,6 +135,18 @@ internal static class TcgStockBotStartup
         // Alerts
         services.AddSingleton<IAlertRepository, AlertRepository>();
         services.AddSingleton<IAlertService, AlertService>();
+
+        // Msrps
+        services.AddSingleton<IMsrpRepository, MsrpRepository>();
+        services.AddSingleton<IMsrpService, MsrpService>();
+
+        // PriceHistories
+        services.AddSingleton<IPriceHistoryRepository, PriceHistoryRepository>();
+        services.AddSingleton<IPriceHistoryService, PriceHistoryService>();
+
+        // Compares
+        services.AddSingleton<ICompareOverrideRepository, CompareOverrideRepository>();
+        services.AddSingleton<ICompareService, CompareService>();
 
         // Notifications
         services.AddSingleton<INotifier, LogNotifier>();
@@ -169,18 +181,14 @@ internal static class TcgStockBotStartup
         app.UseAuthorization();
         app.MapControllers();
 
-        // Resolve the outbound route now, so the log says "via proxy …" / "direct" at start-up rather than on the first request.
-        app.Services.GetRequiredService<OutboundRoute>();
-
         return app;
     }
 
     /// <summary>
-    /// Primary handler of the outbound HttpClients (proxy or direct). Created by IHttpClientFactory on each handler
-    /// rotation, so configuration errors are logged once at start-up (by the <see cref="OutboundRoute"/> registration), not here.
+    /// Primary handler of the outbound HttpClients, created by IHttpClientFactory on each handler rotation.
     /// </summary>
     /// <param name="provider">The service provider.</param>
     /// <returns>The handler.</returns>
     private static HttpMessageHandler CreateOutboundHandler(IServiceProvider provider) =>
-        OutboundHttpHandlerFactory.Create(provider.GetRequiredService<IOptions<OutboundHttpOptions>>().Value, NullLogger.Instance);
+        OutboundHttpHandlerFactory.Create(provider.GetRequiredService<IOptions<OutboundHttpOptions>>().Value);
 }

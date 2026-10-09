@@ -14,6 +14,9 @@ public sealed class AlertDTO
     public decimal? Price { get; set; }
     public bool LanguageToConfirm { get; set; }
     public string? ImageUrl { get; set; }
+    public decimal? PreviousPrice { get; set; }
+    public decimal? Msrp { get; set; }
+    public bool PreOrder { get; set; }
 }
 
 /// <summary>Monitoring settings, durations in seconds (mirror of the WebApi SettingDTO).</summary>
@@ -24,6 +27,7 @@ public sealed class SettingDTO
     public int PollJitterSeconds { get; set; }
     public int DelayBetweenRequestsSeconds { get; set; }
     public string UserAgent { get; set; } = string.Empty;
+    public int AutoDisableAfterFailures { get; set; }
 }
 
 /// <summary>Input of SettingSave.</summary>
@@ -33,6 +37,7 @@ public sealed class SettingSaveRequest
     public int PollJitterSeconds { get; set; }
     public int DelayBetweenRequestsSeconds { get; set; }
     public string UserAgent { get; set; } = string.Empty;
+    public int AutoDisableAfterFailures { get; set; } = 6;
 }
 
 /// <summary>State of the notification channels (mirror of the WebApi NotificationDTO).</summary>

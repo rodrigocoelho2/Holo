@@ -29,4 +29,13 @@ internal interface INotificationService
     /// <param name="cancellationToken">Cancels delivery.</param>
     /// <returns>A translated message for each channel that failed.</returns>
     Task<IReadOnlyList<string>> NotifyAsync(IReadOnlyList<StockAlert> alerts, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sends a short notice (not a stock alert) on every enabled channel.
+    /// </summary>
+    /// <param name="subject">The one-line subject.</param>
+    /// <param name="text">The text.</param>
+    /// <param name="cancellationToken">Cancels the sends.</param>
+    /// <returns>A translated description of each channel that failed.</returns>
+    Task<IReadOnlyList<string>> NotifyNoticeAsync(string subject, string text, CancellationToken cancellationToken);
 }
