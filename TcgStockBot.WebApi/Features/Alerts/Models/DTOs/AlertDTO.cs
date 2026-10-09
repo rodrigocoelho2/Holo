@@ -28,6 +28,7 @@ public sealed class AlertDTO
         Url = entity.Url;
         Price = entity.Price;
         LanguageToConfirm = entity.LanguageToConfirm;
+        ImageUrl = entity.ImageUrl;
     }
 
     /// <summary>Gets or sets when the alert was sent (UTC).</summary>
@@ -53,4 +54,7 @@ public sealed class AlertDTO
 
     /// <summary>Gets or sets a value indicating whether the language must be confirmed on the page.</summary>
     public bool LanguageToConfirm { get; set; }
+
+    /// <summary>Gets or sets the product photo URL, when the store provided one.</summary>
+    public string? ImageUrl { get; set; }
 }

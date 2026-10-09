@@ -39,10 +39,35 @@ internal sealed class WooCommerceStoreAdapter(IHttpClientFactory httpClientFacto
             var url = new Uri(product.GetProperty("permalink").GetString() ?? store.BaseUrl);
             var inStock = IsTrue(product, "is_in_stock") && IsTrue(product, "is_purchasable");
 
-            listings.Add(new StoreListing(store.Name, title, url, ReadPrice(product), inStock));
+            listings.Add(new StoreListing(store.Name, title, url, ReadPrice(product), inStock, ImageUrl: ReadImage(product, url)));
         }
 
         return listings;
+    }
+
+    /// <summary>The Store API lists the photos as "images": [{ "src": …, "thumbnail": … }]; the first is the main one.</summary>
+    private static string? ReadImage(JsonElement product, Uri productUrl)
+    {
+        if (!product.TryGetProperty("images", out var images) || images.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        foreach (var image in images.EnumerateArray())
+        {
+            foreach (var name in (string[])["src", "thumbnail"])
+            {
+                if (image.ValueKind == JsonValueKind.Object
+                    && image.TryGetProperty(name, out var value)
+                    && value.ValueKind == JsonValueKind.String
+                    && StoreImageUrl.Normalize(value.GetString(), productUrl) is { } url)
+                {
+                    return url;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static bool IsTrue(JsonElement product, string propertyName) =>

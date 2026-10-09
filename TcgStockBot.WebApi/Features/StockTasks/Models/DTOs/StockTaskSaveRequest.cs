@@ -38,6 +38,9 @@ public sealed class StockTaskSaveRequest
     /// <summary>Gets or sets the print run wanted (English or Japanese).</summary>
     public TaskLanguage Language { get; set; } = TaskLanguage.English;
 
+    /// <summary>Gets or sets the card game.</summary>
+    public TcgGame Game { get; set; } = TcgGame.Pokemon;
+
     /// <summary>
     /// Maps the request to a new entity, trimming text and dropping empty keywords.
     /// </summary>
@@ -53,6 +56,7 @@ public sealed class StockTaskSaveRequest
         ExcludedKeywords = Clean(ExcludedKeywords),
         MaxPrice = MaxPrice,
         Language = Language,
+        Game = Game,
     };
 
     private static List<string> Clean(IEnumerable<string>? values) =>

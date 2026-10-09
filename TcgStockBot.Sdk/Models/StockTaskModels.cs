@@ -14,6 +14,7 @@ public sealed class StockTaskDTO
     public List<string> ExcludedKeywords { get; set; } = [];
     public decimal MaxPrice { get; set; }
     public TaskLanguage Language { get; set; }
+    public TcgGame Game { get; set; }
 }
 
 /// <summary>Input of StockTaskSave.</summary>
@@ -29,6 +30,7 @@ public sealed class StockTaskSaveRequest
     public List<string> ExcludedKeywords { get; set; } = [];
     public decimal MaxPrice { get; set; }
     public TaskLanguage Language { get; set; } = TaskLanguage.English;
+    public TcgGame Game { get; set; } = TcgGame.Pokemon;
 }
 
 /// <summary>Output of StockTaskSave.</summary>

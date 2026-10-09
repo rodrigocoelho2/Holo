@@ -120,6 +120,7 @@ internal sealed class StoreService(
                 ProductId = listing.ProductId,
                 Currency = listing.Currency,
                 Seller = listing.Seller,
+                ImageUrl = listing.ImageUrl,
             }).ToList());
         }
         catch (Exception exception)

@@ -1770,3 +1770,46 @@ td.title-cell {
         gap: 8px;
         flex-wrap: wrap;
     }
+
+/* Product photos (ImageUrl from the stores) */
+.with-thumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+    .with-thumb > div {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+.thumb {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-small);
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid var(--border);
+}
+
+    .thumb.small {
+        width: 34px;
+        height: 34px;
+    }
+
+    .thumb.empty {
+        background: var(--panel-inset);
+    }
+
+.filter-select {
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: var(--radius-small);
+    border: 1px solid var(--border-strong);
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+}

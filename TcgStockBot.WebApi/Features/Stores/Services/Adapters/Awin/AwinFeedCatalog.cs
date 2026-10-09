@@ -21,6 +21,7 @@ namespace TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 /// <param name="InStock">Whether the feed says it is in stock.</param>
 /// <param name="ProductId">The merchant's product id, Awin's id or the EAN.</param>
 /// <param name="Seller">The merchant name in the feed.</param>
+/// <param name="ImageUrl">The product photo, when the feed has one.</param>
 internal sealed record AwinFeedProduct(
     string Title,
     string NormalizedTitle,
@@ -29,7 +30,8 @@ internal sealed record AwinFeedProduct(
     string Currency,
     bool InStock,
     string? ProductId,
-    string? Seller);
+    string? Seller,
+    string? ImageUrl = null);
 
 /// <summary>
 /// Downloads and caches Awin product feeds (CSV, optionally gzip). A feed is downloaded at most once per
@@ -53,6 +55,7 @@ internal sealed class AwinFeedCatalog(
     private static readonly string[] PriceColumns = ["search_price", "store_price", "display_price"];
     private static readonly string[] UrlColumns = ["merchant_deep_link", "aw_deep_link"];
     private static readonly string[] IdColumns = ["merchant_product_id", "aw_product_id", "ean", "product_gtin"];
+    private static readonly string[] ImageColumns = ["merchant_image_url", "large_image", "aw_image_url", "aw_thumb_url"];
 
     private readonly ConcurrentDictionary<string, FeedState> _feeds = new(StringComparer.OrdinalIgnoreCase);
 
@@ -182,7 +185,8 @@ internal sealed class AwinFeedCatalog(
                 Field(record, columns, "currency") is { Length: 3 } currency ? currency.ToUpperInvariant() : "EUR",
                 ParseInStock(Field(record, columns, "in_stock"), Field(record, columns, "stock_status"), Field(record, columns, "stock_quantity")),
                 IdColumns.Select(name => Field(record, columns, name)).FirstOrDefault(static value => !string.IsNullOrWhiteSpace(value)),
-                Field(record, columns, "merchant_name") is { Length: > 0 } seller ? seller : null));
+                Field(record, columns, "merchant_name") is { Length: > 0 } seller ? seller : null,
+                ImageColumns.Select(name => StoreImageUrl.Normalize(Field(record, columns, name))).FirstOrDefault(static image => image is not null)));
         }
 
         return (products, rows);

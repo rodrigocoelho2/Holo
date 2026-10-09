@@ -45,10 +45,31 @@ internal sealed class HtmlStoreAdapter(IHttpClientFactory httpClientFactory) : I
                 title,
                 new Uri(searchUri, href),
                 PriceParser.Parse(TextOf(card, selectors.PriceSelector)),
-                IsInStock(card, selectors)));
+                IsInStock(card, selectors),
+                ImageUrl: ImageOf(card, searchUri)));
         }
 
         return listings;
+    }
+
+    /// <summary>
+    /// The first photo in the product card. Lazy-loading themes keep the real URL in data-src (and similar)
+    /// and put a placeholder in src, so those are read first.
+    /// </summary>
+    private static string? ImageOf(IElement card, Uri pageUri)
+    {
+        foreach (var image in card.QuerySelectorAll("img"))
+        {
+            foreach (var attribute in (string[])["data-src", "data-lazy-src", "data-original", "src"])
+            {
+                if (StoreImageUrl.Normalize(image.GetAttribute(attribute), pageUri) is { } url)
+                {
+                    return url;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static string TextOf(IElement card, string selector)

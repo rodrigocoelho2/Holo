@@ -15,6 +15,7 @@ namespace TcgStockBot.WebApi.Features.Stores.Services.Adapters;
 /// <param name="ProductId">The store's identifier (ASIN, SKU, EAN…), when the source provides one.</param>
 /// <param name="Currency">ISO 4217 currency of <paramref name="Price"/>.</param>
 /// <param name="Seller">Who sells it (e.g. the store itself or a marketplace seller), when known.</param>
+/// <param name="ImageUrl">An absolute http(s) URL of the product photo, when the source provides one.</param>
 public sealed record StoreListing(
     string StoreName,
     string Title,
@@ -23,7 +24,8 @@ public sealed record StoreListing(
     bool InStock,
     string? ProductId = null,
     string Currency = "EUR",
-    string? Seller = null);
+    string? Seller = null,
+    string? ImageUrl = null);
 
 /// <summary>
 /// Gets product listings from one kind of store (a platform or a store-specific provider).

@@ -51,6 +51,7 @@ public sealed class ListingReportDTO
     public string? ProductId { get; set; }
     public string Currency { get; set; } = "EUR";
     public string? Seller { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>One line of the activity feed.</summary>

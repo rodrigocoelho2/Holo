@@ -63,4 +63,7 @@ public sealed class ListingReportDTO
 
     /// <summary>Gets or sets who sells the product, when known.</summary>
     public string? Seller { get; set; }
+
+    /// <summary>Gets or sets the product photo URL, when the store provides one.</summary>
+    public string? ImageUrl { get; set; }
 }

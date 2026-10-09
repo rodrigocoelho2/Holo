@@ -1,3 +1,4 @@
+using TcgStockBot.Library.Enums;
 using TcgStockBot.Library.Services;
 using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.StockTasks.Models.DTOs;
@@ -34,6 +35,18 @@ public sealed class StockTaskServiceTests : IDisposable
         Assert.True(response.IsSuccess);
         var saved = Assert.Single((await _service.ListAsync()).Result!);
         Assert.Equal(["elite trainer box"], saved.RequiredKeywords);
+    }
+
+    [Fact]
+    public async Task Save_KeepsTheGame_AndDefaultsToPokemon()
+    {
+        var onePiece = ValidRequest("op");
+        onePiece.Game = TcgGame.OnePiece;
+        await _service.SaveAsync(onePiece);
+        await _service.SaveAsync(ValidRequest("etb"));
+
+        Assert.Equal(TcgGame.OnePiece, (await _service.GetAsync("op")).Result!.Game);
+        Assert.Equal(TcgGame.Pokemon, (await _service.GetAsync("etb")).Result!.Game);
     }
 
     [Fact]

@@ -45,10 +45,31 @@ internal sealed class ShopifyStoreAdapter(IHttpClientFactory httpClientFactory) 
             var inStock = product.TryGetProperty("available", out var available) && available.ValueKind == JsonValueKind.True;
 
             // Suggest URLs carry "?_pos=1&_sid=…" tracking parameters that change on every call.
-            listings.Add(new StoreListing(store.Name, title, new Uri(url.GetLeftPart(UriPartial.Path)), ReadPrice(product), inStock));
+            listings.Add(new StoreListing(store.Name, title, new Uri(url.GetLeftPart(UriPartial.Path)), ReadPrice(product), inStock,
+                ImageUrl: ReadImage(product, baseUri)));
         }
 
         return listings;
+    }
+
+    /// <summary>
+    /// Suggest results carry "image" (a URL, often protocol-relative "//cdn.shopify.com/…") and, on newer themes,
+    /// "featured_image": { "url": … }.
+    /// </summary>
+    private static string? ReadImage(JsonElement product, Uri baseUri)
+    {
+        if (product.TryGetProperty("featured_image", out var featured)
+            && featured.ValueKind == JsonValueKind.Object
+            && featured.TryGetProperty("url", out var featuredUrl)
+            && featuredUrl.ValueKind == JsonValueKind.String
+            && StoreImageUrl.Normalize(featuredUrl.GetString(), baseUri) is { } fromFeatured)
+        {
+            return fromFeatured;
+        }
+
+        return product.TryGetProperty("image", out var image) && image.ValueKind == JsonValueKind.String
+            ? StoreImageUrl.Normalize(image.GetString(), baseUri)
+            : null;
     }
 
     /// <summary>Shopify returns "price" as a decimal string ("54.99"); a few themes return a number.</summary>
