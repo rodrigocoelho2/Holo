@@ -63,4 +63,26 @@ public partial class StoreController(TcgStockBotClient apiClient) : WebsiteBaseC
         var model = new StoreModel(ApiClient);
         return Json(await model.ProbeAsync(item));
     }
+
+    /// <summary>Detects how a store can be searched from its address.</summary>
+    /// <param name="item">The store address.</param>
+    /// <returns>JSON <c>AjaxDataResult</c>.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DetectAsync([FromBody] StoreDetectRequest item)
+    {
+        var model = new StoreModel(ApiClient);
+        return Json(await model.DetectAsync(item));
+    }
+
+    /// <summary>Tests one saved store and keeps the result on it.</summary>
+    /// <param name="item">The store and the search text.</param>
+    /// <returns>JSON <c>AjaxDataResult</c>.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TestAsync([FromBody] StoreTestRequest item)
+    {
+        var model = new StoreModel(ApiClient);
+        return Json(await model.TestAsync(item));
+    }
 }

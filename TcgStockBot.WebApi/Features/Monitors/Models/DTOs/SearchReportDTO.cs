@@ -7,6 +7,12 @@ namespace TcgStockBot.WebApi.Features.Monitors.Models.DTOs;
 /// </summary>
 public sealed class SearchReportDTO
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether a failure counts against the store for the automatic turn-off
+    /// (not when the bot's own limit postponed it, or the provider is not configured). Internal: not in the API.
+    /// </summary>
+    internal bool CountsAgainstStore { get; set; }
+
     /// <summary>Gets or sets the store name.</summary>
     public string StoreName { get; set; } = string.Empty;
 
@@ -63,4 +69,13 @@ public sealed class ListingReportDTO
 
     /// <summary>Gets or sets who sells the product, when known.</summary>
     public string? Seller { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether it is a pre-order (from the title or the provider's data).</summary>
+    public bool PreOrder { get; set; }
+
+    /// <summary>Gets or sets the price history key of this product (see PriceHistoryGet).</summary>
+    public string PriceHistoryKey { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the lowest price seen for this product on this store, including now; null when unknown.</summary>
+    public decimal? LowestPrice { get; set; }
 }

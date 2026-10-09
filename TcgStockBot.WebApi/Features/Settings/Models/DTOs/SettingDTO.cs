@@ -25,6 +25,7 @@ public sealed class SettingDTO
         PollJitterSeconds = (int)entity.PollJitter.TotalSeconds;
         DelayBetweenRequestsSeconds = (int)entity.DelayBetweenRequests.TotalSeconds;
         UserAgent = entity.UserAgent;
+        AutoDisableAfterFailures = entity.AutoDisableAfterFailures;
     }
 
     /// <summary>Gets or sets a value indicating whether the bot is paused.</summary>
@@ -41,4 +42,7 @@ public sealed class SettingDTO
 
     /// <summary>Gets or sets the User-Agent sent to stores.</summary>
     public string UserAgent { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets how many failed cycles in a row turn a store off (0 = never).</summary>
+    public int AutoDisableAfterFailures { get; set; }
 }

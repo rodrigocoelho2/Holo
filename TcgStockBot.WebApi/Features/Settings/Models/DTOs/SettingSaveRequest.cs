@@ -19,6 +19,9 @@ public sealed class SettingSaveRequest
     /// <summary>Gets or sets the User-Agent sent to stores.</summary>
     public string UserAgent { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets how many failed cycles in a row turn a store off (0 = never).</summary>
+    public int AutoDisableAfterFailures { get; set; } = 6;
+
     /// <summary>
     /// Maps the request to the entity, keeping the current pause state.
     /// </summary>
@@ -31,5 +34,6 @@ public sealed class SettingSaveRequest
         PollJitter = TimeSpan.FromSeconds(PollJitterSeconds),
         DelayBetweenRequests = TimeSpan.FromSeconds(DelayBetweenRequestsSeconds),
         UserAgent = (UserAgent ?? string.Empty).Trim(),
+        AutoDisableAfterFailures = AutoDisableAfterFailures,
     };
 }

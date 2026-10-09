@@ -40,6 +40,18 @@ internal sealed class WhatsAppNotifier(
             logger.LogInformation("Alert WhatsApp sent ({Count} product(s))", alerts.Count);
     }
 
+    /// <inheritdoc />
+    public async Task SendNoticeAsync(string subject, string text, CancellationToken cancellationToken)
+    {
+        var requestUri = BuildRequestUri(options.Value, $"⚠️ *{subject}*\n\n{text}");
+
+        using var response = await httpClientFactory.CreateClient(HttpClientName).GetAsync(requestUri, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Notice WhatsApp sent");
+    }
+
     /// <summary>
     /// Builds the CallMeBot request URL.
     /// </summary>

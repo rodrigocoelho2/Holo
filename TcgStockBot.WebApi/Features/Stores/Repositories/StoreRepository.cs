@@ -49,6 +49,10 @@ internal sealed class StoreRepository(BotDataContext dataContext) : RepositoryBa
             }
         }, CancellationToken.None);
 
+    /// <inheritdoc />
+    public Task UpdateAsync(Action<List<Store>> change) =>
+        DataContext.WriteAsync(configuration => change(configuration.Stores), CancellationToken.None);
+
     private static bool Matches(Store store, string name) =>
         store.Name.Equals(name, StringComparison.OrdinalIgnoreCase);
 }

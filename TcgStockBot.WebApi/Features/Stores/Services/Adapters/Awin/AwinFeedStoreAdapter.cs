@@ -22,23 +22,37 @@ internal abstract class AwinFeedStoreAdapter(IOptionsMonitor<AwinFeedOptions> op
     /// <summary>Gets the provider name shown in messages and logs.</summary>
     protected abstract string ProviderName { get; }
 
-    /// <summary>Gets the key in AwinFeeds:Feeds (the platform name).</summary>
-    protected string FeedKey => Platform.ToString();
-
     /// <summary>Gets what the user must do to get an authorized feed for this store.</summary>
     protected abstract string NotConfiguredHint { get; }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<StoreListing>> SearchAsync(Store store, string query, CancellationToken cancellationToken)
     {
-        if (!options.CurrentValue.Feeds.TryGetValue(FeedKey, out var feedUrl) || string.IsNullOrWhiteSpace(feedUrl))
+        var feedKey = FeedKeyOf(store);
+        var provider = ProviderNameOf(store);
+        if (!options.CurrentValue.Feeds.TryGetValue(feedKey, out var feedUrl) || string.IsNullOrWhiteSpace(feedUrl))
         {
-            throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.NotConfigured, NotConfiguredHint);
+            throw new StoreIntegrationException(provider, StoreIntegrationProblem.NotConfigured, NotConfiguredHintOf(store));
         }
 
-        var products = await catalog.GetProductsAsync(ProviderName, FeedKey, feedUrl, cancellationToken);
+        var products = await catalog.GetProductsAsync(provider, feedKey, feedUrl, cancellationToken);
         return Search(store, products, query);
     }
+
+    /// <summary>The key in AwinFeeds:Feeds of a store (by default the platform name).</summary>
+    /// <param name="store">The store.</param>
+    /// <returns>The feed key.</returns>
+    protected virtual string FeedKeyOf(Store store) => Platform.ToString();
+
+    /// <summary>The provider name shown in messages and logs for a store.</summary>
+    /// <param name="store">The store.</param>
+    /// <returns>The name.</returns>
+    protected virtual string ProviderNameOf(Store store) => ProviderName;
+
+    /// <summary>What the user must do to get an authorized feed for a store.</summary>
+    /// <param name="store">The store.</param>
+    /// <returns>The hint.</returns>
+    protected virtual string NotConfiguredHintOf(Store store) => NotConfiguredHint;
 
     /// <summary>
     /// Keeps the products whose title contains every word of the search text (accents and case ignored).
@@ -55,7 +69,7 @@ internal abstract class AwinFeedStoreAdapter(IOptionsMonitor<AwinFeedOptions> op
             .Where(product => words.All(product.NormalizedTitle.Contains))
             .Take(MaxResults)
             .Select(product => new StoreListing(store.Name, product.Title, product.Url, product.Price, product.InStock,
-                product.ProductId, product.Currency, product.Seller))
+                product.ProductId, product.Currency, product.Seller, product.PreOrder))
             .ToList();
     }
 }
@@ -119,4 +133,33 @@ internal sealed class ElCorteInglesStoreAdapter(IOptionsMonitor<AwinFeedOptions>
     protected override string NotConfiguredHint =>
         "o El Corte Inglés não tem API pública de produtos. Adere ao programa Awin \"El Corte Ingles ES\" (13075) e põe "
         + "o URL do feed gerado no Create-a-Feed em AwinFeeds__Feeds__ElCorteIngles.";
+}
+
+/// <summary>
+/// Any other retailer with an Awin programme that publishes a product feed (MediaMarkt, FNAC ES, Casa del Libro,
+/// Carrefour…). The store's <see cref="Store.AwinFeedKey"/> names the feed: its URL is AwinFeeds:Feeds:{key}
+/// (in Docker: AwinFeeds__Feeds__{key}). Only works after the retailer approves you in its Awin programme.
+/// </summary>
+/// <param name="options">Feed settings.</param>
+/// <param name="catalog">Shared feed cache.</param>
+internal sealed class GenericAwinStoreAdapter(IOptionsMonitor<AwinFeedOptions> options, AwinFeedCatalog catalog) : AwinFeedStoreAdapter(options, catalog)
+{
+    /// <inheritdoc />
+    public override StorePlatform Platform => StorePlatform.Awin;
+
+    /// <inheritdoc />
+    protected override string ProviderName => "Awin";
+
+    /// <inheritdoc />
+    protected override string NotConfiguredHint => "falta o URL do feed Awin desta loja.";
+
+    /// <inheritdoc />
+    protected override string FeedKeyOf(Store store) => store.AwinFeedKey;
+
+    /// <inheritdoc />
+    protected override string ProviderNameOf(Store store) => store.Name;
+
+    /// <inheritdoc />
+    protected override string NotConfiguredHintOf(Store store) =>
+        $"adere ao programa Awin da loja e, se tiver feed de produtos, põe o URL do Create-a-Feed em AwinFeeds__Feeds__{store.AwinFeedKey} no .env.";
 }

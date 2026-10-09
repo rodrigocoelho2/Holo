@@ -32,6 +32,16 @@ const state = {
   alerts: [],
   view: "overview",
   taskFilter: "all",
+  compare: null,                                        // compared products (Comparar page)
+  compareFilter: "",
+  compareMode: "all",                                   // all | stock | drops
+  compareSingles: false,                                // also show products found in one store only
+  storeQuery: "",                                       // Lojas page filters
+  storeCountry: "all",
+  storeTier: "all",
+  storeType: "all",
+  storeTag: "",
+  storeTest: "all",                                     // all | never | ok | failed | auto
   expandedTasks: new Set(),
   onlyProducts: readPreference("onlyProducts", true),   // global "Só produtos" switch
   storeFilter: new Map(),                               // per task/store override of the global switch
@@ -68,6 +78,8 @@ const ICONS = {
   refresh: '<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4"/></svg>',
   arrowUp: '<svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg>',
   arrowDown: '<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 9v8H9"/></svg>',
+  chart: '<svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 15l4-5 4 3 6-7"/></svg>',
+  compare: '<svg viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg>',
   copy: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
 };
 
@@ -279,6 +291,29 @@ const PLATFORMS = {
   Fnac: "FNAC — só com feed de afiliados Awin autorizado",
   Worten: "Worten — feed de afiliados Awin",
   ElCorteIngles: "El Corte Inglés — feed de afiliados Awin",
+  Awin: "Awin (genérico) — feed de afiliados de qualquer outra loja",
+  Manual: "Sem integração — só na lista (link e etiquetas), nunca pesquisada",
+};
+const COUNTRIES = { Portugal: ["Portugal", "🇵🇹"], Spain: ["Espanha", "🇪🇸"], Europe: ["Europa / online", "🇪🇺"] };
+const TIERS = {
+  S: ["Tier S", "amber", "MSRP / grande retalho"],
+  A: ["Tier A", "green", "Especialistas TCG"],
+  B: ["Tier B", "blue", "Importadores e lojas online"],
+  C: ["Tier C", "grey", "Marketplaces — só referência"],
+  None: ["Sem tier", "grey", "Por classificar"],
+};
+const STORE_TEST = {
+  Ok: ["OK", "green"], Empty: ["0 produtos", "amber"], Blocked: ["Bloqueia o bot", "red"], RateLimited: ["Limite de pedidos", "amber"],
+  Unreachable: ["Sem ligação", "red"], NoIntegration: ["Sem integração", "grey"], NotConfigured: ["Por configurar", "grey"], Error: ["Erro", "red"],
+};
+/** Test outcomes that mean "this store does not work as configured". */
+const TEST_FAILED = new Set(["Blocked", "Unreachable", "Error", "RateLimited"]);
+const testPill = (test) => { const [label, tone] = STORE_TEST[test.status] || [test.status, "grey"]; return h("span", { class: `pill ${tone}`, title: test.message || "" }, label); };
+const STORE_TYPES = {
+  Retail: "Retalho", Specialist: "Especialista TCG", Importer: "Importador", Marketplace: "Marketplace", Official: "Oficial", Unknown: "Sem tipo",
+};
+const MSRP_BASIS = {
+  Official: ["Oficial", "green"], LaunchPrice: ["Preço de lançamento", "blue"], Estimate: ["Estimativa", "amber"],
 };
 
 const AWIN_FEED_KEYS = { Fnac: "Fnac", Worten: "Worten", ElCorteIngles: "ElCorteIngles" };
@@ -347,8 +382,9 @@ const VIEWS = [
   { id: "tasks", label: "Tarefas", icon: "tasks", key: "2" },
   { id: "stores", label: "Lojas", icon: "store", key: "3" },
   { id: "alerts", label: "Alertas", icon: "bell", key: "4" },
-  { id: "probe", label: "Testar loja", icon: "flask", key: "5", section: "Ferramentas" },
-  { id: "settings", label: "Definições", icon: "settings", key: "6" },
+  { id: "compare", label: "Comparar", icon: "compare", key: "5" },
+  { id: "probe", label: "Testar loja", icon: "flask", key: "6", section: "Ferramentas" },
+  { id: "settings", label: "Definições", icon: "settings", key: "7" },
 ];
 
 /** Views re-rendered by the poll; the others hold form inputs and only render on navigation. */
@@ -360,6 +396,7 @@ function navigate(view) {
   if (location.hash !== `#/${view}`) history.replaceState(null, "", `#/${view}`);
   document.getElementById("sidebar").classList.remove("open");
   if (view === "settings") refreshNotification();
+  if (view === "compare") loadCompare();
   renderChrome();
   renderView(true);
   window.scrollTo({ top: 0 });
@@ -424,11 +461,12 @@ function renderView(force = false) {
   if (!state.tasks || !state.stores || !state.monitor || !state.settings) return;
   if (!force && !LIVE_VIEWS.has(state.view)) return;
 
-  const signature = JSON.stringify([state.view, state.monitor, state.alerts.length, state.tasks, state.stores, state.taskFilter, [...state.expandedTasks]]);
+  const signature = JSON.stringify([state.view, state.monitor, state.alerts.length, state.tasks, state.stores, state.taskFilter, [...state.expandedTasks],
+    state.storeCountry, state.storeTier, state.storeType, state.storeTag, state.storeTest]);
   if (!force && signature === state.renderedSignature) return;
   state.renderedSignature = signature;
 
-  const renderers = { overview: viewOverview, tasks: viewTasks, stores: viewStores, alerts: viewAlerts, probe: viewProbe, settings: viewSettings };
+  const renderers = { overview: viewOverview, tasks: viewTasks, stores: viewStores, alerts: viewAlerts, compare: viewCompare, probe: viewProbe, settings: viewSettings };
   const container = document.getElementById("view");
   const scrollers = [...container.querySelectorAll("[data-keep-scroll]")].map((element) => [element.dataset.keepScroll, element.scrollTop]);
 
@@ -667,9 +705,14 @@ function alertsTable(rows, full) {
       h("td", { class: "nowrap" }, h("span", { class: "store-link" }, storeAvatar(alert.storeName), alert.storeName)),
       h("td", { class: "title-cell" },
         h("span", { class: "primary-text", title: alert.title }, alert.title),
-        alert.languageToConfirm ? h("span", { class: "pill amber", style: "margin-top:4px" }, "Confirmar idioma") : null),
+        h("div", { class: "pill-row" },
+          alert.previousPrice !== null && alert.previousPrice !== undefined ? h("span", { class: "pill blue" }, "Baixou de preço") : null,
+          alert.preOrder ? h("span", { class: "pill violet" }, "Pré-venda") : null,
+          alert.languageToConfirm ? h("span", { class: "pill amber" }, "Confirmar idioma") : null)),
       full ? h("td", {}, alert.stockTaskName) : null,
-      h("td", { class: "num" }, money(alert.price)),
+      h("td", { class: "num" }, money(alert.price),
+        alert.previousPrice !== null && alert.previousPrice !== undefined ? h("div", { class: "was-price" }, money(alert.previousPrice)) : null,
+        msrpDelta(alert.price, alert.msrp)),
       h("td", { class: "num nowrap" }, full ? dateTime(alert.at) : clock(alert.at)),
       h("td", { class: "actions" }, safeHref(alert.url)
         ? h("a", { class: "button small", href: alert.url, target: "_blank", rel: "noopener noreferrer" }, "Abrir", icon("external"))
@@ -705,6 +748,9 @@ function viewTasks() {
       h("div", { class: "actions" },
         h("button", { class: "button", onclick: () => setTaskEnabled(null, false) }, icon("stop"), "Parar todas"),
         h("button", { class: "button", onclick: () => setTaskEnabled(null, true) }, icon("play"), "Iniciar todas"),
+        h("button", { class: "button", onclick: exportTasks, disabled: tasks.length === 0, title: "Descarrega as tarefas num ficheiro JSON" }, icon("external"), "Exportar JSON"),
+        h("button", { class: "button", onclick: openTaskImportDrawer, title: "Cria ou atualiza várias tarefas a partir de JSON" }, icon("copy"), "Importar JSON"),
+        h("button", { class: "button", onclick: deleteAllTasks, disabled: tasks.length === 0, title: "Apaga todas as tarefas (descarrega uma cópia JSON antes)" }, icon("trash"), "Apagar todas"),
         h("button", { class: "button primary", onclick: () => openTaskDrawer(null) }, icon("plus"), "Nova tarefa"))),
 
     h("div", { class: "filters" },
@@ -803,29 +849,638 @@ function storeResult(task, store) {
   return h("div", { class: "detail-store" }, head, body);
 }
 
+/** Outcomes of products a task recognises: only these have a price history. */
+const TRACKED_OUTCOMES = new Set(["Match", "MatchLanguageToConfirm", "LanguageUnknown", "OutOfStock", "NoPrice", "AboveMaxPrice"]);
+
 function listingsTable(listings, outcomeCell) {
   return h("div", { class: "table-wrap" }, h("table", {},
     h("thead", {}, h("tr", {}, h("th", {}, "Produto"), h("th", { class: "num" }, "Preço"), h("th", {}, "Stock"), h("th", {}, "Idioma"), h("th", {}, "Resultado"))),
     h("tbody", {}, listings.map((listing) => h("tr", {},
-      h("td", { class: "title-cell" }, h("span", { class: "primary-text" }, externalLink(listing.url, listing.title))),
-      h("td", { class: "num" }, money(listing.price)),
+      h("td", { class: "title-cell" }, h("span", { class: "primary-text" }, externalLink(listing.url, listing.title)),
+        listing.preOrder ? h("div", { class: "pill-row" }, h("span", { class: "pill violet" }, "Pré-venda")) : null),
+      h("td", { class: "num" },
+        h("div", { class: "price-cell" }, money(listing.price),
+          listing.priceHistoryKey && TRACKED_OUTCOMES.has(listing.outcome)
+            ? h("button", { class: "icon-button tiny", title: "Histórico de preço", "aria-label": `Histórico de preço de ${listing.title}`, onclick: () => openPriceHistory(listing.priceHistoryKey) }, icon("chart"))
+            : null),
+        listing.lowestPrice !== null && listing.lowestPrice !== undefined && listing.price !== null && listing.lowestPrice < listing.price - 0.005
+          ? h("div", { class: "was-price plain" }, `mín. ${money(listing.lowestPrice)}`)
+          : null),
       h("td", {}, listing.inStock ? h("span", { class: "pill green" }, "Sim") : h("span", { class: "pill red" }, "Não")),
       h("td", {}, languagePill(listing.language)),
       h("td", {}, outcomeCell(listing)))))));
+}
+
+/* ----- Price history of one listing (opened from a task's results) ----- */
+
+const normalizeText = (text) => (text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+async function openPriceHistory(key) {
+  let history;
+  try {
+    history = await api(`/pricehistory/get?identifier=${encodeURIComponent(key)}`);
+  } catch (error) {
+    toast(error.errors?.[0] || error.message, "error");
+    return;
+  }
+
+  const summary = history.summary;
+  const points = [...history.points].reverse();
+  const stat = (label, value, note) => h("div", { class: "history-stat" },
+    h("div", { class: "stat-label" }, label), h("div", { class: "history-value" }, value), note ? h("div", { class: "was-price plain" }, note) : null);
+
+  openDrawer({
+    title: summary.title,
+    subtitle: `${summary.storeName} · a seguir desde ${dateTime(summary.firstSeen)}`,
+    body: [
+      h("div", { class: "history-stats" },
+        stat("Atual", money(summary.currentPrice), summary.currentInStock ? "em stock" : "esgotado"),
+        stat("Mínimo", money(summary.lowestPrice), dateTime(summary.lowestPriceAt)),
+        stat("Máximo", money(summary.highestPrice)),
+        stat("Alterações", String(summary.pointCount))),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Preço ao longo do tempo"), priceHistoryChart(history)),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Alterações"),
+        h("div", { class: "table-wrap" }, h("table", {},
+          h("thead", {}, h("tr", {}, h("th", {}, "Desde"), h("th", { class: "num" }, "Preço"), h("th", {}, "Stock"))),
+          h("tbody", {}, points.map((point) => h("tr", {},
+            h("td", { class: "nowrap" }, dateTime(point.at)),
+            h("td", { class: "num" }, money(point.price)),
+            h("td", {}, point.inStock ? h("span", { class: "pill green" }, "Sim") : h("span", { class: "pill red" }, "Não")))))))),
+    ],
+    footer: [
+      h("button", { class: "button ghost", onclick: closeDrawer }, "Fechar"),
+      safeHref(summary.url) ? h("a", { class: "button primary", href: summary.url, target: "_blank", rel: "noopener noreferrer" }, "Abrir produto", icon("external")) : null,
+    ],
+  });
+}
+
+/** Round step for price ticks (1, 2, 5 × 10^n) so the axis shows 3–5 clean values. */
+function niceStep(range) {
+  const rough = range / 4;
+  const power = 10 ** Math.floor(Math.log10(rough || 1));
+  return [1, 2, 5, 10].map((factor) => factor * power).find((step) => step >= rough) || power;
+}
+
+/**
+ * Step chart of one product's price: the price holds until the next change. In-stock stretches are a solid
+ * accent line, sold-out stretches a dashed muted line (and "esgotado" in the tooltip and the table), so stock
+ * is never told by colour alone. One series → no legend box; a small key explains the two line styles.
+ */
+function priceHistoryChart(history) {
+  const points = history.points.map((point) => ({ ...point, time: new Date(point.at).getTime() }));
+  if (points.length === 0) return emptyState("chart", "Sem pontos.");
+
+  const width = 516, height = 220, left = 56, right = 64, top = 14, bottom = 28;
+  const lastSeen = Math.max(new Date(history.summary.lastSeen).getTime(), points[points.length - 1].time);
+  const start = points[0].time;
+  const end = lastSeen > start ? lastSeen : start + 3600e3;
+
+  const prices = points.map((point) => point.price);
+  const low = Math.min(...prices), high = Math.max(...prices);
+  const step = niceStep(Math.max(high - low, high * 0.1, 1));
+  const yMin = Math.max(0, Math.floor((low - step * 0.5) / step) * step);
+  const yMax = Math.ceil((high + step * 0.5) / step) * step;
+
+  const x = (time) => left + ((time - start) / (end - start)) * (width - left - right);
+  const y = (price) => top + (1 - (price - yMin) / (yMax - yMin)) * (height - top - bottom);
+
+  const grid = [];
+  for (let value = yMin; value <= yMax + 1e-9; value += step) {
+    grid.push(svg("line", { class: "history-grid", x1: left, x2: width - right, y1: y(value), y2: y(value) }),
+      svg("text", { class: "history-axis", x: left - 8, y: y(value) + 4, "text-anchor": "end" }, money(value).replace(",00", "")));
+  }
+
+  const segments = points.map((point, index) => {
+    const until = index + 1 < points.length ? points[index + 1].time : end;
+    const next = points[index + 1];
+    const path = `M${x(point.time)},${y(point.price)} H${x(until)}` + (next ? ` V${y(next.price)}` : "");
+    return svg("path", { class: point.inStock ? "history-line" : "history-line sold-out", d: path });
+  });
+
+  const lowest = points.reduce((best, point) => (point.price < best.price ? point : best), points[0]);
+  const current = points[points.length - 1];
+  const markers = points.map((point) => svg("circle", { class: point.inStock ? "history-dot" : "history-dot sold-out", cx: x(point.time), cy: y(point.price), r: 4 }));
+  const labels = [svg("text", { class: "history-label", x: x(end) + 8, y: y(current.price) + 4 }, money(current.price))];
+  if (lowest !== current && Math.abs(y(lowest.price) - y(current.price)) > 14) {
+    labels.push(svg("text", { class: "history-label", x: x(lowest.time), y: y(lowest.price) + 18, "text-anchor": "middle" }, `mín. ${money(lowest.price)}`));
+  }
+
+  const dayLabel = (time) => new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short" }).format(new Date(time));
+  const axis = [
+    svg("line", { class: "history-grid", x1: left, x2: width - right, y1: height - bottom, y2: height - bottom }),
+    svg("text", { class: "history-axis", x: left, y: height - 8, "text-anchor": "start" }, dayLabel(start)),
+    svg("text", { class: "history-axis", x: width - right, y: height - 8, "text-anchor": "end" }, dayLabel(end)),
+  ];
+
+  const crosshair = svg("line", { class: "history-crosshair", x1: 0, x2: 0, y1: top, y2: height - bottom, visibility: "hidden" });
+  const focusDot = svg("circle", { class: "history-dot focus", r: 5, visibility: "hidden" });
+  const tooltip = h("div", { class: "history-tooltip", role: "status" });
+  tooltip.hidden = true;
+
+  let focusedIndex = points.length - 1;
+  const show = (index, pointerX) => {
+    const point = points[index];
+    const px = pointerX ?? x(point.time);
+    crosshair.setAttribute("x1", px); crosshair.setAttribute("x2", px); crosshair.setAttribute("visibility", "visible");
+    focusDot.setAttribute("cx", px); focusDot.setAttribute("cy", y(point.price)); focusDot.setAttribute("visibility", "visible");
+    tooltip.replaceChildren(h("strong", {}, money(point.price)), h("span", {}, point.inStock ? "em stock" : "esgotado"), h("span", { class: "muted" }, `desde ${dateTime(point.at)}`));
+    tooltip.hidden = false;
+    tooltip.style.left = `${Math.min(Math.max((px / width) * 100, 12), 78)}%`;
+  };
+  const hide = () => { crosshair.setAttribute("visibility", "hidden"); focusDot.setAttribute("visibility", "hidden"); tooltip.hidden = true; };
+  const indexAt = (time) => { let found = 0; points.forEach((point, index) => { if (point.time <= time) found = index; }); return found; };
+
+  const plot = svg("svg", {
+    class: "history-chart", viewBox: `0 0 ${width} ${height}`, role: "img", tabindex: 0,
+    "aria-label": `Preço de ${history.summary.title}: atual ${money(current.price)}, mínimo ${money(lowest.price)}, máximo ${money(high)}. A tabela abaixo tem todos os valores.`,
+  }, grid, axis, segments, markers, labels, crosshair, focusDot,
+    svg("rect", { class: "history-hit", x: left, y: top, width: width - left - right, height: height - top - bottom }));
+
+  plot.addEventListener("pointermove", (event) => {
+    const box = plot.getBoundingClientRect();
+    const px = ((event.clientX - box.left) / box.width) * width;
+    const clamped = Math.min(Math.max(px, left), width - right);
+    const time = start + ((clamped - left) / (width - left - right)) * (end - start);
+    focusedIndex = indexAt(time);
+    show(focusedIndex, clamped);
+  });
+  plot.addEventListener("pointerleave", hide);
+  plot.addEventListener("focus", () => show(focusedIndex));
+  plot.addEventListener("blur", hide);
+  plot.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    focusedIndex = Math.min(Math.max(focusedIndex + (event.key === "ArrowRight" ? 1 : -1), 0), points.length - 1);
+    show(focusedIndex);
+  });
+
+  return h("div", {},
+    h("div", { class: "history-box" }, plot, tooltip),
+    h("div", { class: "history-key" },
+      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line", d: "M1,4 H23" })), "em stock"),
+      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line sold-out", d: "M1,4 H23" })), "esgotado")));
+}
+
+/* ----- Compare ----- */
+
+/** Store line colours: the validated dark categorical order (blue, orange, aqua, yellow, magenta, violet). */
+const CHART_STORE_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"];
+
+/**
+ * Colours for the stores of one product. Each store keeps its own slot (its position in the store list) so it looks
+ * the same in every product; two stores that share a slot inside the same product get the next free one.
+ */
+function storeColors(storeNames) {
+  const order = (state.stores || []).map((store) => store.name);
+  const used = new Set();
+  const colors = new Map();
+  for (const name of [...storeNames].sort((a, b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b))) {
+    let slot = Math.max(order.indexOf(name), 0) % CHART_STORE_COLORS.length;
+    for (let tries = 0; used.has(slot) && tries < CHART_STORE_COLORS.length; tries++) slot = (slot + 1) % CHART_STORE_COLORS.length;
+    used.add(slot);
+    colors.set(name, CHART_STORE_COLORS[slot]);
+  }
+  return colors;
+}
+
+async function loadCompare() {
+  try {
+    state.compare = await api("/compare/list");
+  } catch (error) {
+    state.compare = [];
+    toast(error.message, "error");
+  }
+  if (state.view === "compare") renderView(true);
+}
+
+/** Cheapest in stock, runner-up, lowest ever and most recent drop of one product. */
+function compareSummary(group) {
+  const listings = group.listings;
+  const inStock = listings.filter((listing) => listing.currentInStock);
+  const lowestEver = listings.reduce((best, listing) => (!best || listing.lowestPrice < best.lowestPrice ? listing : best), null);
+  const lastDrop = listings.filter((listing) => listing.lastDropAt).sort((a, b) => new Date(b.lastDropAt) - new Date(a.lastDropAt))[0] || null;
+  return { best: inStock[0] || null, second: inStock[1] || null, inStockCount: inStock.length, lowestEver, lastDrop };
+}
+
+const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) : "—");
+const WEEK = 7 * 864e5;
+
+function storeChip(listing, colors, isBest) {
+  return h("span", { class: `store-chip ${listing.currentInStock ? "" : "sold-out"} ${isBest ? "best" : ""}`, title: listing.title },
+    h("span", { class: "swatch", style: `background:${colors.get(listing.storeName)};color:${colors.get(listing.storeName)}` }),
+    listing.storeName, h("strong", {}, money(listing.currentPrice)), listing.currentInStock ? null : "esgotado");
+}
+
+function viewCompare() {
+  const tableBox = h("div", { class: "card-body flush" });
+  const all = state.compare || [];
+  const visibleBySize = all.filter((group) => state.compareSingles || group.listings.length >= 2);
+  const counts = {
+    all: visibleBySize.length,
+    stock: visibleBySize.filter((group) => group.listings.some((listing) => listing.currentInStock)).length,
+    drops: visibleBySize.filter((group) => group.listings.some((listing) => listing.lastDropAt && Date.now() - new Date(listing.lastDropAt) < WEEK)).length,
+  };
+  const stores = new Set(all.flatMap((group) => group.listings.map((listing) => listing.storeName)));
+
+  const renderTable = () => {
+    const words = normalizeText(state.compareFilter).split(/\s+/).filter(Boolean);
+    const rows = visibleBySize.filter((group) => {
+      if (state.compareMode === "stock" && !group.listings.some((listing) => listing.currentInStock)) return false;
+      if (state.compareMode === "drops" && !group.listings.some((listing) => listing.lastDropAt && Date.now() - new Date(listing.lastDropAt) < WEEK)) return false;
+      const haystack = normalizeText(`${group.title} ${group.listings.map((listing) => `${listing.storeName} ${listing.title}`).join(" ")}`);
+      return words.every((word) => haystack.includes(word));
+    });
+    tableBox.replaceChildren(state.compare === null
+      ? h("div", { class: "empty" }, h("div", {}, "A carregar…"))
+      : rows.length === 0
+        ? emptyState("compare", all.length === 0
+          ? "Ainda nada para comparar. Os produtos aparecem aqui depois de um ciclo, quando as tarefas os encontram em mais do que uma loja."
+          : "Nenhum produto corresponde aos filtros.")
+        : compareTable(rows));
+  };
+  renderTable();
+
+  const modeButton = (mode, label) => h("button", {
+    class: `filter ${state.compareMode === mode ? "active" : ""}`,
+    onclick: () => { state.compareMode = mode; renderView(true); },
+  }, label, h("span", { class: "count" }, String(counts[mode])));
+
+  return [
+    h("div", { class: "page-head" },
+      h("div", {}, h("h1", {}, "Comparar"),
+        h("p", {}, "O mesmo produto em todas as lojas: quem tem o preço mais baixo agora, o mínimo de sempre e as últimas descidas. Os produtos são agrupados por set e tipo; se algum estiver mal agrupado, corrige no detalhe."))),
+    h("div", { class: "filters" },
+      h("input", {
+        type: "text", value: state.compareFilter, placeholder: "Filtrar: pitch black, booster bundle…", style: "max-width:360px",
+        "aria-label": "Filtrar produtos", oninput: (event) => { state.compareFilter = event.target.value; renderTable(); },
+      }),
+      modeButton("all", "Todos"), modeButton("stock", "Com stock"), modeButton("drops", "Baixaram (7 dias)"),
+      h("span", { class: "filter-switch" },
+        switchInput(state.compareSingles, (checked) => { state.compareSingles = checked; renderView(true); }, "Incluir produtos só numa loja"),
+        h("span", {}, "Só numa loja")),
+      h("span", { class: "muted filters-end" }, `${visibleBySize.length} produtos · ${stores.size} lojas`)),
+    h("div", { class: "card" }, tableBox),
+  ];
+}
+
+function compareTable(groups) {
+  return h("div", { class: "table-wrap" }, h("table", {},
+    h("thead", {}, h("tr", {},
+      h("th", {}, "Produto"), h("th", {}, "Lojas"), h("th", { class: "num" }, "Mais barato c/ stock"), h("th", { class: "num" }, "MSRP"),
+      h("th", { class: "num" }, "Mínimo de sempre"), h("th", { class: "num" }, "Última descida"), h("th", {}))),
+    h("tbody", {}, groups.map((group) => {
+      const summary = compareSummary(group);
+      const colors = storeColors(group.listings.map((listing) => listing.storeName));
+      return h("tr", {},
+        h("td", {}, h("div", { class: "group-title" },
+          h("span", { class: "set" }, group.title),
+          h("span", { class: "meta" }, `${group.listings.length} ${group.listings.length === 1 ? "loja" : "lojas"} · ${summary.inStockCount} com stock`))),
+        h("td", {}, h("div", { class: "compare-chips" }, group.listings.map((listing) => storeChip(listing, colors, listing === summary.best)))),
+        h("td", { class: "num nowrap" }, summary.best
+          ? [h("div", {}, money(summary.best.currentPrice)),
+            h("div", { class: "delta" }, summary.best.storeName + (summary.second ? ` · 2.ª +${money(summary.second.currentPrice - summary.best.currentPrice)}` : ""))]
+          : h("span", { class: "pill red" }, "Sem stock")),
+        h("td", { class: "num nowrap", title: group.msrpLabel ? `Referência: ${group.msrpLabel}` : "Sem preço de referência para este tipo de produto" },
+          group.msrp ? [h("div", {}, money(group.msrp)), msrpDelta(summary.best?.currentPrice, group.msrp)] : h("span", { class: "muted" }, "—")),
+        h("td", { class: "num nowrap" }, money(summary.lowestEver?.lowestPrice),
+          summary.lowestEver ? h("div", { class: "delta" }, `${summary.lowestEver.storeName} · ${shortDate(summary.lowestEver.lowestPriceAt)}`) : null),
+        h("td", { class: "num nowrap" }, summary.lastDrop
+          ? [h("div", {}, `🔻 ${money(summary.lastDrop.lastDropTo)}`),
+            h("div", { class: "delta" }, `${summary.lastDrop.storeName} · −${money(summary.lastDrop.lastDropFrom - summary.lastDrop.lastDropTo)} · ${relative(summary.lastDrop.lastDropAt)}`)]
+          : h("span", { class: "muted" }, "—")),
+        h("td", { class: "actions" }, h("button", {
+          class: "icon-button", title: "Comparar lojas", "aria-label": `Comparar ${group.title}`, onclick: () => openCompareGroup(group.key),
+        }, icon("chart"))));
+    }))));
+}
+
+async function openCompareGroup(key) {
+  let group;
+  try {
+    group = await api(`/compare/get?identifier=${encodeURIComponent(key)}`);
+  } catch (error) {
+    toast(error.errors?.[0] || error.message, "error");
+    return;
+  }
+
+  const summary = compareSummary(group);
+  const colors = storeColors(group.listings.map((listing) => listing.storeName));
+  const stat = (label, value, note) => h("div", { class: "history-stat" },
+    h("div", { class: "stat-label" }, label), h("div", { class: "history-value" }, value), note ? h("div", { class: "was-price plain" }, note) : null);
+
+  openDrawer({
+    title: group.title,
+    subtitle: `${group.listings.length} ${group.listings.length === 1 ? "loja" : "lojas"} · ${group.key.startsWith("solo|") ? "separado manualmente" : "agrupado por set e tipo"}`,
+    body: [
+      h("div", { class: "history-stats" },
+        stat("Mais barato agora", summary.best ? money(summary.best.currentPrice) : "—", summary.best ? summary.best.storeName : "sem stock"),
+        stat("Mínimo de sempre", money(summary.lowestEver?.lowestPrice), summary.lowestEver ? `${summary.lowestEver.storeName} · ${dateTime(summary.lowestEver.lowestPriceAt)}` : null),
+        stat("MSRP", group.msrp ? money(group.msrp) : "—", group.msrp
+          ? [msrpDelta(summary.best?.currentPrice, group.msrp, "o mais barato"), h("div", {}, `${group.msrpLabel} · ${(MSRP_BASIS[group.msrpBasis] || MSRP_BASIS.Estimate)[0].toLowerCase()}`)]
+          : "sem referência"),
+        stat("Com stock", `${summary.inStockCount} de ${group.listings.length}`),
+        stat("Última descida", summary.lastDrop ? money(summary.lastDrop.lastDropTo) : "—", summary.lastDrop ? `${summary.lastDrop.storeName} · ${relative(summary.lastDrop.lastDropAt)}` : null)),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Preço por loja"), compareChart(group, colors)),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Lojas"),
+        h("div", { class: "table-wrap" }, h("table", {},
+          h("thead", {}, h("tr", {}, h("th", {}, "Loja"), h("th", { class: "num" }, "Atual"), h("th", { class: "num" }, "Mínimo"))),
+          h("tbody", {}, group.listings.map((listing) => h("tr", {},
+            h("td", { class: "title-cell" },
+              h("span", { class: "store-link" }, h("span", { class: "swatch-dot", style: `background:${colors.get(listing.storeName)}` }), listing.storeName,
+                listing.isManual ? h("span", { class: "pill grey", title: "Neste produto por uma correção manual" }, "manual") : null),
+              h("span", { class: "listing-title", title: listing.title }, externalLink(listing.url, listing.title)),
+              h("div", { class: "link-row" },
+                h("button", { class: "link-button", title: "Tirar este anúncio deste produto", onclick: () => separateListing(group, listing) }, "Separar deste produto"),
+                listing.isManual ? h("button", { class: "link-button", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Repor automático") : null)),
+            h("td", { class: "num nowrap" }, money(listing.currentPrice),
+              h("div", {}, listing.currentInStock ? h("span", { class: "pill green" }, "Em stock") : h("span", { class: "pill red" }, "Esgotado"))),
+            h("td", { class: "num nowrap" }, money(listing.lowestPrice), h("div", { class: "was-price plain" }, dateTime(listing.lowestPriceAt))))))))),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Correção"),
+        h("p", { class: "muted", style: "margin:0;font-size:12.5px" }, "Falta aqui uma loja com este produto? Junta o anúncio dela a este grupo. A correção fica guardada e o bot respeita-a nos próximos ciclos."),
+        h("div", {}, h("button", { class: "button small", onclick: () => joinListing(group) }, icon("plus"), "Juntar anúncio…"))),
+    ],
+    footer: [h("button", { class: "button ghost", onclick: closeDrawer }, "Fechar")],
+  });
+}
+
+/**
+ * Step chart of one product in every store: one line per store in the store's colour; sold-out stretches are the
+ * same colour, dashed and lighter. Stores are named at the line ends, in the legend (hover a store to highlight it)
+ * and in the tooltip, which lists every store at the pointer's time — so identity never rests on colour alone.
+ */
+function compareChart(group, colors) {
+  const series = group.listings
+    .map((listing) => ({ listing, color: colors.get(listing.storeName), points: listing.points.map((point) => ({ ...point, time: new Date(point.at).getTime() })) }))
+    .filter((item) => item.points.length > 0);
+  if (series.length === 0) return emptyState("chart", "Sem pontos.");
+
+  const width = 516, height = 240, left = 52, right = 100, top = 14, bottom = 28;
+  const all = series.flatMap((item) => item.points);
+  const start = Math.min(...all.map((point) => point.time));
+  const lastSeen = Math.max(...group.listings.map((listing) => new Date(listing.lastSeen).getTime()), ...all.map((point) => point.time));
+  const end = lastSeen > start ? lastSeen : start + 3600e3;
+  const msrp = group.msrp || null;
+  const prices = all.map((point) => point.price).concat(msrp ? [msrp] : []);
+  const low = Math.min(...prices), high = Math.max(...prices);
+  const step = niceStep(Math.max(high - low, high * 0.1, 1));
+  const yMin = Math.max(0, Math.floor((low - step * 0.5) / step) * step), yMax = Math.ceil((high + step * 0.5) / step) * step;
+  const x = (time) => left + ((time - start) / (end - start)) * (width - left - right);
+  const y = (price) => top + (1 - (price - yMin) / (yMax - yMin)) * (height - top - bottom);
+
+  const grid = [];
+  for (let value = yMin; value <= yMax + 1e-9; value += step) {
+    grid.push(svg("line", { class: "history-grid", x1: left, x2: width - right, y1: y(value), y2: y(value) }),
+      svg("text", { class: "history-axis", x: left - 8, y: y(value) + 4, "text-anchor": "end" }, money(value).replace(",00", "")));
+  }
+  const dayLabel = (time) => new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short" }).format(new Date(time));
+  grid.push(svg("line", { class: "history-grid", x1: left, x2: width - right, y1: height - bottom, y2: height - bottom }),
+    svg("text", { class: "history-axis", x: left, y: height - 8 }, dayLabel(start)),
+    svg("text", { class: "history-axis", x: width - right, y: height - 8, "text-anchor": "end" }, dayLabel(end)));
+
+  if (msrp) {
+    grid.push(svg("line", { class: "msrp-line", x1: left, x2: width - right, y1: y(msrp), y2: y(msrp) }),
+      svg("text", { class: "history-axis msrp-label", x: left + 4, y: y(msrp) - 4 }, `MSRP ${money(msrp).replace(",00", "")}`));
+  }
+
+  const lines = series.map((item) => {
+    const paths = item.points.map((point, index) => {
+      const next = item.points[index + 1];
+      const until = next ? next.time : end;
+      return svg("path", { class: `history-line store-line ${point.inStock ? "" : "sold-out"}`, style: `stroke:${item.color}`, d: `M${x(point.time)},${y(point.price)} H${x(until)}` + (next ? ` V${y(next.price)}` : "") });
+    });
+    const dots = item.points.map((point) => svg("circle", { class: `history-dot store-dot ${point.inStock ? "" : "sold-out"}`, style: `fill:${item.color}`, cx: x(point.time), cy: y(point.price), r: 4 }));
+    item.endY = y(item.points[item.points.length - 1].price);
+    return svg("g", { class: "store-series", "data-store": item.listing.storeName }, paths, dots);
+  });
+
+  // End labels, spread just enough not to overlap, with a short leader back to the line end.
+  let previous = -Infinity;
+  const labels = [...series].sort((a, b) => a.endY - b.endY).flatMap((item) => {
+    const labelY = Math.max(item.endY, previous + 13);
+    previous = labelY;
+    return [
+      Math.abs(labelY - item.endY) > 1 ? svg("path", { class: "history-grid", d: `M${x(end)},${item.endY} L${x(end) + 5},${labelY - 4}` }) : null,
+      svg("text", { class: "history-label", x: x(end) + 8, y: labelY + 4 }, `${shortStoreName(item.listing.storeName)} ${money(item.points[item.points.length - 1].price).replace(",00", "")}`),
+    ];
+  });
+
+  const crosshair = svg("line", { class: "history-crosshair", x1: 0, x2: 0, y1: top, y2: height - bottom, visibility: "hidden" });
+  const tooltip = h("div", { class: "history-tooltip", role: "status" });
+  tooltip.hidden = true;
+  const plot = svg("svg", {
+    class: "history-chart", viewBox: `0 0 ${width} ${height}`, role: "img", tabindex: 0,
+    "aria-label": `Preço de ${group.title} em ${series.length} lojas. A tabela abaixo tem todos os valores.`,
+  }, grid, lines, labels, crosshair, svg("rect", { class: "history-hit", x: left, y: top, width: width - left - right, height: height - top - bottom }));
+
+  const showAt = (time, px) => {
+    crosshair.setAttribute("x1", px); crosshair.setAttribute("x2", px); crosshair.setAttribute("visibility", "visible");
+    const rows = series.map((item) => {
+      const seen = item.points.filter((point) => point.time <= time);
+      return seen.length ? { item, point: seen[seen.length - 1] } : null;
+    }).filter(Boolean).sort((a, b) => (b.point.inStock - a.point.inStock) || (a.point.price - b.point.price));
+    tooltip.replaceChildren(h("span", { class: "muted" }, dateTime(new Date(time).toISOString())), ...rows.map(({ item, point }) =>
+      h("div", { class: `tip-row ${point.inStock ? "" : "sold-out"}` }, h("span", { class: "line-key", style: `background:${item.color}` }),
+        h("strong", {}, money(point.price)), item.listing.storeName, point.inStock ? null : "· esgotado")));
+    tooltip.hidden = false;
+    tooltip.style.left = `${Math.min(Math.max((px / width) * 100, 16), 72)}%`;
+  };
+  const hide = () => { crosshair.setAttribute("visibility", "hidden"); tooltip.hidden = true; };
+  plot.addEventListener("pointermove", (event) => {
+    const box = plot.getBoundingClientRect();
+    const px = Math.min(Math.max(((event.clientX - box.left) / box.width) * width, left), width - right);
+    showAt(start + ((px - left) / (width - left - right)) * (end - start), px);
+  });
+  plot.addEventListener("pointerleave", hide);
+  plot.addEventListener("focus", () => showAt(end, x(end)));
+  plot.addEventListener("blur", hide);
+
+  const focus = (store) => {
+    plot.classList.toggle("dim-others", Boolean(store));
+    plot.querySelectorAll(".store-series").forEach((element) => element.classList.toggle("focus", element.dataset.store === store));
+  };
+
+  return h("div", {},
+    h("div", { class: "history-box" }, plot, tooltip),
+    h("div", { class: "compare-legend" }, series.map((item) =>
+      h("button", {
+        onmouseenter: () => focus(item.listing.storeName), onmouseleave: () => focus(null),
+        onfocus: () => focus(item.listing.storeName), onblur: () => focus(null),
+      }, svg("svg", { viewBox: "0 0 20 8", class: "key-line" }, svg("path", { class: "history-line store-line", style: `stroke:${item.color}`, d: "M1,4 H19" })), item.listing.storeName)),
+      h("span", { class: "legend-end" },
+        svg("svg", { viewBox: "0 0 20 8", class: "key-line" }, svg("path", { class: "history-line store-line sold-out", style: "stroke:var(--text-soft)", d: "M1,4 H19" })), "esgotado")));
+}
+
+/** "Versus Gamecenter" → "Versus": the chart end labels have ~100 px; the legend and tooltip keep the full name. */
+function shortStoreName(name) {
+  const first = name.split(/\s+/)[0] || name;
+  return first.length > 11 ? `${first.slice(0, 10)}…` : first;
+}
+
+/** A modal with one select; resolves to the chosen value, or null when cancelled. */
+function chooseDialog({ title, message, label, options, confirmLabel }) {
+  const backdrop = document.getElementById("modal");
+  return new Promise((resolve) => {
+    const close = (result) => { backdrop.classList.remove("open"); backdrop.replaceChildren(); resolve(result); };
+    const select = h("select", {}, options.map(([value, text]) => h("option", { value }, text)));
+    backdrop.replaceChildren(h("div", { class: "modal", role: "dialog", "aria-modal": "true", style: "width:min(520px,92vw)" },
+      h("h2", {}, title),
+      h("div", { class: "modal-body" }, h("p", {}, message), h("div", { class: "field" }, h("label", {}, label), select)),
+      h("div", { class: "buttons" },
+        h("button", { class: "button ghost", onclick: () => close(null) }, "Cancelar"),
+        h("button", { class: "button primary", onclick: () => close(select.value) }, confirmLabel))));
+    backdrop.onclick = (event) => { if (event.target === backdrop) close(null); };
+    backdrop.classList.add("open");
+    select.focus();
+  });
+}
+
+async function assignListing(historyKey, groupKey, reopenKey) {
+  try {
+    await post("/compare/assign", { historyKey, groupKey });
+    toast("Correção guardada", "success");
+  } catch (error) {
+    toast((error.errors || [error.message]).join(" "), "error");
+    return;
+  }
+  await loadCompare();
+  if (reopenKey && (state.compare || []).some((group) => group.key === reopenKey)) await openCompareGroup(reopenKey);
+  else closeDrawer();
+}
+
+async function separateListing(group, listing) {
+  const others = (state.compare || []).filter((other) => other.key !== group.key && !other.key.startsWith("solo|"));
+  const target = await chooseDialog({
+    title: "Separar anúncio?",
+    message: `“${listing.title}” (${listing.storeName}) deixa de contar como ${group.title}.`,
+    label: "Passa a ser",
+    options: [["solo", "Um produto à parte"], ...others.map((other) => [other.key, other.title])],
+    confirmLabel: "Separar",
+  });
+  if (target !== null) await assignListing(listing.historyKey, target, group.key);
+}
+
+async function joinListing(group) {
+  let listings;
+  try {
+    listings = await api("/pricehistory/list");
+  } catch (error) {
+    toast(error.message, "error");
+    return;
+  }
+
+  const inGroup = new Set(group.listings.map((listing) => listing.historyKey));
+  const setWords = normalizeText(group.setName).split(/\s+/).filter(Boolean);
+  const candidates = listings
+    .filter((item) => !inGroup.has(item.key))
+    .map((item) => ({ item, sameSet: setWords.length > 0 && setWords.every((word) => normalizeText(item.title).includes(word)) }))
+    .sort((a, b) => (b.sameSet - a.sameSet) || a.item.title.localeCompare(b.item.title))
+    .slice(0, 300);
+  if (candidates.length === 0) {
+    toast("Não há outros anúncios no histórico.", "error");
+    return;
+  }
+
+  const target = await chooseDialog({
+    title: `Juntar a ${group.title}`,
+    message: "Escolhe o anúncio de outra loja que é este mesmo produto (os do mesmo set aparecem primeiro):",
+    label: "Anúncio",
+    options: candidates.map(({ item }) => [item.key, `${item.storeName} — ${item.title} · ${money(item.currentPrice)}${item.currentInStock ? " · em stock" : " · esgotado"}`]),
+    confirmLabel: "Juntar",
+  });
+  if (target !== null) await assignListing(target, group.key, group.key);
 }
 
 /* ----- Stores ----- */
 
 function viewStores() {
   const stores = state.stores;
+  const tags = [...new Set(stores.flatMap((store) => store.tags || []))].sort((a, b) => a.localeCompare(b, "pt"));
+  const listBox = h("div", {});
+
+  const matches = storeMatchesFilters;
+
+  const renderList = () => {
+    const visible = stores.filter(matches);
+    if (stores.length === 0) { listBox.replaceChildren(h("div", { class: "card" }, emptyState("store", "Sem lojas configuradas."))); return; }
+    if (visible.length === 0) { listBox.replaceChildren(h("div", { class: "card" }, emptyState("search", "Nenhuma loja corresponde aos filtros."))); return; }
+
+    // Area (country) first, then tier inside it: S → A → B → C → sem tier.
+    const tierOrder = ["S", "A", "B", "C", "None"];
+    listBox.replaceChildren(...Object.keys(COUNTRIES).map((country) => {
+      const inCountry = visible.filter((store) => (store.country || "Portugal") === country);
+      if (inCountry.length === 0) return null;
+      const [label, flag] = COUNTRIES[country];
+      return h("section", { class: "store-area" },
+        h("h2", { class: "store-area-title" }, h("span", { "aria-hidden": "true" }, flag), label,
+          h("span", { class: "count" }, `${inCountry.length} lojas · ${inCountry.filter((store) => store.enabled).length} ativas`)),
+        tierOrder.map((tier) => {
+          const inTier = inCountry.filter((store) => (store.tier || "None") === tier).sort((a, b) => a.name.localeCompare(b.name, "pt"));
+          if (inTier.length === 0) return null;
+          const [tierLabel, tone, description] = TIERS[tier];
+          return h("div", { class: "store-tier" },
+            h("div", { class: "store-tier-title" }, h("span", { class: `pill ${tone}` }, tierLabel), h("span", {}, description), h("span", { class: "muted" }, `· ${inTier.length}`)),
+            h("div", { class: "grid stores" }, inTier.map(storeCard)));
+        }));
+    }).filter(Boolean));
+  };
+  renderList();
+
+  const select = (value, options, onChange, label) => h("select", { "aria-label": label, onchange: (event) => onChange(event.target.value) },
+    options.map(([optionValue, optionLabel]) => h("option", { value: optionValue, selected: optionValue === value }, optionLabel)));
+
   return [
     h("div", { class: "page-head" },
-      h("div", {}, h("h1", {}, "Lojas"), h("p", {}, "Só são pesquisadas as lojas ativas. Lojas que bloqueiam pedidos automáticos ficam de fora.")),
-      h("div", { class: "actions" }, h("button", { class: "button primary", onclick: () => openStoreDrawer(null) }, icon("plus"), "Adicionar loja"))),
-    stores.length === 0
-      ? h("div", { class: "card" }, emptyState("store", "Sem lojas configuradas."))
-      : h("div", { class: "grid stores" }, stores.map(storeCard)),
+      h("div", {}, h("h1", {}, "Lojas"), h("p", {}, "Agrupadas por área e tier. Só são pesquisadas as lojas ativas com integração; as \"Sem integração\" ficam só como referência.")),
+      h("div", { class: "actions" },
+        h("button", { class: "button", onclick: exportStores, title: "Descarrega todas as lojas em JSON" }, icon("copy"), "Exportar JSON"),
+        h("button", { class: "button", onclick: openStoreImportDrawer, title: "Cria várias lojas a partir de JSON" }, icon("copy"), "Importar JSON"),
+        h("button", { class: "button", onclick: openStoreTestDrawer, title: "Testa várias lojas de uma vez e ativa as que funcionam" }, icon("flask"), "Testar lojas"),
+        h("button", { class: "button primary", onclick: () => openStoreDrawer(null) }, icon("plus"), "Adicionar loja"))),
+    h("div", { class: "filters" },
+      h("input", {
+        type: "text", value: state.storeQuery, placeholder: "Filtrar: nome, site, etiqueta…", style: "max-width:260px",
+        "aria-label": "Filtrar lojas", oninput: (event) => { state.storeQuery = event.target.value; renderList(); },
+      }),
+      select(state.storeCountry, [["all", "Todas as áreas"], ...Object.entries(COUNTRIES).map(([key, [label]]) => [key, label])],
+        (value) => { state.storeCountry = value; renderView(true); }, "Área"),
+      select(state.storeTier, [["all", "Todos os tiers"], ...Object.entries(TIERS).map(([key, [label, , description]]) => [key, `${label} — ${description}`])],
+        (value) => { state.storeTier = value; renderView(true); }, "Tier"),
+      select(state.storeType, [["all", "Todos os tipos"], ...Object.entries(STORE_TYPES)],
+        (value) => { state.storeType = value; renderView(true); }, "Tipo de loja"),
+      tags.length ? select(state.storeTag, [["", "Todas as etiquetas"], ...tags.map((tag) => [tag, tag])], (value) => { state.storeTag = value; renderView(true); }, "Etiqueta") : null,
+      select(state.storeTest, [["all", "Qualquer teste"], ["never", "Nunca testadas"], ["ok", "Último teste OK"], ["failed", "Último teste falhou"], ["auto", "Desligadas pelo bot"]],
+        (value) => { state.storeTest = value; renderView(true); }, "Último teste"),
+      h("span", { class: "muted filters-end" }, `${stores.length} lojas · ${stores.filter((store) => store.enabled).length} ativas`)),
+    listBox,
   ];
+}
+
+/** Whether a store passes the Lojas page filters (area, tier, type, tag, last test, text). */
+function storeMatchesFilters(store) {
+  if (state.storeCountry !== "all" && store.country !== state.storeCountry) return false;
+  if (state.storeTier !== "all" && (store.tier || "None") !== state.storeTier) return false;
+  if (state.storeType !== "all" && (store.type || "Unknown") !== state.storeType) return false;
+  if (state.storeTag && !(store.tags || []).includes(state.storeTag)) return false;
+  const test = store.lastTest;
+  if (state.storeTest === "never" && test) return false;
+  if (state.storeTest === "ok" && test?.status !== "Ok") return false;
+  if (state.storeTest === "failed" && !(test && TEST_FAILED.has(test.status))) return false;
+  if (state.storeTest === "auto" && !(store.autoDisabledAt && !store.enabled)) return false;
+  const words = normalizeText(state.storeQuery).split(/\s+/).filter(Boolean);
+  const haystack = normalizeText(`${store.name} ${store.baseUrl} ${(store.tags || []).join(" ")} ${store.notes || ""}`);
+  return words.every((word) => haystack.includes(word));
+}
+
+/** The classification pills of a store: tier, type and free tags. */
+function storeTags(store) {
+  const [tierLabel, tone] = TIERS[store.tier || "None"];
+  return h("div", { class: "pill-row store-tags" },
+    store.tier && store.tier !== "None" ? h("span", { class: `pill ${tone}` }, tierLabel) : null,
+    store.type && store.type !== "Unknown" ? h("span", { class: "pill plain grey" }, STORE_TYPES[store.type]) : null,
+    (store.tags || []).map((tag) => h("button", {
+      class: `pill plain ${tag === state.storeTag ? "violet" : "grey"} tag-button`, title: `Filtrar pela etiqueta "${tag}"`,
+      onclick: () => { state.storeTag = tag === state.storeTag ? "" : tag; renderView(true); },
+    }, `#${tag}`)));
 }
 
 function storeCard(store) {
@@ -833,7 +1488,10 @@ function storeCard(store) {
   const failed = reports.filter((report) => !report.succeeded);
   const tasks = state.tasks.filter((task) => task.enabled && ((task.storeNames || []).length === 0 || task.storeNames.some((name) => sameName(name, store.name))));
   const lastChecked = reports.map((report) => report.checkedAt).sort().at(-1);
-  const health = !store.enabled ? h("span", { class: "pill grey" }, "Desligada")
+  const health = store.autoDisabledAt && !store.enabled
+    ? h("span", { class: "pill red", title: `Desligada ${relative(store.autoDisabledAt)} após ${store.consecutiveFailures} ciclos seguidos com erro. Ligar volta a contar do zero.` }, "Desligada pelo bot")
+    : store.platform === "Manual" ? h("span", { class: "pill grey" }, "Sem integração")
+    : !store.enabled ? h("span", { class: "pill grey" }, "Desligada")
     : reports.length === 0 ? h("span", { class: "pill blue" }, "À espera")
       : failed.length === reports.length ? h("span", { class: "pill red" }, "Erro")
         : failed.length > 0 ? h("span", { class: "pill amber" }, "Parcial")
@@ -843,15 +1501,23 @@ function storeCard(store) {
     h("div", { class: "card-body" },
       h("div", { class: "store-card-top" },
         storeAvatar(store.name),
-        h("div", { style: "min-width:0" }, h("div", { class: "name" }, store.name), h("div", { class: "url" }, store.baseUrl)),
+        h("div", { style: "min-width:0" }, h("div", { class: "name" }, store.name),
+          h("div", { class: "url" }, safeHref(store.baseUrl) ? h("a", { href: store.baseUrl, target: "_blank", rel: "noopener noreferrer" }, store.baseUrl) : store.baseUrl)),
         switchInput(store.enabled, (checked) => setStoreEnabled(store.name, checked), `Ativar ${store.name}`)),
+      storeTags(store),
       h("dl", { class: "kv" },
         h("dt", {}, "Estado"), h("dd", {}, health),
         h("dt", {}, "Plataforma"), h("dd", {}, store.platform),
         h("dt", {}, "Sem marcador"), h("dd", {}, (UNMARKED_LANGUAGE[store.unmarkedLanguage] || UNMARKED_LANGUAGE.Unknown)[1]),
         h("dt", {}, "Tarefas"), h("dd", {}, tasks.length),
         h("dt", {}, "Verificada"), h("dd", {}, lastChecked ? relative(lastChecked) : "—"),
-        failed.length > 0 ? [h("dt", {}, "Último erro"), h("dd", { style: "color:var(--red)" }, failed[0].error)] : null)),
+        h("dt", {}, "Último teste"), h("dd", {}, store.lastTest
+          ? [testPill(store.lastTest), " ", h("span", { class: "muted" }, `${relative(store.lastTest.at)} · ${store.lastTest.results} produtos`)]
+          : h("span", { class: "muted" }, "nunca")),
+        store.enabled && store.consecutiveFailures > 0
+          ? [h("dt", {}, "Ciclos c/ erro"), h("dd", { style: "color:var(--amber)" }, `${store.consecutiveFailures} seguidos`)] : null,
+        failed.length > 0 ? [h("dt", {}, "Último erro"), h("dd", { style: "color:var(--red)" }, failed[0].error)] : null),
+      store.notes ? h("p", { class: "store-notes" }, store.notes) : null),
     h("div", { class: "store-card-actions" },
       h("button", { class: "button small", onclick: () => { state.probe.storeName = store.name; state.probe.results = null; state.probe.errors = null; navigate("probe"); } }, icon("flask"), "Testar"),
       h("button", { class: "button small", onclick: () => openStoreDrawer(store) }, icon("edit"), "Editar"),
@@ -871,7 +1537,9 @@ function viewAlerts() {
   return [
     h("div", { class: "page-head" },
       h("div", {}, h("h1", {}, "Alertas"), h("p", {}, "Tudo o que o bot já te avisou (mais recentes primeiro).")),
-      h("div", { class: "actions" }, h("button", { class: "button", onclick: resetAlertMemory }, icon("refresh"), "Limpar memória de alertas"))),
+      h("div", { class: "actions" },
+        h("button", { class: "button", onclick: clearAlertList, disabled: state.alerts.length === 0 }, icon("trash"), "Limpar lista"),
+        h("button", { class: "button", onclick: resetAlertMemory, title: "Faz com que tudo o que está em stock seja avisado de novo" }, icon("refresh"), "Limpar memória de alertas"))),
     h("div", { class: "card" }, h("div", { class: "card-body flush" }, state.alerts.length === 0
       ? emptyState("bell", "Ainda nenhum alerta.")
       : alertsTable(state.alerts, true))),
@@ -948,6 +1616,7 @@ function viewSettings() {
     jitter: Math.round(settings.pollJitterSeconds / 60),
     delay: settings.delayBetweenRequestsSeconds,
     userAgent: settings.userAgent,
+    autoDisable: settings.autoDisableAfterFailures,
   };
   const errors = h("div", {});
 
@@ -964,6 +1633,7 @@ function viewSettings() {
         pollJitterSeconds: draft.jitter * 60,
         delayBetweenRequestsSeconds: draft.delay,
         userAgent: draft.userAgent.trim(),
+        autoDisableAfterFailures: draft.autoDisable,
       });
       toast("Definições guardadas", "success");
     } catch (error) {
@@ -992,6 +1662,7 @@ function viewSettings() {
               numberField("Intervalo entre verificações (min)", "interval", "Mínimo 1. Entre 5 e 15 é simpático para as lojas.", 1),
               numberField("Variação aleatória (min)", "jitter", "Soma-se ao intervalo para não bater sempre à mesma hora.", 0),
               numberField("Pausa entre pedidos à mesma loja (s)", "delay", "Evita disparar pedidos seguidos.", 0),
+              numberField("Desligar loja após N ciclos com erro", "autoDisable", "Quando todas as pesquisas de uma loja falham N ciclos seguidos, o bot desliga-a e avisa-te. 0 = nunca.", 0),
               h("div", { class: "field wide" },
                 h("label", {}, "User-Agent"),
                 h("input", { type: "text", value: draft.userAgent, oninput: (event) => { draft.userAgent = event.target.value; } }),
@@ -1023,8 +1694,9 @@ function viewSettings() {
 
 /* -------------------------------------------------------------- drawers -- */
 
-function openDrawer({ title, subtitle, body, footer }) {
+function openDrawer({ title, subtitle, body, footer, wide = false }) {
   const drawer = document.getElementById("drawer");
+  drawer.classList.toggle("wide", wide);
   drawer.replaceChildren(
     h("div", { class: "drawer-head" },
       h("div", {}, h("h2", {}, title), subtitle ? h("p", {}, subtitle) : null),
@@ -1085,8 +1757,8 @@ function openTaskDrawer(task, isCopy = false) {
         }, { placeholder: "ex.: Perfect Order ETB" }), null, true),
         field("Texto de pesquisa", textInput(draft.searchQuery, (value) => { draft.searchQuery = value; }, { placeholder: "elite trainer box" }),
           "O que é escrito na pesquisa de cada loja. Evita “pokemon”: há lojas que não o põem nos títulos.", true),
-        field("Palavras obrigatórias", textInput(draft.requiredKeywords, (value) => { draft.requiredKeywords = value; }, { placeholder: "perfect order, elite trainer box" }), "Separadas por vírgula. Todas têm de estar no título.", true),
-        field("Palavras excluídas", textInput(draft.excludedKeywords, (value) => { draft.excludedKeywords = value; }), "Separadas por vírgula. Nenhuma pode estar no título.", true),
+        field("Palavras obrigatórias", textInput(draft.requiredKeywords, (value) => { draft.requiredKeywords = value; }, { placeholder: "perfect order, elite trainer box" }), "Separadas por vírgula; todas têm de estar no título. Alternativas com | (booster box|booster display = uma delas) e * para o início de uma palavra (op* apanha OP-15 e OP10).", true),
+        field("Palavras excluídas", textInput(draft.excludedKeywords, (value) => { draft.excludedKeywords = value; }), "Separadas por vírgula; nenhuma pode estar no título. Também aceitam | e *.", true),
         field("Preço máximo (€)", h("input", { type: "number", min: 0, step: "0.01", value: draft.maxPrice, oninput: (event) => { draft.maxPrice = event.target.value; } }), "Acima disto não avisa."),
         field("Id", idInput, isNew ? "Identificador interno (não muda depois)." : "Não pode ser alterado."))),
     h("div", { class: "drawer-section" },
@@ -1137,6 +1809,135 @@ function openTaskDrawer(task, isCopy = false) {
   });
 }
 
+/* ----- Tasks: JSON import / export ----- */
+
+const TASK_IMPORT_EXAMPLE = `[
+  {
+    "id": "pkm-etb-en",
+    "name": "Pokémon ETB (EN)",
+    "searchQuery": "elite trainer box",
+    "requiredKeywords": ["pokemon", "elite trainer box"],
+    "excludedKeywords": ["sleeves", "binder", "proxy"],
+    "maxPrice": 60,
+    "language": "English",
+    "storeNames": [],
+    "enabled": true
+  }
+]`;
+
+/** The task fields the import accepts, in the same shape "Exportar JSON" produces. */
+function taskToJson(task) {
+  return {
+    id: task.id, name: task.name, enabled: task.enabled, storeNames: task.storeNames || [], searchQuery: task.searchQuery,
+    requiredKeywords: task.requiredKeywords || [], excludedKeywords: task.excludedKeywords || [], maxPrice: task.maxPrice, language: task.language,
+  };
+}
+
+function exportTasks() {
+  const json = JSON.stringify(state.tasks.map(taskToJson), null, 2);
+  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `tcgstockbot-tarefas-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * Turns one imported object into a StockTaskSaveRequest (without isNew). Lenient on the shape — keywords as an
+ * array or "a, b" text, language as English/Japanese/EN/JP, price as 59.99 or "59,99" — the API still validates.
+ */
+function normalizeImportedTask(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("não é um objeto");
+  const list = (value) => Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : splitList(String(value ?? ""));
+  const name = String(raw.name ?? "").trim();
+  const id = String(raw.id ?? "").trim()
+    || name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const languageText = String(raw.language ?? "English").trim().toLowerCase();
+  const language = ["japanese", "jp", "jpn", "japones", "japonês", "ja"].includes(languageText) ? "Japanese"
+    : ["english", "en", "eng", "ingles", "inglês"].includes(languageText) ? "English" : null;
+  if (!language) throw new Error(`idioma "${raw.language}" desconhecido (usa English ou Japanese)`);
+  return {
+    id, name, enabled: raw.enabled === undefined ? true : Boolean(raw.enabled),
+    storeNames: list(raw.storeNames), searchQuery: String(raw.searchQuery ?? "").trim(),
+    requiredKeywords: list(raw.requiredKeywords), excludedKeywords: list(raw.excludedKeywords),
+    maxPrice: typeof raw.maxPrice === "number" ? raw.maxPrice : Number(String(raw.maxPrice ?? "").replace(",", ".")) || 0,
+    language,
+  };
+}
+
+function openTaskImportDrawer() {
+  let text = "";
+  let updateExisting = false;
+  let running = false;
+  const results = h("div", {});
+  const textarea = h("textarea", {
+    rows: 18, spellcheck: "false", placeholder: TASK_IMPORT_EXAMPLE, style: "font-family:ui-monospace,Consolas,monospace;font-size:12px",
+    oninput: (event) => { text = event.target.value; },
+  });
+  const fileInput = h("input", {
+    type: "file", accept: ".json,application/json",
+    onchange: async (event) => { const file = event.target.files?.[0]; if (file) { text = await file.text(); textarea.value = text; } },
+  });
+
+  const runImport = async () => {
+    if (running) return;
+    let items;
+    try {
+      const parsed = JSON.parse(text.trim() || "null");
+      items = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.tasks) ? parsed.tasks : parsed && typeof parsed === "object" ? [parsed] : null;
+      if (!items || items.length === 0) throw new Error("esperava uma lista de tarefas: [ { ... }, { ... } ]");
+    } catch (error) {
+      results.replaceChildren(errorList([`JSON inválido: ${error.message}`]));
+      return;
+    }
+
+    running = true;
+    const existing = new Set(state.tasks.map((task) => task.id.toLowerCase()));
+    const rows = [];
+    let created = 0, updated = 0, skipped = 0, failed = 0;
+    for (const [index, raw] of items.entries()) {
+      results.replaceChildren(h("div", { class: "muted" }, `A importar… ${index + 1}/${items.length}`));
+      const label = raw?.name || raw?.id || `#${index + 1}`;
+      try {
+        const task = normalizeImportedTask(raw);
+        const exists = existing.has(task.id.toLowerCase());
+        if (exists && !updateExisting) { skipped++; rows.push([label, "grey", "já existe — ignorada"]); continue; }
+        await post("/stocktask/save", { isNew: !exists, ...task });
+        existing.add(task.id.toLowerCase());
+        if (exists) { updated++; rows.push([label, "violet", "atualizada"]); } else { created++; rows.push([label, "green", "criada"]); }
+      } catch (error) {
+        failed++;
+        rows.push([label, "red", (error.errors || [error.message]).join("; ")]);
+      }
+    }
+    running = false;
+
+    await reloadConfiguration();
+    results.replaceChildren(
+      h("div", { class: "notice violet" }, `${created} criada(s), ${updated} atualizada(s), ${skipped} ignorada(s), ${failed} com erro.`),
+      h("ul", { class: "import-results" }, rows.map(([label, tone, message]) => h("li", {}, h("span", { class: `pill ${tone}` }, message), h("span", {}, label)))));
+    if (failed === 0) toast(`Importação concluída: ${created + updated} tarefa(s)`, "success");
+  };
+
+  openDrawer({
+    title: "Importar tarefas (JSON)",
+    subtitle: "Cola uma lista de tarefas ou escolhe um ficheiro. O formato é o mesmo do \"Exportar JSON\".",
+    body: [
+      h("div", { class: "drawer-section" },
+        field("Ficheiro", fileInput, "Opcional: carrega um .json em vez de colar.", true),
+        field("JSON", textarea, "Campos: id, name, searchQuery, requiredKeywords, excludedKeywords, maxPrice, language (English/Japanese), storeNames ([] = todas), enabled. Sem id, é gerado a partir do nome.", true),
+        h("div", { style: "display:flex;align-items:center;gap:12px;margin-top:8px" },
+          switchInput(updateExisting, (checked) => { updateExisting = checked; }, "Atualizar as que já existem"),
+          h("span", {}, "Atualizar as tarefas que já existem (mesmo id)"))),
+      results,
+    ],
+    footer: [h("button", { class: "button ghost", onclick: closeDrawer }, "Fechar"), h("button", { class: "button primary", onclick: runImport }, icon("check"), "Importar")],
+  });
+}
+
 /** Builds the StoreSaveRequest the API expects from a store draft. */
 function storeToSaveRequest(store, originalName) {
   return {
@@ -1147,16 +1948,24 @@ function storeToSaveRequest(store, originalName) {
     baseUrl: (store.baseUrl || "").trim(),
     unmarkedLanguage: store.unmarkedLanguage,
     wooCommerceProductsPath: store.wooCommerceProductsPath,
+    shopifyCatalogPaths: store.platform === "Shopify" ? (store.shopifyCatalogPaths || "").trim() : "",
     html: store.platform === "Html" ? store.html : null,
+    awinFeedKey: store.platform === "Awin" ? (store.awinFeedKey || "").trim() : "",
+    country: store.country || "Portugal",
+    tier: store.tier || "None",
+    type: store.type || "Unknown",
+    tags: Array.isArray(store.tags) ? store.tags : splitList(String(store.tags || "")),
+    notes: (store.notes || "").trim(),
   };
 }
 
-function openStoreDrawer(store) {
+function openStoreDrawer(store, preset = null) {
   const isNew = !store;
   const originalName = store?.name || null;
-  const draft = structuredClone(store || {
+  const draft = structuredClone(preset || store || {
     name: "", enabled: true, platform: "Shopify", baseUrl: "https://", unmarkedLanguage: "Unknown",
-    wooCommerceProductsPath: "/wp-json/wc/store/v1/products", html: null,
+    wooCommerceProductsPath: "/wp-json/wc/store/v1/products", shopifyCatalogPaths: "", html: null,
+    awinFeedKey: "", country: "Portugal", tier: "None", type: "Unknown", tags: [], notes: "",
   });
   draft.html = draft.html || { searchUrlTemplate: "", productSelector: "", titleSelector: "", priceSelector: "", linkSelector: "", outOfStockSelector: "", inStockSelector: "" };
 
@@ -1186,12 +1995,23 @@ function openStoreDrawer(store) {
       platformFields.replaceChildren(h("div", { class: "notice violet" },
         "Usa a Creators API oficial da Amazon (sem scraping). Preenche Amazon__CredentialId, Amazon__CredentialSecret e Amazon__PartnerTag no .env. "
         + "URL base: https://www.amazon.es. O texto de pesquisa pode ser palavras-chave ou um ASIN (ex.: B0XXXXXXXX)."));
+    } else if (draft.platform === "Awin") {
+      platformFields.replaceChildren(h("h3", {}, "Feed Awin"),
+        field("Chave do feed", textInput(draft.awinFeedKey, (value) => { draft.awinFeedKey = value; }, { placeholder: "ex.: MediaMarktES" }),
+          "Só letras, números e _. O bot lê o URL do Create-a-Feed de AwinFeeds__Feeds__<chave> no .env (o site da loja nunca é contactado). "
+          + "Só funciona depois de a loja te aprovar no programa Awin dela.", true));
+    } else if (draft.platform === "Manual") {
+      platformFields.replaceChildren(h("div", { class: "notice" },
+        "Sem integração: a loja fica na lista (link, tier, etiquetas) mas o bot nunca a pesquisa. Escolhe outra plataforma quando souberes como a ler."));
     } else if (AWIN_FEED_KEYS[draft.platform]) {
       platformFields.replaceChildren(h("div", { class: "notice violet" },
         "Lê o feed de produtos Awin autorizado desta loja (o site da loja não é contactado). Põe o URL do Create-a-Feed em "
         + `AwinFeeds__Feeds__${AWIN_FEED_KEYS[draft.platform]} no .env. O feed é descarregado no máximo de 6 em 6 horas; sem feed, a loja mostra "integração não configurada".`));
     } else {
-      platformFields.replaceChildren(h("div", { class: "notice violet" }, "Shopify não precisa de mais nada: o bot usa a pesquisa pública da loja."));
+      platformFields.replaceChildren(h("h3", {}, "Shopify"),
+        field("Catálogo (opcional)", textInput(draft.shopifyCatalogPaths, (value) => { draft.shopifyCatalogPaths = value; }, { placeholder: "/collections/pokemon, /collections/riftbound" }),
+          "Vazio = pesquisa da loja (no máximo 10 produtos por pesquisa). Com coleções (separadas por vírgula) ou /products.json, o bot lê o catálogo "
+          + "uma vez por ciclo e filtra-o para todas as tarefas — sem limite de 10. Prefere coleções: /products.json lê a loja inteira.", true));
     }
   };
   renderPlatformFields();
@@ -1217,18 +2037,34 @@ function openStoreDrawer(store) {
   testQueryInput.addEventListener("keydown", (event) => { if (event.key === "Enter") runTest(); });
 
   const body = [
+    draft.detect ? detectNotice(draft.detect) : null,
     h("div", { class: "drawer-section" },
       h("h3", {}, "Loja"),
       h("div", { class: "fields" },
         field("Nome", textInput(draft.name, (value) => { draft.name = value; }, { placeholder: "ex.: Versus Gamecenter" })),
         field("Plataforma", h("select", { onchange: (event) => { draft.platform = event.target.value; renderPlatformFields(); } },
           Object.entries(PLATFORMS).map(([value, label]) => h("option", { value, selected: draft.platform === value }, label)))),
-        field("URL base", textInput(draft.baseUrl, (value) => { draft.baseUrl = value; }, { placeholder: "https://loja.pt" }), null, true),
+        field("URL base", h("div", { class: "input-with-button" },
+          textInput(draft.baseUrl, (value) => { draft.baseUrl = value; }, { placeholder: "https://loja.pt" }),
+          h("button", { class: "button", onclick: () => detectInDrawer(store, draft), title: "Descobre se é Shopify, WooCommerce ou PrestaShop e preenche a configuração" }, icon("search"), "Detetar")),
+          "Cola o site (ou a página da categoria Pokémon) e carrega em Detetar.", true),
         field("Títulos sem indicação de idioma", h("select", { onchange: (event) => { draft.unmarkedLanguage = event.target.value; } },
           Object.entries(UNMARKED_LANGUAGE).map(([value, [label]]) => h("option", { value, selected: draft.unmarkedLanguage === value }, label))),
         "“Contar como inglês” só se a loja marca sempre os PT/ES/JP. “Idioma por confirmar” avisa na mesma, com um aviso para confirmares na página.", true)),
       h("div", { style: "display:flex;align-items:center;gap:12px" },
         switchInput(draft.enabled, (checked) => { draft.enabled = checked; }, "Loja ativa"), h("span", {}, "Loja ativa"))),
+    h("div", { class: "drawer-section" },
+      h("h3", {}, "Classificação"),
+      h("div", { class: "fields" },
+        field("Área", h("select", { onchange: (event) => { draft.country = event.target.value; } },
+          Object.entries(COUNTRIES).map(([value, [label]]) => h("option", { value, selected: draft.country === value }, label)))),
+        field("Tier", h("select", { onchange: (event) => { draft.tier = event.target.value; } },
+          Object.entries(TIERS).map(([value, [label, , description]]) => h("option", { value, selected: (draft.tier || "None") === value }, `${label} — ${description}`)))),
+        field("Tipo de loja", h("select", { onchange: (event) => { draft.type = event.target.value; } },
+          Object.entries(STORE_TYPES).map(([value, label]) => h("option", { value, selected: (draft.type || "Unknown") === value }, label)))),
+        field("Etiquetas", textInput((draft.tags || []).join(", "), (value) => { draft.tags = splitList(value); }, { placeholder: "por testar, envia para PT" }),
+          "Separadas por vírgula. Aparecem no cartão e servem de filtro."),
+        field("Notas", h("textarea", { rows: 3, oninput: (event) => { draft.notes = event.target.value; } }, draft.notes || ""), null, true))),
     platformFields,
     h("div", { class: "drawer-section" },
       h("h3", {}, "Testar antes de guardar"),
@@ -1255,6 +2091,345 @@ function openStoreDrawer(store) {
     body,
     footer: [h("button", { class: "button ghost", onclick: closeDrawer }, "Cancelar"), h("button", { class: "button primary", onclick: save }, icon("check"), isNew ? "Adicionar" : "Guardar")],
   });
+}
+
+/* ----- Stores: detect platform ----- */
+
+/** Applies a detection to a store draft (platform setup only; name only when empty). */
+function applyDetection(draft, result) {
+  if (result.status !== "Detected") return draft;
+  return {
+    ...draft,
+    name: (draft.name || "").trim() || result.suggestedName,
+    baseUrl: result.baseUrl,
+    platform: result.platform,
+    shopifyCatalogPaths: result.platform === "Shopify" ? result.shopifyCatalogPaths : "",
+    wooCommerceProductsPath: result.platform === "WooCommerce" ? result.wooCommerceProductsPath : draft.wooCommerceProductsPath,
+    html: result.platform === "Html" ? result.html : draft.html,
+  };
+}
+
+async function detectInDrawer(store, draft) {
+  try {
+    toast("A detetar a plataforma…", "info");
+    const result = await post("/store/detect", { url: draft.baseUrl });
+    const next = applyDetection(draft, result);
+    if (result.status !== "Detected") { next.baseUrl = result.baseUrl || draft.baseUrl; if (!next.name) next.name = result.suggestedName || ""; }
+    next.detect = result;
+    openStoreDrawer(store, next);
+  } catch (error) {
+    toast((error.errors || [error.message]).join(" "), "error");
+  }
+}
+
+function detectNotice(result) {
+  const tone = result.status === "Detected" ? "violet" : result.status === "Unknown" ? "" : "amber";
+  return h("div", { class: `notice ${tone} detect-notice` },
+    h("div", {}, h("strong", {}, result.message)),
+    result.evidence?.length ? h("details", {}, h("summary", {}, "O que foi verificado"),
+      h("ul", {}, result.evidence.map((line) => h("li", {}, line)))) : null);
+}
+
+/* ----- Stores: test many at once ----- */
+
+const TEST_WORKERS = 4;
+
+function openStoreTestDrawer() {
+  const scopes = {
+    visible: ["As visíveis com os filtros atuais", () => state.stores.filter(storeMatchesFilters)],
+    never: ["Nunca testadas", () => state.stores.filter((store) => !store.lastTest)],
+    failed: ["Falharam no último teste", () => state.stores.filter((store) => store.lastTest && TEST_FAILED.has(store.lastTest.status))],
+    disabled: ["Desligadas", () => state.stores.filter((store) => !store.enabled)],
+    all: ["Todas", () => state.stores],
+  };
+  let scope = "visible";
+  let query = "pokemon";
+  let running = false;
+  let stopRequested = false;
+  let list = [];
+  const rows = new Map();                                  // name -> { state: "waiting" | "running" | "done", result, note }
+
+  const table = h("div", {});
+  const progress = h("div", { class: "muted" });
+  const actions = h("div", { class: "test-actions" });
+  const scopeCount = h("span", { class: "muted" });
+  const refreshCount = () => { scopeCount.textContent = `${scopes[scope][1]().length} loja(s)`; };
+
+  const render = () => {
+    const done = [...rows.values()].filter((row) => row.state === "done").length;
+    progress.textContent = rows.size ? `${done} de ${rows.size} testadas${running ? "…" : ""}` : "";
+    table.replaceChildren(rows.size === 0 ? h("div", { class: "muted" }, "Escolhe as lojas e carrega em Começar.") : h("div", { class: "table-wrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, h("th", {}, "Loja"), h("th", {}, "Resultado"), h("th", { class: "num" }, "Produtos"), h("th", { class: "num" }, "Reconhecidos"), h("th", {}, "Exemplo / motivo"))),
+      h("tbody", {}, list.map((listed) => {
+        const store = state.stores.find((candidate) => candidate.name === listed.name) || listed;   // enabled / platform may have changed
+        const row = rows.get(store.name);
+        const result = row?.result;
+        return h("tr", {},
+          h("td", { class: "nowrap" }, h("span", { class: "store-link" }, storeAvatar(store.name), store.name),
+            h("div", { class: "was-price plain" }, `${store.platform}${store.enabled ? " · ativa" : " · desligada"}`)),
+          h("td", { class: "nowrap" }, row?.state === "running" ? h("span", { class: "pill violet pulse" }, "A testar…")
+            : result ? testPill(result) : h("span", { class: "pill plain grey" }, "À espera")),
+          h("td", { class: "num" }, result ? result.results : "—"),
+          h("td", { class: "num" }, result ? `${result.relevant}${result.matches ? ` (${result.matches} alerta)` : ""}` : "—"),
+          h("td", { class: "title-cell" },
+            result ? h("span", { class: "primary-text", title: result.sample || result.message }, result.sample || result.message || "—") : null,
+            row?.note ? h("div", { class: "was-price plain" }, row.note) : null));
+      })))));
+  };
+
+  const testOne = async (store) => {
+    const row = rows.get(store.name);
+    row.state = "running";
+    render();
+    try {
+      row.result = await post("/store/test", { name: store.name, query });
+    } catch (error) {
+      row.result = { name: store.name, status: "Error", results: 0, relevant: 0, matches: 0, message: (error.errors || [error.message]).join(" ") };
+    }
+    row.state = "done";
+    render();
+  };
+
+  const runAll = async (stores) => {
+    running = true;
+    stopRequested = false;
+    renderActions();
+    const queue = [...stores];
+    await Promise.all(Array.from({ length: TEST_WORKERS }, async () => {
+      while (queue.length && !stopRequested) await testOne(queue.shift());
+    }));
+    running = false;
+    await reloadConfiguration();
+    render();
+    renderActions();
+  };
+
+  const start = () => {
+    if (running) return;
+    list = scopes[scope][1]().slice().sort((a, b) => a.name.localeCompare(b.name, "pt"));
+    rows.clear();
+    list.forEach((store) => rows.set(store.name, { state: "waiting" }));
+    render();
+    runAll(list);
+  };
+
+  const byResult = (predicate) => list.filter((store) => {
+    const result = rows.get(store.name)?.result;
+    const current = state.stores.find((candidate) => candidate.name === store.name) || store;
+    return result && predicate(result, current);
+  }).map((store) => state.stores.find((candidate) => candidate.name === store.name) || store);
+
+  const bulk = async (stores, action, message) => {
+    running = true;
+    renderActions();
+    let failed = 0;
+    for (const store of stores) {
+      try { await action(store); } catch (error) { failed++; const row = rows.get(store.name); if (row) row.note = (error.errors || [error.message]).join(" "); }
+    }
+    running = false;
+    await reloadConfiguration();
+    render();
+    renderActions();
+    toast(failed ? `${message}: ${stores.length - failed} ok, ${failed} com erro` : `${message}: ${stores.length}`, failed ? "error" : "success");
+  };
+
+  const redetect = async (stores) => {
+    running = true;
+    renderActions();
+    for (const store of stores) {
+      const row = rows.get(store.name);
+      row.state = "running";
+      render();
+      try {
+        const detection = await post("/store/detect", { url: store.baseUrl });
+        if (detection.status === "Detected" && (detection.platform !== store.platform || detection.shopifyCatalogPaths !== (store.shopifyCatalogPaths || ""))) {
+          const updated = applyDetection(store, detection);
+          await post("/store/save", storeToSaveRequest({ ...updated, tags: (store.tags || []).filter((tag) => tag !== "plataforma por identificar") }, store.name));
+          row.note = `Detetado ${detection.platform}${detection.shopifyCatalogPaths ? ` (${detection.shopifyCatalogPaths})` : ""} — configuração atualizada.`;
+          row.result = await post("/store/test", { name: store.name, query });
+        } else {
+          row.note = detection.message;
+        }
+      } catch (error) {
+        row.note = (error.errors || [error.message]).join(" ");
+      }
+      row.state = "done";
+      render();
+    }
+    running = false;
+    await reloadConfiguration();
+    render();
+    renderActions();
+  };
+
+  function renderActions() {
+    if (running) {
+      actions.replaceChildren(h("button", { class: "button", onclick: () => { stopRequested = true; } }, icon("stop"), "Parar"));
+      return;
+    }
+    if (rows.size === 0) { actions.replaceChildren(); return; }
+    const toEnable = byResult((result, store) => result.status === "Ok" && !store.enabled && store.platform !== "Manual");
+    const toDisable = byResult((result, store) => TEST_FAILED.has(result.status) && store.enabled);
+    const blocked = byResult((result, store) => result.status === "Blocked" && store.platform !== "Manual");
+    const toDetect = byResult((result) => ["Unreachable", "Error", "Empty", "NoIntegration"].includes(result.status));
+    const action = (stores, label, onClick, primary) => h("button", { class: `button ${primary ? "primary" : ""}`, disabled: stores.length === 0, onclick: onClick }, `${label} (${stores.length})`);
+    actions.replaceChildren(
+      action(toEnable, "Ativar as que funcionam", () => bulk(toEnable, (store) => post("/store/enable", { name: store.name, enabled: true }), "Lojas ativadas"), true),
+      action(toDisable, "Desligar as que falharam", () => bulk(toDisable, (store) => post("/store/enable", { name: store.name, enabled: false }), "Lojas desligadas")),
+      action(blocked, "Bloqueadas → Sem integração", () => bulk(blocked, (store) => post("/store/save", storeToSaveRequest({
+        ...store, platform: "Manual", enabled: false, tags: [...new Set([...(store.tags || []), "bloqueia bots (403)"])],
+      }, store.name)), "Marcadas como Sem integração")),
+      action(toDetect, "Voltar a detetar a plataforma", () => redetect(toDetect)),
+    );
+  }
+
+  const scopeSelect = h("select", { onchange: (event) => { scope = event.target.value; refreshCount(); } },
+    Object.entries(scopes).map(([value, [label]]) => h("option", { value, selected: value === scope }, label)));
+  refreshCount();
+  render();
+
+  openDrawer({
+    title: "Testar lojas",
+    subtitle: `Faz uma pesquisa em cada loja (${TEST_WORKERS} de cada vez, com os limites por domínio) e guarda o resultado no cartão. Lojas "Sem integração" não são contactadas.`,
+    body: [
+      h("div", { class: "drawer-section" },
+        h("div", { class: "fields" },
+          field("Lojas", h("div", { class: "input-with-button" }, scopeSelect, scopeCount)),
+          field("Texto de pesquisa", textInput(query, (value) => { query = value; }), "\"pokemon\" apanha quase tudo; usa \"elite trainer box\" para algo mais fino.")),
+        h("div", { style: "display:flex;align-items:center;gap:10px" }, h("button", { class: "button primary", onclick: start }, icon("play"), "Começar"), progress)),
+      h("div", { class: "drawer-section" }, table),
+      h("div", { class: "drawer-section" }, h("h3", {}, "Depois do teste"), actions),
+    ],
+    footer: [h("button", { class: "button ghost", onclick: () => { stopRequested = true; closeDrawer(); } }, "Fechar")],
+    wide: true,
+  });
+}
+
+/* ----- Stores: JSON import / export ----- */
+
+function exportStores() {
+  const json = JSON.stringify(state.stores.map((store) => ({ ...storeToSaveRequest(store, null), originalName: undefined })), null, 2);
+  downloadJson(json, `tcgstockbot-lojas-${new Date().toISOString().slice(0, 10)}.json`);
+}
+
+function downloadJson(json, fileName) {
+  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** The site of a store URL ("loja.pt"); a URL with a query (a search link) keeps it, so two searches are not one site. */
+const hostOf = (url) => {
+  try {
+    const parsed = new URL(url);
+    return (parsed.host.replace(/^www\./, "") + parsed.search).toLowerCase();
+  } catch {
+    return "";
+  }
+};
+
+/**
+ * Imports stores in the "Exportar JSON" shape. A store that already exists (same name, or same site) is not replaced:
+ * with "Atualizar classificação" only its area, tier, type, tags and notes change — its platform setup is kept.
+ */
+function openStoreImportDrawer() {
+  let text = "";
+  let updateClassification = true;
+  let running = false;
+  const results = h("div", {});
+  const textarea = h("textarea", {
+    rows: 16, spellcheck: "false", style: "font-family:ui-monospace,Consolas,monospace;font-size:12px",
+    placeholder: '[\n  { "name": "Loja", "platform": "Shopify", "baseUrl": "https://loja.pt", "country": "Portugal", "tier": "A", "type": "Specialist", "tags": ["por testar"], "enabled": false }\n]',
+    oninput: (event) => { text = event.target.value; },
+  });
+  const fileInput = h("input", {
+    type: "file", accept: ".json,application/json",
+    onchange: async (event) => { const file = event.target.files?.[0]; if (file) { text = await file.text(); textarea.value = text; } },
+  });
+
+  const runImport = async () => {
+    if (running) return;
+    let items;
+    try {
+      const parsed = JSON.parse(text.trim() || "null");
+      items = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.stores) ? parsed.stores : parsed && typeof parsed === "object" ? [parsed] : null;
+      if (!items || items.length === 0) throw new Error("esperava uma lista de lojas: [ { ... }, { ... } ]");
+    } catch (error) {
+      results.replaceChildren(errorList([`JSON inválido: ${error.message}`]));
+      return;
+    }
+
+    running = true;
+    const rows = [];
+    let created = 0, updated = 0, skipped = 0, failed = 0;
+    for (const [index, raw] of items.entries()) {
+      results.replaceChildren(h("div", { class: "muted" }, `A importar… ${index + 1}/${items.length}`));
+      const label = raw?.name || `#${index + 1}`;
+      try {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("não é um objeto");
+        const existing = state.stores.find((store) => sameName(store.name, String(raw.name || "")))
+          || (hostOf(raw.baseUrl) && state.stores.find((store) => hostOf(store.baseUrl) === hostOf(raw.baseUrl)));
+        if (existing) {
+          if (!updateClassification) { skipped++; rows.push([label, "grey", `já existe (${existing.name}) — ignorada`]); continue; }
+          const merged = { ...existing, country: raw.country || existing.country, tier: raw.tier || existing.tier, type: raw.type || existing.type,
+            tags: [...new Set([...(existing.tags || []), ...(Array.isArray(raw.tags) ? raw.tags : [])].filter((tag) => tag !== "por testar"))],
+            notes: existing.notes || raw.notes || "" };
+          await post("/store/save", storeToSaveRequest(merged, existing.name));
+          updated++; rows.push([label, "violet", `classificação atualizada (${existing.name})`]);
+          continue;
+        }
+        const draft = {
+          name: "", enabled: false, platform: "Manual", baseUrl: "", unmarkedLanguage: "Unknown",
+          wooCommerceProductsPath: "/wp-json/wc/store/v1/products", shopifyCatalogPaths: "", html: null,
+          awinFeedKey: "", country: "Portugal", tier: "None", type: "Unknown", tags: [], notes: "", ...raw,
+        };
+        await post("/store/save", storeToSaveRequest(draft, null));
+        state.stores.push(draft);
+        created++; rows.push([label, "green", `criada (${draft.platform})`]);
+      } catch (error) {
+        failed++;
+        rows.push([label, "red", (error.errors || [error.message]).join("; ")]);
+      }
+    }
+    running = false;
+
+    await reloadConfiguration();
+    results.replaceChildren(
+      h("div", { class: "notice violet" }, `${created} criada(s), ${updated} atualizada(s), ${skipped} ignorada(s), ${failed} com erro.`),
+      h("ul", { class: "import-results" }, rows.map(([label, tone, message]) => h("li", {}, h("span", { class: `pill ${tone}` }, message), h("span", {}, label)))));
+    if (failed === 0) toast(`Importação concluída: ${created + updated} loja(s)`, "success");
+  };
+
+  openDrawer({
+    title: "Importar lojas (JSON)",
+    subtitle: "Cola uma lista de lojas ou escolhe um ficheiro. O formato é o mesmo do \"Exportar JSON\".",
+    body: [
+      h("div", { class: "drawer-section" },
+        field("Ficheiro", fileInput, "Opcional: carrega um .json em vez de colar.", true),
+        field("JSON", textarea, "Campos: name, platform (Shopify, WooCommerce, Html, Amazon, Fnac, Worten, ElCorteIngles, Awin, Manual), baseUrl, country (Portugal/Spain/Europe), tier (S/A/B/C), type (Retail/Specialist/Importer/Marketplace/Official), tags, notes, enabled, shopifyCatalogPaths, wooCommerceProductsPath, html, awinFeedKey.", true),
+        h("div", { style: "display:flex;align-items:center;gap:12px;margin-top:8px" },
+          switchInput(updateClassification, (checked) => { updateClassification = checked; }, "Atualizar a classificação das que já existem"),
+          h("span", {}, "Nas lojas que já existem (mesmo nome ou site), atualizar só área, tier, tipo e etiquetas"))),
+      results,
+    ],
+    footer: [h("button", { class: "button ghost", onclick: closeDrawer }, "Fechar"), h("button", { class: "button primary", onclick: runImport }, icon("check"), "Importar")],
+  });
+}
+
+/* ----- MSRP (reference prices kept by the bot; shown in Compare and in the alerts) ----- */
+
+/** "−8% vs MSRP" (green below, amber up to +15%, red above), or nothing when either price is unknown. */
+function msrpDelta(price, msrp, subject) {
+  if (!price || !msrp) return null;
+  const percent = Math.round(((price - msrp) / msrp) * 100);
+  const tone = percent <= 0 ? "green" : percent <= 15 ? "amber" : "red";
+  const text = percent === 0 ? "= MSRP" : `${percent < 0 ? "−" : "+"}${Math.abs(percent)}% vs MSRP`;
+  return h("div", { class: `msrp-delta ${tone}`, title: `${subject ? `${subject}: ` : ""}${money(price)} · MSRP ${money(msrp)}` }, text);
 }
 
 /* ------------------------------------------------------------- actions -- */
@@ -1289,6 +2464,30 @@ async function deleteTask(task) {
   await mutate(() => post(`/stocktask/delete?identifier=${encodeURIComponent(task.id)}`), "Tarefa apagada");
 }
 
+async function deleteAllTasks() {
+  const tasks = state.tasks || [];
+  if (tasks.length === 0) return;
+  if (!await confirmDialog({
+    title: `Apagar as ${tasks.length} tarefas?`,
+    message: "Deixam todas de ser vigiadas. Antes de apagar é descarregada uma cópia (JSON) que podes voltar a importar.",
+    confirmLabel: "Apagar todas", danger: true,
+  })) return;
+
+  exportTasks();
+  const failed = [];
+  for (const task of tasks) {
+    try {
+      await post(`/stocktask/delete?identifier=${encodeURIComponent(task.id)}`);
+    } catch (error) {
+      failed.push(task.name || task.id);
+    }
+  }
+  state.expandedTasks.clear();
+  await reloadConfiguration();
+  if (failed.length === 0) toast(`${tasks.length} tarefa(s) apagada(s)`, "success");
+  else toast(`Não foi possível apagar: ${failed.join(", ")}`, "error");
+}
+
 async function deleteStore(store) {
   if (!await confirmDialog({ title: "Apagar loja?", message: `“${store.name}” deixa de ser pesquisada e sai das tarefas que a usam.`, confirmLabel: "Apagar", danger: true })) return;
   await mutate(() => post(`/store/delete?identifier=${encodeURIComponent(store.name)}`), "Loja apagada");
@@ -1309,6 +2508,17 @@ async function runNow() {
     await post("/monitor/run");
     toast("Verificação pedida", "success");
     setTimeout(refresh, 700);
+  } catch (error) {
+    toast(error.message, "error");
+  }
+}
+
+async function clearAlertList() {
+  if (!await confirmDialog({ title: "Limpar a lista de alertas?", message: "Apaga o histórico de alertas. Os produtos que continuam em stock não voltam a ser avisados por causa disto.", confirmLabel: "Limpar" })) return;
+  try {
+    await post("/alert/clear");
+    toast("Lista de alertas limpa", "success");
+    await refresh();
   } catch (error) {
     toast(error.message, "error");
   }
@@ -1379,6 +2589,7 @@ async function refresh() {
     if (cycleAt !== state.lastCycleAt) {
       state.lastCycleAt = cycleAt;
       state.alerts = await api("/alert/list");
+      if (state.view === "compare") loadCompare();
     }
     renderChrome();
     renderView();

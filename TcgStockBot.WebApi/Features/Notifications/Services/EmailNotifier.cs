@@ -24,14 +24,29 @@ internal sealed class EmailNotifier(IOptions<EmailOptions> options, ILogger<Emai
     /// <inheritdoc />
     public async Task SendAsync(IReadOnlyList<StockAlert> alerts, CancellationToken cancellationToken)
     {
-        var settings = options.Value;
-
-        var message = new MimeMessage
+        await SendMessageAsync(new MimeMessage
         {
             Subject = AlertMessageFormatter.Subject(alerts),
             Priority = MessagePriority.Urgent,
             Body = new BodyBuilder { HtmlBody = AlertMessageFormatter.Html(alerts), TextBody = AlertMessageFormatter.Text(alerts) }.ToMessageBody(),
-        };
+        }, cancellationToken);
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Alert email sent to {Recipients} ({Count} product(s))", string.Join(", ", options.Value.To), alerts.Count);
+    }
+
+    /// <inheritdoc />
+    public async Task SendNoticeAsync(string subject, string text, CancellationToken cancellationToken)
+    {
+        await SendMessageAsync(new MimeMessage { Subject = subject, Body = new TextPart("plain") { Text = text } }, cancellationToken);
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Notice email sent to {Recipients}", string.Join(", ", options.Value.To));
+    }
+
+    private async Task SendMessageAsync(MimeMessage message, CancellationToken cancellationToken)
+    {
+        var settings = options.Value;
         message.From.Add(MailboxAddress.Parse(settings.From));
         foreach (var recipient in settings.To)
         {
@@ -49,8 +64,5 @@ internal sealed class EmailNotifier(IOptions<EmailOptions> options, ILogger<Emai
 
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(quit: true, cancellationToken);
-
-        if (logger.IsEnabled(LogLevel.Information))
-            logger.LogInformation("Alert email sent to {Recipients} ({Count} product(s))", string.Join(", ", settings.To), alerts.Count);
     }
 }

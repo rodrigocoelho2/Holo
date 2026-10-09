@@ -105,6 +105,7 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
             decimal? price = null;
             var currency = "EUR";
             var inStock = false;
+            var preOrder = false;
             string? seller = null;
 
             if (listing is { } offer)
@@ -119,14 +120,14 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
                     currency = GetString(money, "currency") ?? currency;
                 }
 
-                inStock = offer.TryGetProperty("availability", out var availability)
-                    && GetString(availability, "type") is { } type
-                    && PurchasableAvailability.Contains(type);
+                var availabilityType = offer.TryGetProperty("availability", out var availability) ? GetString(availability, "type") : null;
+                inStock = availabilityType is not null && PurchasableAvailability.Contains(availabilityType);
+                preOrder = string.Equals(availabilityType, "PREORDER", StringComparison.OrdinalIgnoreCase);
 
                 seller = offer.TryGetProperty("merchantInfo", out var merchant) ? GetString(merchant, "name") : null;
             }
 
-            listings.Add(new StoreListing(store.Name, title, productUrl, price, inStock, asin, currency, seller));
+            listings.Add(new StoreListing(store.Name, title, productUrl, price, inStock, asin, currency, seller, preOrder));
         }
 
         return listings;

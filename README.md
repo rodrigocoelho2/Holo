@@ -14,7 +14,7 @@ TcgStockBot.slnx
 │   ├── Program.cs
 │   ├── TcgStockBotStartup.cs   # registos (AddSingleton, repositório antes do serviço) + pipeline
 │   ├── Extensions/             # dados (BotDataContext, RepositoryBase), InternalControllerBase, auth, traduções
-│   │   └── Http/               # saída: proxy opcional, limites por domínio, Retry-After, logs sem segredos
+│   │   └── Http/               # saída: limites por domínio, Retry-After, logs sem segredos
 │   └── Features/
 │       ├── TcgStockBotOptions.cs
 │       ├── StockTasks/  Stores/  Alerts/  Monitors/  Settings/  Notifications/
@@ -61,23 +61,22 @@ Atalhos: `1`–`6` mudam de página e `R` verifica logo.
 
 ## Docker no NAS UGREEN
 
-São três contentores:
-- `tcgstockbot-webapi`, o bot, sem porta exposta;
-- `tcgstockbot-website`, o dashboard, na porta 5080;
-- `price-proxy`, o proxy de saída opcional, sem porta exposta, só na rede `nas-net` e fechado por omissão
-  (ver "Pedidos de saída").
+São dois contentores: `tcgstockbot-webapi`, o bot, sem porta exposta, e `tcgstockbot-website`, o dashboard, na porta 5080.
 
 1. Copia a pasta da solução para o NAS (por exemplo `docker/tcgstockbot`).
 2. Copia `.env.example` para `.env` e preenche `DASHBOARD_PASSWORD`, `TCG_API_KEY`
    (uma chave longa e aleatória) e o WhatsApp e/ou o email.
-3. A rede `nas-net` tem de existir. Se ainda não a tens, cria-a uma vez (por SSH): `docker network create nas-net`.
-4. Arranca, pela app Docker do UGOS (Projeto a apontar para a pasta) ou por SSH:
+3. Arranca, pela app Docker do UGOS (Projeto a apontar para a pasta) ou por SSH:
 
    ```bash
    docker compose up -d --build --remove-orphans
    ```
 
-5. Abre `http://<IP-do-NAS>:5080`.
+4. Abre `http://<IP-do-NAS>:5080`.
+
+**Ao atualizar**, copia os ficheiros novos por cima e **não apagues o `.env`** (não faz parte da solução, porque tem
+segredos). Se vens de uma versão com o proxy (`price-proxy`), o `--remove-orphans` apaga esse contentor, e as linhas
+`OutboundHttp__Proxy__…` que ficarem no `.env` são ignoradas.
 
 **Vindo da v2 (um só contentor `tcgstockbot`)?** Usa o mesmo nome de pasta. O volume `tcgstockbot-data` é o mesmo e o formato dos ficheiros não mudou, por isso as tarefas, as lojas e o histórico mantêm-se.
 - O `--remove-orphans` apaga o contentor antigo.
@@ -94,6 +93,133 @@ Não abras a porta 5080 no router, porque a password passa sem HTTPS. Para acede
 4. `docker compose up -d`, e depois, em **Definições → WhatsApp**, carrega em *Enviar mensagem de teste*.
 
 O CallMeBot é um serviço gratuito de terceiros, só para uso pessoal, e sem garantias. Mantém o email ligado como segundo canal.
+
+## Lojas Shopify: pesquisa ou catálogo
+
+Por omissão, o bot usa a pesquisa da loja (`/search/suggest.json`), que devolve **no máximo 10 produtos** por
+pesquisa. Numa loja com muitos produtos do mesmo set, alguns ficam de fora.
+
+Em **Lojas → editar → Catálogo**, podes indicar uma ou mais coleções, separadas por vírgula:
+
+| Loja | Catálogo |
+| --- | --- |
+| Versus Gamecenter | `/collections/pokemon-tcg-1, /collections/riftbound-league-of-legends-tcg` |
+| Note! | `/collections/pokemon` |
+| Trap Card TCG | `/collections/pokemon-booster-boxes, /collections/pokemon-elite-trainer-boxes, /collections/pokemon-collection-boxes, /collections/pokemon-tins, /collections/pokemon-booster-packs` |
+
+- Com catálogo, o bot lê as coleções (páginas de 250 produtos) **uma vez por ciclo** e filtra-as localmente
+  para todas as tarefas dessa loja. Não há limite de 10, e são menos pedidos do que uma pesquisa por tarefa.
+- O texto de pesquisa da tarefa tem de aparecer no título, no tipo, no fabricante ou nas tags do produto
+  (palavras inteiras, sem acentos).
+- `/products.json` lê a loja inteira. Funciona, mas numa loja grande são muitas páginas por ciclo, por isso
+  prefere as coleções.
+- Para descobrires as coleções de uma loja, abre `https://<loja>/collections.json` no browser.
+- Uma coleção vazia ou errada não dá erro, só não devolve produtos. Confirma em **Testar loja**.
+
+## Alertas, descidas de preço e histórico
+
+- **Em stock:** um produto que passa a tarefa (palavras, idioma, stock e preço máximo) avisa uma vez. Não volta a
+  avisar enquanto continuar em stock, a não ser que o preço desça.
+- **Baixou de preço:** um produto já avisado volta a avisar quando o preço desce pelo menos 1 % e 0,50 € abaixo do
+  último preço avisado (ex.: 130 € → 115 €). Se o preço subir e depois voltar ao mesmo valor, não avisa outra vez.
+  A mensagem mostra o preço antigo: "🔻 115,00 € (antes 130,00 €)".
+- **Pré-venda:** marcada quando o título o diz ("Pré-venda", "Pre-order", "Reserva", "Preventa"…) ou quando a Amazon
+  (`PREORDER`) ou o feed Awin (`stock_status`) o indicam. Aparece no aviso e no dashboard.
+- **Histórico de preços** (`data/price-history.json`): para cada produto que uma tarefa
+  reconhece (palavras e idioma certos, esteja ou não em stock ou acima do preço), guarda um ponto sempre que o preço
+  ou o stock mudam. São até 500 alterações por produto, e os produtos que não aparecem há 180 dias são apagados. O
+  mesmo produto em várias tarefas conta como um só (loja + URL). Nas tabelas das tarefas, o ícone de gráfico abre o
+  histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa o **Comparar** (com "Só numa loja"
+  ligado vês também os produtos que só uma loja tem).
+- A `alert-state.json` da v3.0 continua a ser lida; a partir do primeiro ciclo passa a guardar também o preço.
+
+## Comparar (o mesmo produto em várias lojas)
+
+A página **Comparar** junta, numa linha, o mesmo produto em todas as lojas: quem tem o preço mais baixo com stock,
+a diferença para a segunda loja, o mínimo de sempre e a última descida de preço. O detalhe tem um gráfico com uma linha
+por loja. Quando a loja está esgotada, a linha fica tracejada e mais clara.
+
+- **É automático.** Cada produto que uma tarefa reconhece é agrupado por **set** (a tarefa que o encontrou) e
+  **tipo de produto**, detetado no título: ETB, Booster Bundle, Booster Display, Half Display, Booster, Blister,
+  Checklane, Tin, Mini Tin, Premium/Ultra/Super Premium Collection, e assim por diante. As palavras que sobram do título
+  (um Pokémon num blister, o set numa tarefa que não é de um set) distinguem variantes.
+- Por omissão só aparecem os produtos em **duas ou mais lojas**. O interruptor "Só numa loja" mostra os restantes.
+- **Correção manual**, no detalhe:
+  - **Separar deste produto** tira um anúncio do grupo, para um produto à parte ou para outro grupo;
+  - **Juntar anúncio…** mete no grupo um anúncio de outra loja;
+  - **Repor automático** desfaz a correção.
+
+  As correções ficam em `data/compare-overrides.json` e valem para os ciclos seguintes.
+- Os produtos gravados no histórico antes desta versão não sabem de que tarefa vieram. Entram no Comparar depois do
+  primeiro ciclo com a versão nova.
+
+## Lojas: áreas, tiers e etiquetas
+
+O separador **Lojas** agrupa as lojas por **área** (Portugal, Espanha, Europa/online) e, dentro de cada área, por
+**tier**:
+
+| Tier | Para quê |
+| --- | --- |
+| **S** | MSRP / grande retalho (Amazon, Worten, FNAC, Continente, El Corte Inglés, Toys R Us…) |
+| **A** | Especialistas TCG |
+| **B** | Importadores e lojas online mais pequenas |
+| **C** | Marketplaces (Cardmarket, eBay, Wallapop, Vinted): só referência, não comparável com o MSRP |
+
+Cada loja tem também um **tipo** (Retalho, Especialista TCG, Importador, Marketplace, Oficial), **etiquetas** livres
+(ex.: `por testar`, `confirmar envio para PT`) e **notas**. Tudo isto é só classificação: não muda a forma como a loja é
+pesquisada. Filtra por área, tier, tipo ou etiqueta no topo da página (clicar numa etiqueta de um cartão também filtra).
+
+Plataformas novas:
+- **Sem integração** (`Manual`): a loja fica na lista (link, tier, etiquetas) mas o bot **nunca a pesquisa**. Serve
+  para lojas que ainda não sabes como ler, ou que não autorizam leitura automática.
+- **Awin (genérico)** (`Awin`): qualquer outra loja com programa de afiliados Awin e feed de produtos (MediaMarkt,
+  FNAC ES…). Dás-lhe uma **chave** (ex.: `MediaMarktES`) e pões o URL do feed em `AwinFeeds__Feeds__MediaMarktES` no
+  `.env`. Funciona como os feeds da secção seguinte.
+
+**Importar / Exportar JSON** (mesmo formato nos dois sentidos). Numa loja que já existe (mesmo nome **ou** mesmo site),
+a importação não mexe na configuração: com *Atualizar classificação* ligado, muda só área, tier, tipo e etiquetas.
+
+### Detetar, testar e ativar lojas
+
+- **Detetar** (no formulário da loja, ao lado do URL): cola o site ou a página da categoria Pokémon. O bot faz uns
+  poucos pedidos normais (com o mesmo User-Agent e os mesmos limites por domínio) e preenche a configuração:
+  - **Shopify**: `/products.json` responde. Propõe a coleção para o modo catálogo (a do URL que colaste, ou
+    `pokemon`, `pokemon-tcg`, `pokemon-tcg-1`, `all-pokemon`);
+  - **WooCommerce**: a Store API `/wp-json/wc/store/v1/products` (ou sem `/v1`) responde;
+  - **PrestaShop**: a pesquisa `index.php?controller=search` tem cartões `product-miniature`. Preenche os seletores
+    HTML genéricos (confirma o esgotado no Testar);
+  - **bloqueia o bot** (403/429 ou página anti-bot): para aí e não contorna nada. Fica "Sem integração".
+- **Testar lojas** (botão no topo da página Lojas): pesquisa cada loja (4 de cada vez) com um texto à escolha
+  ("pokemon" por omissão), mostra o resultado de cada uma e guarda-o no cartão ("Último teste"). Escolhe quais: as
+  visíveis com os filtros, as nunca testadas, as que falharam, as desligadas ou todas. No fim:
+  - **Ativar as que funcionam**;
+  - **Desligar as que falharam**;
+  - **Bloqueadas → Sem integração** (com a etiqueta `bloqueia bots (403)`);
+  - **Voltar a detetar a plataforma** das que deram erro, 0 produtos ou não têm integração. Se a deteção encontrar
+    uma plataforma, a loja é atualizada e testada de novo.
+
+  Um teste com produtos tira a etiqueta `por testar`. Há um filtro "Último teste" (nunca testadas, OK, falhou,
+  desligadas pelo bot).
+- **Desligar automático** (Definições → "Desligar loja após N ciclos com erro", 6 por omissão, 0 = nunca): quando
+  todas as pesquisas de uma loja ativa falham N ciclos seguidos, o bot desliga-a, põe-lhe a etiqueta `a falhar` e
+  avisa-te uma vez (WhatsApp/email). Não contam os pedidos adiados pelo limite por domínio do próprio bot, nem as
+  lojas por configurar (Amazon sem credenciais, feed Awin em falta). Um ciclo com uma pesquisa bem-sucedida põe o
+  contador a zero; ligar a loja de novo também, e tira a etiqueta.
+
+## MSRP (preços de referência)
+
+O bot guarda um **MSRP por tipo de produto** (ETB, Booster Bundle, Display, Blister, Tin…) de Pokémon, igual para
+todos os sets, em `TcgStockBot.WebApi/Features/Msrps/Data/msrp-defaults.json`. Um `data/msrp.json` com o mesmo
+formato substitui esse ficheiro, se quiseres mudar um valor sem nova build. O tipo sai do título do produto, e o
+preço só se aplica quando o título ou a tarefa diz "Pokémon", por isso uma caixa de One Piece nunca apanha um preço
+de Pokémon.
+
+Onde aparece:
+- **Comparar**: coluna MSRP, "−8% vs MSRP" do mais barato com stock, e uma linha tracejada no gráfico.
+- **Alertas**: "… · MSRP 59,99 € (−8%)" no WhatsApp/email e "vs MSRP" na lista de alertas.
+
+**Não existe um MSRP oficial em euros para Portugal/Espanha.** Os valores são estimativas do preço de lançamento
+habitual na Europa, com o MSRP dos EUA (que a Pokémon publica) e a fonte ao lado de cada um. Confirma e ajusta.
 
 ## Lojas grandes: Amazon, FNAC, Worten e El Corte Inglés
 
@@ -160,15 +286,13 @@ Como funciona:
 - Os preços do feed estão atrasados até à última importação da Awin. Confirma sempre na loja antes de comprar.
 
 
-## Pedidos de saída: proxy opcional e limites por domínio
+## Pedidos de saída: limites por domínio
 
 Configuração na secção `OutboundHttp` (no Docker, `OutboundHttp__…` no `.env`):
 
 | Chave | Por omissão | Significado |
 | --- | --- | --- |
-| `Proxy:Enabled` | `false` | `false` = ligação direta; `true` = pedidos de preços pelo `Proxy:Url` |
-| `Proxy:Url` | `http://price-proxy:3128` | proxy HTTP (aceita `http://user:pass@host:porta`, as credenciais nunca vão para os logs) |
-| `ConnectTimeout` | `00:00:10` | tempo máximo para abrir a ligação TCP (ao proxy, ou à loja se direto) |
+| `ConnectTimeout` | `00:00:10` | tempo máximo para abrir a ligação TCP à loja |
 | `RateLimits:<domínio>` | amazon.es 2, fnac.pt 10, worten.pt 10, elcorteingles.es 10 (os feeds Awin contam no host da Awin, com o valor por omissão) | **mínimo de segundos entre dois pedidos** ao domínio, incluindo subdomínios (`amazon.es` cobre `www.amazon.es`); a regra mais específica ganha |
 | `DefaultRateLimitSeconds` | `2` | o mesmo, para domínios sem regra |
 | `MaxThrottleWait` | `00:00:30` | se um pedido tiver de esperar mais do que isto pela sua vez, é adiado para o ciclo seguinte em vez de ficar pendurado |
@@ -176,37 +300,14 @@ Configuração na secção `OutboundHttp` (no Docker, `OutboundHttp__…` no `.e
 
 - **429/503 com `Retry-After`**: o domínio fica em pausa pelo tempo pedido (um 429 sem `Retry-After`
   pausa 5 minutos). Não há retries imediatos: o bot tenta de novo no ciclo seguinte.
-- **Só os pedidos de preços** (lojas e Amazon) usam o proxy. O **CallMeBot e o email nunca** passam por ele.
-- Cada pedido fica no log numa linha como `Outbound [Amazon] POST creatorsapi.amazon/catalog/v1/searchItems via direct -> 200 in 312 ms`,
+- Cada pedido fica no log numa linha como `Outbound [Amazon] POST creatorsapi.amazon/catalog/v1/searchItems -> 200 in 312 ms`,
   com host e caminho mas **sem** query string, headers, cookies, tokens ou chaves.
-
-### Ligar o proxy (Squid `price-proxy`)
-
-O proxy **não desbloqueia** lojas que recusam o bot (403). Passa os pedidos tal como são e só serve para
-teres um ponto único de saída e um log de tudo o que o bot contacta.
-
-1. A rede `nas-net` tem de existir (uma vez): `docker network create nas-net`.
-2. `docker compose up -d --build`. O `price-proxy` arranca **fechado**: não tem porta publicada e recusa
-   todos os clientes.
-3. Descobre o IP do bot em `nas-net`:
-   `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' tcgstockbot-webapi`
-   e põe esse IP (ex.: `172.20.0.5/32`) numa linha de `proxy/allowed-clients.txt`. Para o IP não mudar
-   quando o contentor é recriado, fixa-o no `docker-compose.yml` (`ipv4_address`, ver o comentário).
-4. No `.env`: `OutboundHttp__Proxy__Enabled=true`. Depois: `docker compose up -d` e `docker restart price-proxy`.
-5. Confirma:
-   - `docker logs tcgstockbot-webapi | grep "Outbound HTTP"` → `Outbound HTTP for price providers: proxy price-proxy:3128`
-   - `docker exec price-proxy tail -f /var/log/squid/access.log` → uma linha `CONNECT www.amazon.es:443` (ou outra loja) por pedido.
-
-Para desligar: `OutboundHttp__Proxy__Enabled=false` e `docker compose up -d`.
 
 ### Problemas comuns
 
 | No dashboard / log | Causa | O que fazer |
 | --- | --- | --- |
-| *O proxy … não está disponível* | `price-proxy` parado, nome errado ou fora de `nas-net` | `docker ps`, confirma `Proxy:Url` e as redes |
-| *O proxy não conseguiu ligar à loja* | IP do bot não está em `allowed-clients.txt`, ou porta ≠ 443 | corrige a lista e `docker restart price-proxy`; no `access.log` aparece `TCP_DENIED/403` |
-| log `...Proxy:Url is not a valid http:// URL; ... DIRECT` | URL inválido com o proxy ligado | usa `http://host:porta` |
-| *A loja recusou o pedido (HTTP 403)* | proteção anti-bot da loja | o bot não a contorna, e o proxy não muda isso |
+| *A loja recusou o pedido (HTTP 403)* | proteção anti-bot da loja | o bot não a contorna |
 | *A loja pediu para abrandar (HTTP 429)* / *Pedido adiado* | limite da loja ou `RateLimits` | espera; aumenta `PollInterval` ou o `RateLimits` do domínio |
 | *Amazon: as credenciais foram recusadas* | ID/secret/versão errados | confirma no Associates Central; amazon.es = `3.2` |
 | *Amazon: a API respondeu com erro — … InvalidPartnerTag / AccessDenied* | tag errada, ou conta sem acesso à Creators API | confirma a tag e a elegibilidade (10 vendas em 30 dias) |

@@ -185,7 +185,6 @@ public class AwinFeedTests
         var outbound = new OutboundHttpOptions { DefaultRateLimitSeconds = 0 };
         var traffic = new OutboundTrafficHandler(
             new DomainThrottle(new StaticOptionsMonitor<OutboundHttpOptions>(outbound), TimeProvider.System),
-            new OutboundRoute(false, null),
             new TypedLogger<OutboundTrafficHandler>(logger))
         {
             InnerHandler = new CountingFeedHandler(() => Csv(FeedCsv)),

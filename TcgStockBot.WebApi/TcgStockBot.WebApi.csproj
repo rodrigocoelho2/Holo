@@ -21,4 +21,9 @@
     <InternalsVisibleTo Include="TcgStockBot.UnitTest" />
   </ItemGroup>
 
+  <!-- Researched MSRP reference prices per kind of product (a data/msrp.json replaces them). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Msrps\Data\msrp-defaults.json" LogicalName="TcgStockBot.WebApi.Features.Msrps.Data.msrp-defaults.json" />
+  </ItemGroup>
+
 </Project>

@@ -29,8 +29,29 @@ public sealed class StoreSaveRequest
     /// <summary>Gets or sets the WooCommerce Store API path.</summary>
     public string WooCommerceProductsPath { get; set; } = "/wp-json/wc/store/v1/products";
 
+    /// <summary>Gets or sets the Shopify catalog paths read instead of the search, comma-separated (empty = search).</summary>
+    public string ShopifyCatalogPaths { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the CSS selectors (HTML platform only).</summary>
     public StoreHtmlSelectorDTO? Html { get; set; }
+
+    /// <summary>Gets or sets the Awin feed key (Awin platform only): the feed URL is AwinFeeds:Feeds:{key}.</summary>
+    public string AwinFeedKey { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets where the store sells from.</summary>
+    public StoreCountry Country { get; set; } = StoreCountry.Portugal;
+
+    /// <summary>Gets or sets the MSRP tier.</summary>
+    public StoreTier Tier { get; set; } = StoreTier.None;
+
+    /// <summary>Gets or sets what kind of shop it is.</summary>
+    public StoreType Type { get; set; } = StoreType.Unknown;
+
+    /// <summary>Gets or sets free labels.</summary>
+    public List<string>? Tags { get; set; } = [];
+
+    /// <summary>Gets or sets free notes.</summary>
+    public string Notes { get; set; } = string.Empty;
 
     /// <summary>
     /// Maps the request to an entity; the selectors are only kept for the HTML platform.
@@ -44,6 +65,17 @@ public sealed class StoreSaveRequest
         BaseUrl = (BaseUrl ?? string.Empty).Trim(),
         UnmarkedLanguage = UnmarkedLanguage,
         WooCommerceProductsPath = string.IsNullOrWhiteSpace(WooCommerceProductsPath) ? "/wp-json/wc/store/v1/products" : WooCommerceProductsPath.Trim(),
+        ShopifyCatalogPaths = Platform == StorePlatform.Shopify ? (ShopifyCatalogPaths ?? string.Empty).Trim() : string.Empty,
         Html = Platform == StorePlatform.Html ? Html?.StoreHtmlSelectorNew() : null,
+        AwinFeedKey = Platform == StorePlatform.Awin ? (AwinFeedKey ?? string.Empty).Trim() : string.Empty,
+        Country = Country,
+        Tier = Tier,
+        Type = Type,
+        Tags = (Tags ?? [])
+            .Select(static tag => (tag ?? string.Empty).Trim())
+            .Where(static tag => tag.Length > 0)
+            .DistinctBy(static tag => tag.ToLowerInvariant())
+            .ToList(),
+        Notes = (Notes ?? string.Empty).Trim(),
     };
 }

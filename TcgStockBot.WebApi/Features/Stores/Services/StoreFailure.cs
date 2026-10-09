@@ -19,6 +19,8 @@ internal static class StoreFailure
     /// <returns>"A loja recusou o pedido (HTTP 403)…" and similar.</returns>
     public static Task<string> DescribeAsync(Exception exception, IGlobalizationHelper globalizationHelper) => exception switch
     {
+        StoreWithoutIntegrationException manual =>
+            globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreWithoutIntegration), manual.StoreName),
         StoreIntegrationException { Problem: StoreIntegrationProblem.NotConfigured } integration =>
             globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreIntegrationNotConfigured), integration.Provider, integration.Detail),
         StoreIntegrationException { Problem: StoreIntegrationProblem.Unauthorized } integration =>
@@ -27,10 +29,6 @@ internal static class StoreFailure
             globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreIntegrationApiError), integration.Provider, integration.Detail),
         OutboundThrottledException throttled =>
             globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreThrottled), throttled.Host, (int)throttled.RetryAfter.TotalSeconds),
-        OutboundProxyUnavailableException proxy =>
-            globalizationHelper.TranslateAsync(nameof(TranslationKeys.ProxyUnavailable), proxy.ProxyAuthority),
-        HttpRequestException { HttpRequestError: HttpRequestError.ProxyTunnelError } =>
-            globalizationHelper.TranslateAsync(nameof(TranslationKeys.ProxyTunnelFailed)),
         HttpRequestException { StatusCode: HttpStatusCode.Forbidden } =>
             globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreBlocked)),
         HttpRequestException { StatusCode: HttpStatusCode.TooManyRequests } =>

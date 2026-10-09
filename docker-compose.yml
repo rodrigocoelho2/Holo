@@ -8,18 +8,11 @@ services:
     container_name: tcgstockbot-webapi
     restart: unless-stopped
     env_file:
-      - .env                                # Email__*, WhatsApp__*, Amazon__* and OutboundHttp__* live here
+      - .env                                # Email__*, WhatsApp__*, Amazon__*, AwinFeeds__* and OutboundHttp__* live here
     environment:
       TcgStockBot__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
     volumes:
       - tcgstockbot-data:/data              # same volume as v2: configuration and history are kept
-    networks:
-      default: {}                           # website ↔ webapi
-      nas-net: {}                           # webapi → price-proxy (only used when OutboundHttp__Proxy__Enabled=true)
-      # To keep the IP in proxy/allowed-clients.txt stable across re-creates, replace the line above with
-      # (the address must be inside nas-net's subnet — see "docker network inspect nas-net"):
-      # nas-net:
-      #   ipv4_address: 172.20.0.50
     logging: &logging
       driver: json-file
       options:
@@ -42,32 +35,7 @@ services:
       TcgStockBotApi__Url: http://webapi:8080/
       TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
       Dashboard__Password: ${DASHBOARD_PASSWORD:?Define DASHBOARD_PASSWORD no .env}
-    networks:
-      - default
     logging: *logging
-
-  # Optional outbound HTTP proxy for the price providers (Squid). It is NOT published on any host port
-  # (no "ports:"), it only lives on nas-net, and it refuses every client not listed in proxy/allowed-clients.txt.
-  # It does not unblock any store: it forwards requests exactly as the bot sends them.
-  price-proxy:
-    image: ubuntu/squid:latest
-    container_name: price-proxy
-    restart: unless-stopped
-    volumes:
-      - ./proxy/squid.conf:/etc/squid/squid.conf:ro
-      - ./proxy/allowed-clients.txt:/etc/squid/allowed-clients.txt:ro
-      - price-proxy-cache:/var/spool/squid
-      - price-proxy-logs:/var/log/squid
-    networks:
-      - nas-net
-    logging: *logging
-
-networks:
-  # Created once on the NAS:  docker network create nas-net
-  nas-net:
-    external: true
 
 volumes:
   tcgstockbot-data:
-  price-proxy-cache:
-  price-proxy-logs:

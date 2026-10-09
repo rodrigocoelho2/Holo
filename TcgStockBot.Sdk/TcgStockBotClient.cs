@@ -57,6 +57,16 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>A task that completes on success.</returns>
     public Task StoreDeleteAsync(string identifier) => DeleteAsync($"store?identifier={Uri.EscapeDataString(identifier)}");
 
+    /// <summary>Detects how a store can be searched from its address.</summary>
+    /// <param name="item">The store address.</param>
+    /// <returns>The suggested configuration.</returns>
+    public Task<StoreDetectResult> StoreDetectAsync(StoreDetectRequest item) => PostAsync<StoreDetectResult>("store/detect", item);
+
+    /// <summary>Tests one saved store and keeps the result on it.</summary>
+    /// <param name="item">The store and the search text.</param>
+    /// <returns>The test result.</returns>
+    public Task<StoreTestResultDTO> StoreTestAsync(StoreTestRequest item) => PostAsync<StoreTestResultDTO>("store/test", item);
+
     /// <summary>Turns a store on or off.</summary>
     /// <param name="item">What to change.</param>
     /// <returns>A task that completes on success.</returns>
@@ -76,6 +86,37 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <summary>Forgets every alerted product.</summary>
     /// <returns>A task that completes on success.</returns>
     public Task AlertResetAsync() => PostAsync("alert/reset", null);
+
+    /// <summary>Empties the alert list (the "already alerted" memory is kept).</summary>
+    /// <returns>A task that completes on success.</returns>
+    public Task AlertClearAsync() => PostAsync("alert/clear", null);
+
+    // ----- PriceHistory -----
+
+    /// <summary>Lists every tracked product with its current, lowest and highest price.</summary>
+    /// <returns>The summaries, most recently seen first.</returns>
+    public Task<List<PriceHistorySummaryDTO>> PriceHistoryListAsync() => GetAsync<List<PriceHistorySummaryDTO>>("pricehistory/list");
+
+    /// <summary>Gets the price history of one product.</summary>
+    /// <param name="identifier">The history key.</param>
+    /// <returns>The history.</returns>
+    public Task<PriceHistoryDTO> PriceHistoryGetAsync(string identifier) => GetAsync<PriceHistoryDTO>($"pricehistory?identifier={Uri.EscapeDataString(identifier)}");
+
+    // ----- Compare -----
+
+    /// <summary>Lists every compared product (without price points).</summary>
+    /// <returns>The groups.</returns>
+    public Task<List<CompareGroupDTO>> CompareListAsync() => GetAsync<List<CompareGroupDTO>>("compare/list");
+
+    /// <summary>Gets one compared product with every store's price points.</summary>
+    /// <param name="identifier">The group key.</param>
+    /// <returns>The group.</returns>
+    public Task<CompareGroupDTO> CompareGetAsync(string identifier) => GetAsync<CompareGroupDTO>($"compare?identifier={Uri.EscapeDataString(identifier)}");
+
+    /// <summary>Corrects the grouping of one listing.</summary>
+    /// <param name="item">The listing and its target group.</param>
+    /// <returns>A task that completes on success.</returns>
+    public Task CompareAssignAsync(CompareAssignRequest item) => PostAsync("compare/assign", item);
 
     // ----- Monitor -----
 

@@ -71,6 +71,40 @@ public class StockTaskMatcherTests
         Assert.Equal(MatchOutcome.MissingKeyword,
             StockTaskMatcher.Evaluate(EliteTrainerBox, Listing("Elite Trainer Boxes Display (EN)"), UnmarkedLanguagePolicy.Unknown));
 
+    private static readonly StockTask OnePieceBoosterBox = new()
+    {
+        Id = "op-box-en",
+        Name = "One Piece Booster Box (EN)",
+        SearchQuery = "booster box",
+        RequiredKeywords = ["one piece|op*|eb*|prb*", "booster box|booster display"],
+        ExcludedKeywords = ["mini|half"],
+        MaxPrice = 130m,
+    };
+
+    [Theory]
+    [InlineData("One Piece - OP15 Booster Box")]                        // prefix "op*" on "op15"
+    [InlineData("Royal Blood OP10 Booster Display (24 Packs) - EN")]   // no "one piece", "display" instead of "box"
+    [InlineData("OP-16 The Time of Battle Booster Box")]                // "op 16" after normalization
+    [InlineData("EB-04 Egghead Crisis Booster Box")]
+    public void Alternatives_AnyAlternativeSatisfiesTheKeyword(string title) =>
+        Assert.Equal(MatchOutcome.Match, StockTaskMatcher.Evaluate(OnePieceBoosterBox, Listing(title, 120m), UnmarkedLanguagePolicy.English));
+
+    [Theory]
+    [InlineData("Naruto Mythos Konoha Shido Booster Box")]   // no alternative of the first keyword
+    [InlineData("One Piece Card Game - Starter Deck ST36")]  // no alternative of the second keyword
+    public void Alternatives_NoAlternativePresent_IsMissingKeyword(string title) =>
+        Assert.Equal(MatchOutcome.MissingKeyword, StockTaskMatcher.Evaluate(OnePieceBoosterBox, Listing(title, 120m), UnmarkedLanguagePolicy.English));
+
+    [Fact]
+    public void Alternatives_WorkInExcludedKeywordsToo() =>
+        Assert.Equal(MatchOutcome.ExcludedKeyword,
+            StockTaskMatcher.Evaluate(OnePieceBoosterBox, Listing("One Piece OP-15 Half Booster Box", 60m), UnmarkedLanguagePolicy.English));
+
+    [Fact]
+    public void Prefix_OnlyMatchesTheStartOfAWord() =>
+        Assert.Equal(MatchOutcome.MissingKeyword,
+            StockTaskMatcher.Evaluate(OnePieceBoosterBox, Listing("Stop Booster Box", 60m), UnmarkedLanguagePolicy.English));   // "stop" ≠ "op*"
+
     [Fact]
     public void Evaluate_NoPrice_IsRejected() =>
         Assert.Equal(MatchOutcome.NoPrice,

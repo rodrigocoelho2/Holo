@@ -19,4 +19,7 @@ public sealed class Setting
 
     /// <summary>Gets or sets the User-Agent sent to stores.</summary>
     public string UserAgent { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets how many failed cycles in a row turn a store off (0 = never).</summary>
+    public int AutoDisableAfterFailures { get; set; }
 }

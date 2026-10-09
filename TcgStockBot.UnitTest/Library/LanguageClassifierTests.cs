@@ -21,6 +21,10 @@ public class LanguageClassifierTests
     [InlineData("Pokémon Elite Trainer Box Español")]
     [InlineData("Pokémon Elite Trainer Box DE")]
     [InlineData("Pokémon Elite Trainer Box versão espanhola")]
+    [InlineData("Pokémon Mega Inferno X Booster Box (KOR)")]
+    [InlineData("Dark Crystal Blazing Slim Booster Box (CH)")]
+    [InlineData("Pokemon Glaceon GX Gift Box (CN)")]
+    [InlineData("Riftbound Origins Booster Box (Chinese, Slim)")]
     public void Classify_OtherLanguageMarkers_ReturnsNonEnglish(string title) =>
         Assert.Equal(ProductLanguage.NonEnglish, LanguageClassifier.Classify(title));
 

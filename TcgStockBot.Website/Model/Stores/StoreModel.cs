@@ -23,6 +23,16 @@ public sealed class StoreModel(TcgStockBotClient apiClient) : WebsiteBaseModel(a
     /// <returns>Success.</returns>
     public Task<AjaxDataResult<bool>> DeleteAsync(string identifier) => CallAsync(() => ApiClient.StoreDeleteAsync(identifier));
 
+    /// <summary>Detects how a store can be searched from its address.</summary>
+    /// <param name="item">The store address.</param>
+    /// <returns>The suggested configuration.</returns>
+    public Task<AjaxDataResult<StoreDetectResult>> DetectAsync(StoreDetectRequest item) => CallAsync(() => ApiClient.StoreDetectAsync(item));
+
+    /// <summary>Tests one saved store.</summary>
+    /// <param name="item">The store and the search text.</param>
+    /// <returns>The test result.</returns>
+    public Task<AjaxDataResult<StoreTestResultDTO>> TestAsync(StoreTestRequest item) => CallAsync(() => ApiClient.StoreTestAsync(item));
+
     /// <summary>Turns a store on or off.</summary>
     /// <param name="item">What to change.</param>
     /// <returns>Success.</returns>

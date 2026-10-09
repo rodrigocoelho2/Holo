@@ -21,6 +21,7 @@ namespace TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 /// <param name="InStock">Whether the feed says it is in stock.</param>
 /// <param name="ProductId">The merchant's product id, Awin's id or the EAN.</param>
 /// <param name="Seller">The merchant name in the feed.</param>
+/// <param name="PreOrder">Whether stock_status says pre-order.</param>
 internal sealed record AwinFeedProduct(
     string Title,
     string NormalizedTitle,
@@ -29,7 +30,8 @@ internal sealed record AwinFeedProduct(
     string Currency,
     bool InStock,
     string? ProductId,
-    string? Seller);
+    string? Seller,
+    bool PreOrder = false);
 
 /// <summary>
 /// Downloads and caches Awin product feeds (CSV, optionally gzip). A feed is downloaded at most once per
@@ -182,7 +184,8 @@ internal sealed class AwinFeedCatalog(
                 Field(record, columns, "currency") is { Length: 3 } currency ? currency.ToUpperInvariant() : "EUR",
                 ParseInStock(Field(record, columns, "in_stock"), Field(record, columns, "stock_status"), Field(record, columns, "stock_quantity")),
                 IdColumns.Select(name => Field(record, columns, name)).FirstOrDefault(static value => !string.IsNullOrWhiteSpace(value)),
-                Field(record, columns, "merchant_name") is { Length: > 0 } seller ? seller : null));
+                Field(record, columns, "merchant_name") is { Length: > 0 } seller ? seller : null,
+                IsPreOrderStatus(Field(record, columns, "stock_status"))));
         }
 
         return (products, rows);
@@ -219,6 +222,11 @@ internal sealed class AwinFeedCatalog(
         return status.Contains("in stock") || status.Contains("instock") || status.Contains("available") || status.Contains("preorder")
             || status.Contains("pre order") || status.Contains("disponivel") || status.Contains("em stock") || status.Contains("en stock");
     }
+
+    /// <summary>Awin stock_status "preorder" / "pre-order" / "pre_order".</summary>
+    internal static bool IsPreOrderStatus(string? stockStatus) =>
+        !string.IsNullOrWhiteSpace(stockStatus)
+        && TextNormalizer.Normalize(stockStatus).Replace("_", string.Empty).Replace("-", string.Empty).Replace(" ", string.Empty).Contains("preorder");
 
     private IReadOnlyList<AwinFeedProduct>? TryCached(FeedState state, string feedUrl, AwinFeedOptions settings)
     {

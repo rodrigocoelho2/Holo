@@ -1,0 +1,182 @@
+[
+  {
+    "game": "Pokémon",
+    "kind": "etb",
+    "price": 59.99,
+    "usdPrice": 49.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "pokemon-center-etb",
+    "price": 69.99,
+    "usdPrice": 59.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Exclusivo Pokémon Center (não vende para PT/ES). Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "booster-bundle",
+    "price": 35.99,
+    "usdPrice": 26.94,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "booster-display",
+    "price": 179.99,
+    "usdPrice": 161.64,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "36 boosters. Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "half-display",
+    "price": 89.99,
+    "usdPrice": null,
+    "basis": "Estimate",
+    "source": "",
+    "notes": "18 boosters. Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "booster-pack",
+    "price": 5.99,
+    "usdPrice": 4.49,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "sleeved-booster",
+    "price": 5.99,
+    "usdPrice": 4.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "blister-3",
+    "price": 17.99,
+    "usdPrice": 13.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "checklane-blister",
+    "price": 7.99,
+    "usdPrice": null,
+    "basis": "Estimate",
+    "source": "",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "blister-2",
+    "price": 12.99,
+    "usdPrice": 9.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "mini-tin",
+    "price": 12.99,
+    "usdPrice": 9.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "tin",
+    "price": 26.99,
+    "usdPrice": 21.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "ex-box",
+    "price": 25.99,
+    "usdPrice": 21.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "premium-collection",
+    "price": 49.99,
+    "usdPrice": 39.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "collection",
+    "price": 29.99,
+    "usdPrice": null,
+    "basis": "Estimate",
+    "source": "",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "binder-collection",
+    "price": 44.99,
+    "usdPrice": 31.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "poster-collection",
+    "price": 19.99,
+    "usdPrice": 14.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "ultra-premium",
+    "price": 159.99,
+    "usdPrice": 119.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Varia muito por set (30th: 179,99 $). Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "super-premium",
+    "price": 99.99,
+    "usdPrice": null,
+    "basis": "Estimate",
+    "source": "",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  },
+  {
+    "game": "Pokémon",
+    "kind": "build-battle",
+    "price": 24.99,
+    "usdPrice": 21.99,
+    "basis": "Estimate",
+    "source": "Preço de referência Pokémon EUA (tcg.pokemon.com / Pokémon Center US / retalho EUA)",
+    "notes": "Não há MSRP oficial em EUR para PT/ES: estimativa do preço de lançamento habitual na Europa. Confirma e ajusta."
+  }
+]

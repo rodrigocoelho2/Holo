@@ -9,8 +9,13 @@ namespace TcgStockBot.WebApi.Features.Alerts.Models;
 /// <param name="StockTaskName">The task name.</param>
 /// <param name="Listing">The matching listing.</param>
 /// <param name="LanguageToConfirm">Whether the title had no language marker and must be checked on the page.</param>
-public sealed record StockAlert(string StockTaskId, string StockTaskName, StoreListing Listing, bool LanguageToConfirm)
+/// <param name="PreviousPrice">For a price-drop alert, the price of the previous alert; null for a new product.</param>
+/// <param name="Msrp">The MSRP reference price of the product, when known.</param>
+public sealed record StockAlert(string StockTaskId, string StockTaskName, StoreListing Listing, bool LanguageToConfirm, decimal? PreviousPrice = null, decimal? Msrp = null)
 {
+    /// <summary>Gets a value indicating whether this alert is a price drop on a product that was already alerted.</summary>
+    public bool IsPriceDrop => PreviousPrice is not null;
+
     /// <summary>Gets the key identifying the same product on the same store for the same task, across cycles.</summary>
     public string Key => $"{SearchKey(Listing.StoreName, StockTaskId)}|{Listing.Url.GetLeftPart(UriPartial.Path)}";
 

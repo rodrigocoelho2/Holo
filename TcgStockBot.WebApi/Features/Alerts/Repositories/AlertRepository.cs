@@ -38,10 +38,24 @@ internal sealed class AlertRepository(BotDataContext dataContext) : RepositoryBa
     }
 
     /// <inheritdoc />
-    public async Task<Dictionary<string, DateTimeOffset>> GetStateAsync() =>
-        await JsonFile.ReadAsync<Dictionary<string, DateTimeOffset>>(DataContext.AlertStatePath, CancellationToken.None) ?? [];
+    public async Task ClearHistoryAsync()
+    {
+        await _historyLock.WaitAsync();
+        try
+        {
+            await JsonFile.WriteAsync(DataContext.AlertHistoryPath, new List<AlertHistory>(), CancellationToken.None);
+        }
+        finally
+        {
+            _historyLock.Release();
+        }
+    }
 
     /// <inheritdoc />
-    public Task SaveStateAsync(Dictionary<string, DateTimeOffset> state) =>
+    public async Task<Dictionary<string, AlertMemory>> GetStateAsync() =>
+        await JsonFile.ReadAsync<Dictionary<string, AlertMemory>>(DataContext.AlertStatePath, CancellationToken.None) ?? [];
+
+    /// <inheritdoc />
+    public Task SaveStateAsync(Dictionary<string, AlertMemory> state) =>
         JsonFile.WriteAsync(DataContext.AlertStatePath, state, CancellationToken.None);
 }

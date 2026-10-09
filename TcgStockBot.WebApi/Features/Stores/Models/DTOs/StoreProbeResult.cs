@@ -33,4 +33,7 @@ public sealed class StoreProbeResult
 
     /// <summary>Gets or sets who sells the product, when known.</summary>
     public string? Seller { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether it is a pre-order (from the title or the provider's data).</summary>
+    public bool PreOrder { get; set; }
 }
