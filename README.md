@@ -33,8 +33,9 @@
 
 **Vigiar produtos**
 
-- Cada **tarefa** é um produto a vigiar: o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), o **preço máximo**, o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Lorcana, Magic ou outro).
-- Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *dentro do preço*, *acima do máximo*, *esgotado*, *não é inglês*, *falta a palavra…*.
+- Cada **produto vigiado** (tarefa) pode ser um produto (30th ETB) ou um **set inteiro** (Chaos Rising): o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), os **tipos de produto** que queres (ETB, Booster Bundle, Display…; nenhum = todos), o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Lorcana, Magic ou outro).
+- **Regra de preço:** **MSRP + margem** (cada tipo comparado com o seu MSRP: um booster com o MSRP de um booster, uma display com o de uma display) ou um **preço máximo fixo**.
+- Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *ao teu preço*, *acima · avisa até 65,99 €*, *esgotado*, *não é inglês*, *tipo que não vigias*, *falta a palavra…*.
 - Os resultados e os alertas trazem a **imagem do produto** que a loja devolve.
 - Importar e exportar os produtos vigiados (tarefas) em JSON, no menu **Mais** de *A vigiar*.
 
@@ -53,9 +54,9 @@
 
 **Dashboard**
 
-- **Radar:** o que está em stock agora ao teu preço, em cartões com a imagem do produto, e o que ainda está à procura, com um quadrado por loja (dentro do preço, acima do preço, esgotado, erro).
-- **A vigiar:** todos os produtos em cartões, com filtros por jogo e por estado. Cada produto tem a sua página: as regras, o que cada loja encontrou e porque é que avisou ou não, o histórico de preço e os alertas.
-- **Vigiar produto:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (palavras, preço máximo, lojas) são sugeridas a partir deles.
+- **Radar:** as ofertas que podes comprar agora. As **novidades** das últimas 24 horas em cartões grandes (foto, loja, preço e "−8% vs MSRP"); as que continuam disponíveis numa lista que filtras por tipo e ordenas por data, preço ou MSRP.
+- **A vigiar:** um cartão por produto/set com a regra de preço e, **por tipo** (ETB, Bundle, Display, Booster), o melhor preço agora. Cada um tem a sua página: os limites por tipo, o que as lojas têm (por tipo ou por loja) e porque é que avisou ou não, o histórico de preço e os alertas.
+- **Vigiar produto:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (nome, tipos, MSRP + margem, palavras, lojas) são sugeridas a partir deles.
 - **Lojas** agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detetar** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham.
 - **Temas:** Azul, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
 - Funciona no telemóvel, com uma barra de navegação em baixo.
@@ -336,6 +337,9 @@ preço só se aplica quando o título ou a tarefa diz "Pokémon", por isso uma c
 de Pokémon.
 
 Onde aparece:
+- **Regra "MSRP + margem"** dos produtos vigiados: avisa até ao MSRP do tipo mais a margem (10% por omissão; pode ser negativa para só avisar abaixo do MSRP). Tipos sem MSRP usam o máximo fixo, se houver. No menu **Mais** de *A vigiar*, "Passar todos para MSRP + 10%" muda os produtos Pokémon que ainda usam um máximo fixo.
+- **Radar** e páginas dos produtos: "−8% vs MSRP" em cada oferta.
+- **Definições**: a tabela de MSRP que está em uso.
 - **Comparar**: coluna MSRP, "−8% vs MSRP" do mais barato com stock, e uma linha tracejada no gráfico.
 - **Alertas**: "… · MSRP 59,99 € (−8%)" no WhatsApp/email e "vs MSRP" na lista de alertas.
 

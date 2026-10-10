@@ -1,5 +1,6 @@
 using TcgStockBot.Library.Enums;
 using TcgStockBot.Library.Services;
+using TcgStockBot.Library.Text;
 using TcgStockBot.Library.Validation;
 using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.StockTasks.Models.DTOs;
@@ -20,6 +21,8 @@ internal sealed class StockTaskService(
     private const string FieldName = "Name";
     private const string FieldSearchQuery = "SearchQuery";
     private const string FieldMaxPrice = "MaxPrice";
+    private const string FieldMsrpTolerance = "MsrpTolerancePercent";
+    private const string FieldKinds = "Kinds";
 
     private readonly IStockTaskRepository _stockTaskRepository = stockTaskRepository;
     private readonly IGlobalizationHelper _globalizationHelper = globalizationHelper;
@@ -133,9 +136,22 @@ internal sealed class StockTaskService(
             validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldSearchQuery, nameof(TranslationKeys.RequiredField)));
         }
 
-        if (item.MaxPrice <= 0)
+        // MSRP rule: the fixed maximum is only the fallback for kinds without an MSRP, so 0 (none) is allowed.
+        if (item.PriceRule == PriceRule.MaxPrice ? item.MaxPrice <= 0 : item.MaxPrice < 0)
         {
-            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldMaxPrice, nameof(TranslationKeys.GreaterThen0)));
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldMaxPrice,
+                item.PriceRule == PriceRule.MaxPrice ? nameof(TranslationKeys.GreaterThen0) : nameof(TranslationKeys.NegativeValue)));
+        }
+
+        if (item.MsrpTolerancePercent is < -50 or > 300)
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldMsrpTolerance, nameof(TranslationKeys.MsrpToleranceRange)));
+        }
+
+        var knownKinds = ProductKindClassifier.Kinds.Select(static kind => kind.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var kind in (item.Kinds ?? []).Where(kind => !string.IsNullOrWhiteSpace(kind) && !knownKinds.Contains(kind.Trim())))
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldKinds, nameof(TranslationKeys.UnknownProductKind), kind));
         }
 
         return validationErrors;

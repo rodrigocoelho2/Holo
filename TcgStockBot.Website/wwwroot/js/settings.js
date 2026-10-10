@@ -52,6 +52,7 @@ RENDERERS.definicoes = function viewSettings() {
       errors,
       h("div", { class: "card-actions" }, button("Guardar alterações", { kind: "primary", onClick: save }))),
     channelsCard(),
+    msrpCard(),
     h("section", { class: "card settings-card", "aria-labelledby": "memory-h" },
       h("h2", { id: "memory-h" }, "Memória de alertas"),
       h("p", { class: "muted" }, "O bot não repete o aviso de um produto enquanto ele continuar em stock. Limpar a memória faz com que tudo o que está disponível seja avisado de novo."),
@@ -111,4 +112,17 @@ function channelsCard() {
           ["Para", notification.email.to.length ? notification.email.to.join(", ") : "—"],
           ["Password", notification.email.hasPassword ? "definida" : missing("em falta")],
         ], "Email__… no .env. A password nunca passa pelo dashboard.")));
+}
+
+/** The MSRP table the "MSRP + margem" rule uses (read-only here: it lives in data/msrp.json). */
+function msrpCard() {
+  const entries = state.msrp.entries.slice().sort((a, b) => kindOrder(a.kind) - kindOrder(b.kind));
+  return h("section", { class: "card settings-card", "aria-labelledby": "msrp-h" },
+    h("h2", { id: "msrp-h" }, "Preços de referência (MSRP)"),
+    h("p", { class: "muted small" }, "O que a regra “MSRP + margem” usa para cada tipo de produto. Para mudar um valor, edita data/msrp.json no volume do bot."),
+    entries.length
+      ? h("div", { class: "msrp-grid" }, entries.map((entry) => h("div", { class: "msrp-item" },
+        h("span", {}, kindLabel(entry.kind)), h("strong", { class: "mono" }, money(entry.price)),
+        h("small", {}, `${entry.game} · ${(MSRP_BASIS[entry.basis] || MSRP_BASIS.Estimate)[0].toLowerCase()}`))))
+      : h("p", { class: "muted" }, "Sem tabela de MSRP."));
 }

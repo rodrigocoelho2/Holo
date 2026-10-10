@@ -60,6 +60,37 @@ public sealed class StockTaskServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Save_MsrpRule_AllowsNoFixedMaximum_AndKeepsKinds()
+    {
+        var request = ValidRequest("set");
+        request.PriceRule = PriceRule.Msrp;
+        request.MaxPrice = 0m;
+        request.MsrpTolerancePercent = 15;
+        request.Kinds = ["ETB", " booster-bundle ", "etb"];
+
+        var response = await _service.SaveAsync(request);
+
+        Assert.True(response.IsSuccess);
+        var saved = (await _service.GetAsync("set")).Result!;
+        Assert.Equal(PriceRule.Msrp, saved.PriceRule);
+        Assert.Equal(15, saved.MsrpTolerancePercent);
+        Assert.Equal(["etb", "booster-bundle"], saved.Kinds);
+    }
+
+    [Fact]
+    public async Task Save_UnknownKindOrToleranceOutOfRange_IsRejected()
+    {
+        var request = ValidRequest("set");
+        request.PriceRule = PriceRule.Msrp;
+        request.MsrpTolerancePercent = 500;
+        request.Kinds = ["etb", "not-a-kind"];
+
+        var response = await _service.SaveAsync(request);
+
+        Assert.Equal(["MsrpTolerancePercent", "Kinds"], response.Problems!.Errors.Select(static error => error.Field));
+    }
+
+    [Fact]
     public async Task Save_NewWithExistingId_IsRejected()
     {
         await _service.SaveAsync(ValidRequest());

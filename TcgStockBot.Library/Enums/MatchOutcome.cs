@@ -34,6 +34,12 @@ public enum MatchOutcome
 
     /// <summary>The price is above the task's maximum.</summary>
     AboveMaxPrice,
+
+    /// <summary>The task only wants some product kinds (ETB, Booster Bundle…) and this listing is another kind.</summary>
+    OtherKind,
+
+    /// <summary>MSRP rule: there is no MSRP for this product kind and the task has no fixed maximum to fall back on.</summary>
+    NoMsrp,
 }
 
 /// <summary>
@@ -56,5 +62,5 @@ public static class MatchOutcomeExtensions
     /// <param name="outcome">The outcome to test.</param>
     /// <returns>False for missing / excluded keywords and the wrong language.</returns>
     public static bool IsRelevant(this MatchOutcome outcome) =>
-        outcome is not (MatchOutcome.MissingKeyword or MatchOutcome.ExcludedKeyword or MatchOutcome.NotEnglish or MatchOutcome.NotJapanese);
+        outcome is not (MatchOutcome.MissingKeyword or MatchOutcome.ExcludedKeyword or MatchOutcome.NotEnglish or MatchOutcome.NotJapanese or MatchOutcome.OtherKind);
 }

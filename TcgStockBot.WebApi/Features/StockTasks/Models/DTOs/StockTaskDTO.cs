@@ -29,6 +29,9 @@ public sealed class StockTaskDTO
         RequiredKeywords = [.. entity.RequiredKeywords];
         ExcludedKeywords = [.. entity.ExcludedKeywords];
         MaxPrice = entity.MaxPrice;
+        PriceRule = entity.PriceRule;
+        MsrpTolerancePercent = entity.MsrpTolerancePercent;
+        Kinds = [.. entity.Kinds];
         Language = entity.Language;
         Game = entity.Game;
     }
@@ -56,6 +59,15 @@ public sealed class StockTaskDTO
 
     /// <summary>Gets or sets the price ceiling.</summary>
     public decimal MaxPrice { get; set; }
+
+    /// <summary>Gets or sets how a price is judged.</summary>
+    public PriceRule PriceRule { get; set; }
+
+    /// <summary>Gets or sets how far above the MSRP still alerts, in percent.</summary>
+    public int MsrpTolerancePercent { get; set; }
+
+    /// <summary>Gets or sets the product kinds wanted; empty means every kind.</summary>
+    public List<string> Kinds { get; set; } = [];
 
     /// <summary>Gets or sets the print run wanted (English or Japanese).</summary>
     public TaskLanguage Language { get; set; }

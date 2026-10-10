@@ -1,13 +1,22 @@
+using TcgStockBot.Library.Services;
+using TcgStockBot.WebApi.Features.Msrps.Models.DTOs;
+
 namespace TcgStockBot.WebApi.Features.Msrps.Services;
 
 /// <summary>
-/// The MSRP reference prices, used by Compare and the alerts ("−8% vs MSRP").
+/// MSRP reference prices per product kind.
 /// </summary>
 internal interface IMsrpService
 {
     /// <summary>
-    /// A lookup over the current reference prices.
+    /// Loads the MSRP table (data/msrp.json, or the built-in defaults) as a lookup.
     /// </summary>
     /// <returns>The lookup.</returns>
     Task<MsrpLookup> LookupAsync();
+
+    /// <summary>
+    /// The product kinds and the MSRP table, for the dashboard.
+    /// </summary>
+    /// <returns>The kinds and prices.</returns>
+    Task<ServiceApiResponse<MsrpListDTO>> ListAsync();
 }

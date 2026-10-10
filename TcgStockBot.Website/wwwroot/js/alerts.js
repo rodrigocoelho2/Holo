@@ -131,8 +131,7 @@ function alertRow(alert) {
         : null),
     h("div", { class: "alert-price" },
       h("strong", { class: "mono price" }, money(alert.price)),
-      task ? h("span", { class: "muted small" }, `máx. ${money(task.maxPrice)}`) : null,
-      msrpDelta(alert.price, alert.msrp)),
+      msrpPill(alert.price, alert.msrp) || (task && task.priceRule !== "Msrp" ? h("span", { class: "muted small" }, `máx. ${money(task.maxPrice)}`) : null)),
     h("time", { class: "alert-time mono", datetime: alert.at }, clock(alert.at)),
     safeHref(alert.url) ? linkButton("Abrir", alert.url, { external: true, trailingIcon: "external", kind: "small" }) : null);
 }

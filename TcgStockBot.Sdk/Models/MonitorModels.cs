@@ -55,6 +55,10 @@ public sealed class ListingReportDTO
     public bool PreOrder { get; set; }
     public string PriceHistoryKey { get; set; } = string.Empty;
     public decimal? LowestPrice { get; set; }
+    public string Kind { get; set; } = "other";
+    public string KindLabel { get; set; } = string.Empty;
+    public decimal? Msrp { get; set; }
+    public decimal? PriceLimit { get; set; }
 }
 
 /// <summary>One line of the activity feed.</summary>

@@ -77,6 +77,9 @@ public enum TranslationKeys
     /// <summary>An unknown kind of product code.</summary>
     UnknownProductKind,
 
+    /// <summary>The MSRP tolerance is outside the allowed range.</summary>
+    MsrpToleranceRange,
+
     /// <summary>A key that may only contain letters, digits and '_'.</summary>
     InvalidKey,
 

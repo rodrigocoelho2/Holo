@@ -160,6 +160,7 @@ async function start() {
       api("/stocktask/list"), api("/store/list"), api("/setting/get"), api("/monitor/get"), api("/alert/list"),
     ]);
     state.lastCycleAt = state.monitor.lastCycle?.finishedAt || null;
+    state.msrp = await api("/msrp/list").catch(() => ({ kinds: [], entries: [] }));
   } catch (error) {
     document.getElementById("view").replaceChildren(h("div", { class: "card soft" }, emptyState("alert", "Não foi possível ligar ao bot", `${error.message} — a tentar outra vez…`)));
     setTimeout(start, 3000);

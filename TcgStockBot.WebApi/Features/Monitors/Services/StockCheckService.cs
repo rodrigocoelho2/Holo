@@ -100,7 +100,7 @@ internal sealed class StockCheckService(
                 }
 
                 var task = storeTasks[index];
-                var report = await SearchAsync(store, task, lowestPrices, cancellationToken);
+                var report = await SearchAsync(store, task, lowestPrices, msrp, cancellationToken);
                 activity.SearchCompleted(report);
 
                 if (!report.Succeeded)
@@ -126,9 +126,9 @@ internal sealed class StockCheckService(
                 matches.AddRange(report.Listings
                     .Where(static listing => listing.Outcome.IsMatch())
                     .Select(listing => new StockAlert(task.Id, task.Name,
-                        new StoreListing(store.Name, listing.Title, new Uri(listing.Url), listing.Price, listing.InStock, listing.ProductId, listing.Currency, listing.Seller, listing.PreOrder),
+                        new StoreListing(store.Name, listing.Title, new Uri(listing.Url), listing.Price, listing.InStock, listing.ProductId, listing.Currency, listing.Seller, listing.PreOrder, listing.ImageUrl),
                         LanguageToConfirm: listing.Outcome == MatchOutcome.MatchLanguageToConfirm,
-                        Msrp: msrp.Find(listing.Title, task.Name)?.Price)));
+                        Msrp: listing.Msrp)));
             }
         }
 
@@ -210,7 +210,7 @@ internal sealed class StockCheckService(
     private static bool RunsOn(StockTask task, Store store) =>
         task.Enabled && (task.StoreNames.Count == 0 || task.StoreNames.Contains(store.Name, StringComparer.OrdinalIgnoreCase));
 
-    private async Task<SearchReportDTO> SearchAsync(Store store, StockTask task, IReadOnlyDictionary<string, decimal> lowestPrices, CancellationToken cancellationToken)
+    private async Task<SearchReportDTO> SearchAsync(Store store, StockTask task, IReadOnlyDictionary<string, decimal> lowestPrices, MsrpLookup msrp, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
         var report = new SearchReportDTO { StoreName = store.Name, StockTaskId = task.Id };
@@ -220,20 +220,28 @@ internal sealed class StockCheckService(
             var listings = await storeAdapterResolver.Resolve(store).SearchAsync(store, task.SearchQuery, cancellationToken);
 
             report.Succeeded = true;
-            report.Listings = listings.Select(listing => new ListingReportDTO
+            report.Listings = listings.Select(listing =>
             {
-                PriceHistoryKey = PriceObservation.KeyFor(store.Name, listing.Url.AbsoluteUri),
-                Title = listing.Title,
-                Url = listing.Url.AbsoluteUri,
-                Price = listing.Price,
-                InStock = listing.InStock,
-                Language = LanguageClassifier.Classify(listing.Title),
-                Outcome = StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage),
-                ProductId = listing.ProductId,
-                Currency = listing.Currency,
-                Seller = listing.Seller,
-                ImageUrl = listing.ImageUrl,
-                PreOrder = listing.PreOrder || PreOrderDetector.IsPreOrder(listing.Title),
+                var price = StockTaskMatcher.PriceFor(task, listing.Title, msrp);
+                return new ListingReportDTO
+                {
+                    PriceHistoryKey = PriceObservation.KeyFor(store.Name, listing.Url.AbsoluteUri),
+                    Title = listing.Title,
+                    Url = listing.Url.AbsoluteUri,
+                    Price = listing.Price,
+                    InStock = listing.InStock,
+                    Language = LanguageClassifier.Classify(listing.Title),
+                    Outcome = StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp),
+                    ProductId = listing.ProductId,
+                    Currency = listing.Currency,
+                    Seller = listing.Seller,
+                    ImageUrl = listing.ImageUrl,
+                    PreOrder = listing.PreOrder || PreOrderDetector.IsPreOrder(listing.Title),
+                    Kind = price.Kind.Code,
+                    KindLabel = price.Kind.Label,
+                    Msrp = price.Msrp?.Price,
+                    PriceLimit = price.Limit,
+                };
             }).ToList();
 
             foreach (var listing in report.Listings)

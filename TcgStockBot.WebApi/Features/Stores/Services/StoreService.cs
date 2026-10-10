@@ -5,6 +5,7 @@ using TcgStockBot.Library.Validation;
 using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 using TcgStockBot.WebApi.Features.StockTasks.Services;
+using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Stores.Models.DTOs;
 using TcgStockBot.WebApi.Features.Stores.Repositories;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters;
@@ -22,7 +23,8 @@ internal sealed class StoreService(
     IStoreRepository storeRepository,
     IStockTaskRepository stockTaskRepository,
     IStoreAdapterResolver storeAdapterResolver,
-    IGlobalizationHelper globalizationHelper) : IStoreService
+    IGlobalizationHelper globalizationHelper,
+    IMsrpService? msrpService = null) : IStoreService
 {
     private const string FieldName = "Name";
     private const string FieldBaseUrl = "BaseUrl";
@@ -129,6 +131,7 @@ internal sealed class StoreService(
 
         var store = item.Store.StoreNew();
         var tasks = await _stockTaskRepository.ListAsync();
+        var msrp = msrpService is null ? MsrpLookup.Empty : await msrpService.LookupAsync();
 
         try
         {
@@ -141,12 +144,15 @@ internal sealed class StoreService(
                 Price = listing.Price,
                 InStock = listing.InStock,
                 Language = LanguageClassifier.Classify(listing.Title),
-                OutcomeByTask = tasks.ToDictionary(task => task.Id, task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage)),
+                OutcomeByTask = tasks.ToDictionary(task => task.Id, task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp)),
                 ProductId = listing.ProductId,
                 Currency = listing.Currency,
                 Seller = listing.Seller,
                 ImageUrl = listing.ImageUrl,
                 PreOrder = listing.PreOrder || PreOrderDetector.IsPreOrder(listing.Title),
+                Kind = ProductKindClassifier.Classify(listing.Title).Code,
+                KindLabel = ProductKindClassifier.Classify(listing.Title).Label,
+                Msrp = msrp.Find(listing.Title, "Pokémon")?.Price,
             }).ToList());
         }
         catch (Exception exception)

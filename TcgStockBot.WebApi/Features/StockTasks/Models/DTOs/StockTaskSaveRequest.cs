@@ -35,6 +35,15 @@ public sealed class StockTaskSaveRequest
     /// <summary>Gets or sets the price ceiling.</summary>
     public decimal MaxPrice { get; set; }
 
+    /// <summary>Gets or sets how a price is judged.</summary>
+    public PriceRule PriceRule { get; set; } = PriceRule.MaxPrice;
+
+    /// <summary>Gets or sets how far above the MSRP still alerts, in percent.</summary>
+    public int MsrpTolerancePercent { get; set; } = 10;
+
+    /// <summary>Gets or sets the product kinds wanted; empty means every kind.</summary>
+    public List<string> Kinds { get; set; } = [];
+
     /// <summary>Gets or sets the print run wanted (English or Japanese).</summary>
     public TaskLanguage Language { get; set; } = TaskLanguage.English;
 
@@ -55,6 +64,9 @@ public sealed class StockTaskSaveRequest
         RequiredKeywords = Clean(RequiredKeywords),
         ExcludedKeywords = Clean(ExcludedKeywords),
         MaxPrice = MaxPrice,
+        PriceRule = PriceRule,
+        MsrpTolerancePercent = MsrpTolerancePercent,
+        Kinds = Clean(Kinds).Select(static kind => kind.ToLowerInvariant()).ToList(),
         Language = Language,
         Game = Game,
     };

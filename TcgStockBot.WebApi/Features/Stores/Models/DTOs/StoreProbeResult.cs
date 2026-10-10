@@ -39,4 +39,13 @@ public sealed class StoreProbeResult
 
     /// <summary>Gets or sets a value indicating whether it is a pre-order (from the title or the provider's data).</summary>
     public bool PreOrder { get; set; }
+
+    /// <summary>Gets or sets the product kind code read from the title.</summary>
+    public string Kind { get; set; } = "other";
+
+    /// <summary>Gets or sets the product kind label.</summary>
+    public string KindLabel { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the Pokémon MSRP of the product kind, when known.</summary>
+    public decimal? Msrp { get; set; }
 }

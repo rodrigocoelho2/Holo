@@ -52,6 +52,10 @@ const state = {
   storeTest: "all",
   probe: { storeName: "", query: "elite trainer box", results: null, errors: null, loading: false },
   wizard: null,                                         // "Vigiar produto" state while open
+  msrp: { kinds: [], entries: [] },                     // product kinds and MSRP table (from /msrp/list)
+  radarKind: "all",                                     // Radar: kind filter of "Disponíveis agora"
+  radarSort: readPreference("radarSort", "recent"),     // recent | cheap | msrp
+  productGroup: readPreference("productGroup", "kind"), // product page: results by kind or by store
   lastCycleAt: null,
   renderedSignature: "",
 };
@@ -276,7 +280,9 @@ const OUTCOMES = {
   LanguageUnknown: ["Idioma desconhecido", "amber"],
   OutOfStock: ["Esgotado", "plain"],
   NoPrice: ["Sem preço", "amber"],
-  AboveMaxPrice: ["Acima do máximo", "amber"],
+  AboveMaxPrice: ["Acima do teu preço", "amber"],
+  OtherKind: ["Tipo que não vigias", "plain"],
+  NoMsrp: ["Sem MSRP para este tipo", "amber"],
 };
 
 const isMatch = (outcome) => outcome === "Match" || outcome === "MatchLanguageToConfirm";
@@ -285,7 +291,7 @@ const isMatch = (outcome) => outcome === "Match" || outcome === "MatchLanguageTo
 const isIrrelevant = (listing) => listing.outcome === "MissingKeyword";
 
 /** Outcomes of products a task recognises: only these have a price history. */
-const TRACKED_OUTCOMES = new Set(["Match", "MatchLanguageToConfirm", "LanguageUnknown", "OutOfStock", "NoPrice", "AboveMaxPrice"]);
+const TRACKED_OUTCOMES = new Set(["Match", "MatchLanguageToConfirm", "LanguageUnknown", "OutOfStock", "NoPrice", "AboveMaxPrice", "NoMsrp"]);
 
 const LANGUAGES = { English: "Inglês", Japanese: "Japonês", NonEnglish: "Outro idioma", Unknown: "Idioma ?" };
 const TASK_LANGUAGES = { English: ["EN", "Inglês"], Japanese: ["JP", "Japonês"] };
@@ -444,14 +450,15 @@ function taskInsight(task) {
   if (!task.enabled) { status = "paused"; summary = "Em pausa"; }
   else if (best) {
     status = "stock";
-    summary = `${money(best.price)} na ${best.storeName}`;
+    const offers = new Set(matches.map((listing) => listing.url)).size;
+    summary = `${offers} ${offers === 1 ? "oferta" : "ofertas"} ao teu preço · desde ${money(best.price)}`;
     tone = "accent";
   } else if (stores.length === 0) { status = "paused"; summary = "Sem lojas ativas"; }
   else if (reports.length === 0) { status = "waiting"; summary = "À espera da primeira verificação"; }
   else if (failed.length === reports.length) { status = "error"; summary = "Todas as lojas deram erro"; tone = "red"; }
   else if (aboveMax.length) {
     status = "searching";
-    summary = `${money(aboveMax[0].price)} na ${shortStoreName(aboveMax[0].storeName)} · acima do máximo`;
+    summary = `${money(aboveMax[0].price)} na ${shortStoreName(aboveMax[0].storeName)} · acima do teu preço`;
     tone = "amber";
   } else if (soldOutStores.size) { status = "searching"; summary = `Esgotado em ${soldOutStores.size} ${soldOutStores.size === 1 ? "loja" : "lojas"}`; }
   else { status = "searching"; summary = "Ainda sem resultados"; }
@@ -716,4 +723,102 @@ function keepFocus(container, update) {
   if (!element) return;
   element.focus({ preventScroll: true });
   try { element.setSelectionRange(focus.start, focus.end); } catch { /* not a text input */ }
+}
+
+/* ----------------------------------------------------- kinds and prices -- */
+
+/** The label of a product kind code ("etb" → "Elite Trainer Box"). */
+function kindLabel(code) {
+  return state.msrp.kinds.find((kind) => kind.code === code)?.label || (code === "other" || !code ? "Outro" : code);
+}
+
+/** The MSRP of a kind (Pokémon table; other games have none yet). */
+function msrpOf(kind, game = "Pokemon") {
+  if (gameKey(game) !== "Pokemon") return null;
+  return state.msrp.entries.find((entry) => entry.kind === kind && normalizeText(entry.game).includes("pokemon"))?.price ?? null;
+}
+
+/** Product kinds in a sensible display order (the classifier order, "other" last). */
+const kindOrder = (code) => {
+  const index = state.msrp.kinds.findIndex((kind) => kind.code === code);
+  return index < 0 ? 999 : index;
+};
+
+/** One line that says when a task alerts on price: "Até ao MSRP + 10%" / "Até 60,00 €". */
+function priceRuleText(task, short = false) {
+  if (task.priceRule === "Msrp") {
+    const tolerance = task.msrpTolerancePercent ?? 10;
+    const margin = tolerance === 0 ? "" : tolerance > 0 ? ` + ${tolerance}%` : ` − ${Math.abs(tolerance)}%`;
+    const fallback = task.maxPrice > 0 && !short ? ` (sem MSRP: até ${money(task.maxPrice)})` : "";
+    return `Até ao MSRP${margin}${fallback}`;
+  }
+  return `Até ${money(task.maxPrice)}`;
+}
+
+/** "ETB, Booster Bundle" or "todos os tipos". */
+function kindsText(task) {
+  const kinds = task.kinds || [];
+  return kinds.length ? kinds.map(kindLabel).join(", ") : "todos os tipos";
+}
+
+/** The limit that applies to one kind of one task (mirror of the bot's rule, for display only). */
+function limitFor(task, kind) {
+  if (task.priceRule === "Msrp") {
+    const msrp = msrpOf(kind, task.game);
+    if (msrp) return Math.round(msrp * (100 + (task.msrpTolerancePercent ?? 10))) / 100;
+  }
+  return task.maxPrice > 0 ? task.maxPrice : null;
+}
+
+/** "−8% vs MSRP" pill (accent below, amber up to +15%, red above), or null without MSRP. */
+function msrpPill(price, msrp) {
+  if (!price || !msrp) return null;
+  const percent = Math.round(((price - msrp) / msrp) * 100);
+  const tone = percent <= 0 ? "accent" : percent <= 15 ? "amber" : "red";
+  const text = percent === 0 ? "= MSRP" : `${percent < 0 ? "−" : "+"}${Math.abs(percent)}% vs MSRP`;
+  return h("span", { class: `delta-pill ${tone}`, title: `MSRP ${money(msrp)}` }, text);
+}
+
+/**
+ * Every offer that alerts right now (in stock, right language, within the task's price rule), one per product URL,
+ * with the task it belongs to and when it appeared (the alert time, or the check time).
+ */
+function currentOffers() {
+  const byUrl = new Map();
+  for (const search of searches()) {
+    const task = findTask(search.stockTaskId);
+    if (!task || !task.enabled) continue;
+    for (const listing of search.listings) {
+      if (!isMatch(listing.outcome) || byUrl.has(listing.url)) continue;
+      const alert = state.alerts.find((item) => item.url === listing.url);
+      const since = alert?.at || search.checkedAt;
+      byUrl.set(listing.url, {
+        key: listing.url, listing, task, storeName: search.storeName, kind: listing.kind || "other",
+        kindLabel: listing.kindLabel || kindLabel(listing.kind), msrp: listing.msrp ?? null, alert, since,
+        isNew: Boolean(alert) && Date.now() - new Date(alert.at).getTime() < 24 * 3600e3,
+      });
+    }
+  }
+  return [...byUrl.values()];
+}
+
+/**
+ * What a task found, per product kind: the best in-stock offer within the rule, the cheapest in stock above it,
+ * and how many stores have it — the rows of the A vigiar cards and the product page groups.
+ */
+function kindBreakdown(insight) {
+  const groups = new Map();
+  for (const listing of insight.tracked) {
+    const kind = listing.kind || "other";
+    if (!groups.has(kind)) groups.set(kind, { kind, label: listing.kindLabel || kindLabel(kind), listings: [] });
+    groups.get(kind).listings.push(listing);
+  }
+  return [...groups.values()].map((group) => {
+    const matches = group.listings.filter((listing) => isMatch(listing.outcome)).sort(byPrice);
+    const above = group.listings.filter((listing) => listing.inStock && !isMatch(listing.outcome) && listing.price).sort(byPrice);
+    const stores = new Set(group.listings.map((listing) => listing.storeName));
+    return { ...group, best: matches[0] || null, above: above[0] || null, matchCount: matches.length, storeCount: stores.size,
+      soldOut: group.listings.every((listing) => !listing.inStock), msrp: group.listings.find((listing) => listing.msrp)?.msrp ?? msrpOf(group.kind, insight.task.game),
+      limit: group.listings.find((listing) => listing.priceLimit)?.priceLimit ?? limitFor(insight.task, group.kind) };
+  }).sort((a, b) => (Boolean(b.best) - Boolean(a.best)) || (Boolean(b.above) - Boolean(a.above)) || kindOrder(a.kind) - kindOrder(b.kind));
 }

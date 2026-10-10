@@ -21,6 +21,9 @@ function openTaskDrawer(task, isCopy = false) {
     storeNames: new Set(task?.storeNames || []),
     language: task?.language || "English",
     game: task?.game || "Pokemon",
+    priceRule: task?.priceRule || (task ? "MaxPrice" : "Msrp"),
+    tolerance: task?.msrpTolerancePercent ?? 10,
+    kinds: new Set(task?.kinds || []),
   };
   if (isNew && !draft.id && draft.name) draft.id = slugify(draft.name);
   const errors = h("div", {});
@@ -44,8 +47,22 @@ function openTaskDrawer(task, isCopy = false) {
         field("Tem de ter todas", keywordEditor(draft.requiredKeywords, "accent", () => {}, "Tem de ter todas"),
           "Todas têm de estar no título. Alternativas com | (booster box|booster display = uma delas) e * para o início de uma palavra (op* apanha OP-15 e OP10).", true),
         field("Ignorar se tiver", keywordEditor(draft.excludedKeywords, "red", () => {}, "Ignorar se tiver"), "Nenhuma pode estar no título. Também aceitam | e *.", true),
-        field("Preço máximo (€)", h("input", { type: "number", min: 0, step: "0.01", value: draft.maxPrice, class: "mono", oninput: (event) => { draft.maxPrice = event.target.value; } }), "Acima disto não avisa."),
         field("Id", idInput, isNew ? "Identificador interno (não muda depois)." : "Não pode ser alterado."))),
+    priceSection(draft),
+    drawerSection("Tipos de produto",
+      h("p", { class: "muted small" }, "Para vigiar um set inteiro e só querer alguns tipos (ex.: ETB e Booster Bundle, sem boosters soltos). Nenhum marcado = todos."),
+      h("div", { class: "store-picks" }, state.msrp.kinds.filter((kind) => kind.code !== "other").map((kind) => {
+        const on = draft.kinds.has(kind.code);
+        return h("button", {
+          type: "button", class: `pick-chip ${on ? "on" : ""}`, "aria-pressed": on ? "true" : "false",
+          onclick: (event) => {
+            const now = !draft.kinds.has(kind.code);
+            if (now) draft.kinds.add(kind.code); else draft.kinds.delete(kind.code);
+            event.currentTarget.classList.toggle("on", now);
+            event.currentTarget.setAttribute("aria-pressed", now ? "true" : "false");
+          },
+        }, kind.label);
+      }))),
     drawerSection("Lojas",
       h("p", { class: "muted small" }, "Nenhuma marcada = todas as lojas ativas."),
       h("div", { class: "store-picks" }, stores.map((store) => {
@@ -79,6 +96,9 @@ function openTaskDrawer(task, isCopy = false) {
         requiredKeywords: draft.requiredKeywords,
         excludedKeywords: draft.excludedKeywords,
         maxPrice: Number(String(draft.maxPrice).replace(",", ".")) || 0,
+        priceRule: draft.priceRule,
+        msrpTolerancePercent: Number(draft.tolerance) || 0,
+        kinds: [...draft.kinds],
         language: draft.language,
         game: draft.game,
       });
@@ -99,6 +119,28 @@ function openTaskDrawer(task, isCopy = false) {
   });
 }
 
+/** The price rule of the task editor: MSRP + margin (per kind) or a fixed maximum. Re-renders itself. */
+function priceSection(draft) {
+  const section = h("section", { class: "drawer-section" });
+  const render = () => {
+    const msrpMode = draft.priceRule === "Msrp";
+    const samples = ["etb", "booster-bundle", "booster-display", "booster-pack"].filter((kind) => msrpOf(kind, draft.game));
+    section.replaceChildren(
+      h("h3", {}, "Preço"),
+      segmented([["Msrp", "MSRP + margem"], ["MaxPrice", "Preço fixo"]], draft.priceRule, (value) => { draft.priceRule = value; render(); }, "Regra de preço"),
+      msrpMode
+        ? h("div", { class: "fields" },
+          field("Margem sobre o MSRP (%)", h("input", { type: "number", min: -50, max: 300, step: 1, value: draft.tolerance, class: "mono", oninput: (event) => { draft.tolerance = event.target.value; } }),
+            samples.length ? `Com 10%: ${samples.map((kind) => `${kindLabel(kind)} até ${money(Math.round(msrpOf(kind, draft.game) * 110) / 100)}`).join(" · ")}.` : "Este jogo ainda não tem MSRP: usa o máximo fixo abaixo."),
+          field("Tipos sem MSRP: até (€)", h("input", { type: "number", min: 0, step: "0.01", value: draft.maxPrice || "", placeholder: "não avisar", class: "mono", oninput: (event) => { draft.maxPrice = event.target.value; } }),
+            "Opcional. Vazio = não avisa de tipos sem MSRP."))
+        : field("Preço máximo (€)", h("input", { type: "number", min: 0, step: "0.01", value: draft.maxPrice, class: "mono", oninput: (event) => { draft.maxPrice = event.target.value; } }),
+          "Igual para tudo o que a pesquisa encontrar. Para um set inteiro, o MSRP + margem é melhor: compara cada tipo com o seu preço."));
+  };
+  render();
+  return section;
+}
+
 /* ----- Products: JSON import / export ----- */
 
 const TASK_IMPORT_EXAMPLE = `[
@@ -108,7 +150,10 @@ const TASK_IMPORT_EXAMPLE = `[
     "searchQuery": "elite trainer box",
     "requiredKeywords": ["pokemon", "elite trainer box"],
     "excludedKeywords": ["sleeves", "binder", "proxy"],
-    "maxPrice": 60,
+    "maxPrice": 0,
+    "priceRule": "Msrp",
+    "msrpTolerancePercent": 10,
+    "kinds": ["etb"],
     "language": "English",
     "game": "Pokemon",
     "storeNames": [],
@@ -121,7 +166,7 @@ function taskToJson(task) {
   return {
     id: task.id, name: task.name, enabled: task.enabled, storeNames: task.storeNames || [], searchQuery: task.searchQuery,
     requiredKeywords: task.requiredKeywords || [], excludedKeywords: task.excludedKeywords || [], maxPrice: task.maxPrice, language: task.language,
-    game: task.game || "Pokemon",
+    game: task.game || "Pokemon", priceRule: task.priceRule || "MaxPrice", msrpTolerancePercent: task.msrpTolerancePercent ?? 10, kinds: task.kinds || [],
   };
 }
 
@@ -153,6 +198,9 @@ function normalizeImportedTask(raw) {
     maxPrice: typeof raw.maxPrice === "number" ? raw.maxPrice : Number(String(raw.maxPrice ?? "").replace(",", ".")) || 0,
     language,
     game,
+    priceRule: String(raw.priceRule ?? "MaxPrice").toLowerCase() === "msrp" ? "Msrp" : "MaxPrice",
+    msrpTolerancePercent: Number(raw.msrpTolerancePercent ?? 10) || 0,
+    kinds: list(raw.kinds),
   };
 }
 
@@ -226,7 +274,7 @@ function openTaskImportDrawer() {
     subtitle: "Cola uma lista ou escolhe um ficheiro. O formato é o mesmo do “Exportar JSON”.",
     body: importDrawerBody({
       placeholder: TASK_IMPORT_EXAMPLE,
-      help: "Campos: id, name, searchQuery, requiredKeywords, excludedKeywords, maxPrice, language (English/Japanese), game (Pokemon/OnePiece/Lorcana/Magic/Other), storeNames ([] = todas), enabled. Sem id, é gerado a partir do nome.",
+      help: "Campos: id, name, searchQuery, requiredKeywords, excludedKeywords, priceRule (Msrp/MaxPrice), msrpTolerancePercent, maxPrice, kinds (etb, booster-bundle…; [] = todos), language (English/Japanese), game (Pokemon/OnePiece/Lorcana/Magic/Other), storeNames ([] = todas), enabled. Sem id, é gerado a partir do nome.",
       switchLabel: "Atualizar os que já existem (mesmo id)", switchValue: updateExisting, onSwitch: (checked) => { updateExisting = checked; },
       onText: (value) => { text = value; }, results,
     }),

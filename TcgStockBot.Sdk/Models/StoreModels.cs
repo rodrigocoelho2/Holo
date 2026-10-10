@@ -90,6 +90,9 @@ public sealed class StoreProbeResult
     public string? Seller { get; set; }
     public string? ImageUrl { get; set; }
     public bool PreOrder { get; set; }
+    public string Kind { get; set; } = "other";
+    public string KindLabel { get; set; } = string.Empty;
+    public decimal? Msrp { get; set; }
 }
 
 /// <summary>Input of StoreTest.</summary>

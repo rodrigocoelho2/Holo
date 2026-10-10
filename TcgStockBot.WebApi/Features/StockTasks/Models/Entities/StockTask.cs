@@ -28,8 +28,17 @@ public sealed class StockTask
     /// <summary>Gets or sets the keywords that must not be in the title.</summary>
     public List<string> ExcludedKeywords { get; set; } = [];
 
-    /// <summary>Gets or sets the price ceiling (MSRP).</summary>
+    /// <summary>Gets or sets the fixed price ceiling; with <see cref="PriceRule.Msrp"/> only for kinds without an MSRP (0 = none).</summary>
     public decimal MaxPrice { get; set; }
+
+    /// <summary>Gets or sets how a price is judged. Missing in older files, which then use the fixed maximum.</summary>
+    public PriceRule PriceRule { get; set; } = PriceRule.MaxPrice;
+
+    /// <summary>Gets or sets how far above the MSRP still alerts, in percent (10 = up to MSRP + 10%), for <see cref="PriceRule.Msrp"/>.</summary>
+    public int MsrpTolerancePercent { get; set; } = 10;
+
+    /// <summary>Gets or sets the product kinds wanted (ProductKindClassifier codes: etb, booster-bundle…); empty means every kind.</summary>
+    public List<string> Kinds { get; set; } = [];
 
     /// <summary>Gets or sets the print run wanted. Missing in older files, which then default to English.</summary>
     public TaskLanguage Language { get; set; } = TaskLanguage.English;

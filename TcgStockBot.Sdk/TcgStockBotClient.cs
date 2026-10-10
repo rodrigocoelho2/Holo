@@ -91,6 +91,12 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>A task that completes on success.</returns>
     public Task AlertClearAsync() => PostAsync("alert/clear", null);
 
+    // ----- Msrp -----
+
+    /// <summary>The product kinds the bot recognises and the MSRP of each.</summary>
+    /// <returns>The kinds and prices.</returns>
+    public Task<MsrpListDTO> MsrpListAsync() => GetAsync<MsrpListDTO>("msrp/list");
+
     // ----- PriceHistory -----
 
     /// <summary>Lists every tracked product with its current, lowest and highest price.</summary>

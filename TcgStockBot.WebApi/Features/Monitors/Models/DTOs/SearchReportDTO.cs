@@ -81,4 +81,16 @@ public sealed class ListingReportDTO
 
     /// <summary>Gets or sets the lowest price seen for this product on this store, including now; null when unknown.</summary>
     public decimal? LowestPrice { get; set; }
+
+    /// <summary>Gets or sets the product kind code read from the title (etb, booster-bundle…; "other" when unknown).</summary>
+    public string Kind { get; set; } = "other";
+
+    /// <summary>Gets or sets the product kind label ("Elite Trainer Box").</summary>
+    public string KindLabel { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the MSRP of the product kind, when known.</summary>
+    public decimal? Msrp { get; set; }
+
+    /// <summary>Gets or sets the highest price that alerts for this listing (task rule), or null when there is none.</summary>
+    public decimal? PriceLimit { get; set; }
 }

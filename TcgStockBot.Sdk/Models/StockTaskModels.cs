@@ -13,6 +13,15 @@ public sealed class StockTaskDTO
     public List<string> RequiredKeywords { get; set; } = [];
     public List<string> ExcludedKeywords { get; set; } = [];
     public decimal MaxPrice { get; set; }
+
+    /// <summary>How a price is judged.</summary>
+    public PriceRule PriceRule { get; set; }
+
+    /// <summary>How far above the MSRP still alerts, in percent.</summary>
+    public int MsrpTolerancePercent { get; set; } = 10;
+
+    /// <summary>The product kinds wanted; empty means every kind.</summary>
+    public List<string> Kinds { get; set; } = [];
     public TaskLanguage Language { get; set; }
     public TcgGame Game { get; set; }
 }
@@ -29,6 +38,15 @@ public sealed class StockTaskSaveRequest
     public List<string> RequiredKeywords { get; set; } = [];
     public List<string> ExcludedKeywords { get; set; } = [];
     public decimal MaxPrice { get; set; }
+
+    /// <summary>How a price is judged.</summary>
+    public PriceRule PriceRule { get; set; }
+
+    /// <summary>How far above the MSRP still alerts, in percent.</summary>
+    public int MsrpTolerancePercent { get; set; } = 10;
+
+    /// <summary>The product kinds wanted; empty means every kind.</summary>
+    public List<string> Kinds { get; set; } = [];
     public TaskLanguage Language { get; set; } = TaskLanguage.English;
     public TcgGame Game { get; set; } = TcgGame.Pokemon;
 }
