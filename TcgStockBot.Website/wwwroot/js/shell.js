@@ -222,6 +222,7 @@ function renderView(force = false) {
   const container = document.getElementById("view");
   const scrollers = [...container.querySelectorAll("[data-keep-scroll]")].map((element) => [element.dataset.keepScroll, element.scrollTop]);
   const renderer = RENDERERS[view] || RENDERERS.radar;
+  container.dataset.view = view;
   keepFocus(container, () => container.replaceChildren(...[renderer()].flat(Infinity).filter(Boolean)));
 
   for (const [key, top] of scrollers) {

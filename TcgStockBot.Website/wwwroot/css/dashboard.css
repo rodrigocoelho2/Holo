@@ -241,7 +241,6 @@ code { font-family: var(--font-mono); }
 .view {
   flex: 1;
   width: 100%;
-  max-width: 1480px;
   padding: 32px clamp(16px, 3vw, 44px) 64px;
   display: flex; flex-direction: column; gap: 32px;
   outline: none;
@@ -1247,4 +1246,22 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
   .probe-form { grid-template-columns: 1fr; }
   .drawer-head, .drawer-body, .drawer-foot { padding-left: 18px; padding-right: 18px; }
   .menu-list { right: auto; left: 0; }
+}
+
+/* ------------------------------------------------------------ wide screens -- */
+
+/* The pages use the whole width; forms and reading pages keep a comfortable line length. */
+.view[data-view="definicoes"], .view[data-view="testar"] { max-width: 1280px; }
+
+@media (min-width: 1700px) {
+  .watch-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(680px, 1fr)); gap: 12px; }
+  .store-blocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(620px, 1fr)); align-items: start; }
+  .split-side { flex-basis: 360px; max-width: 420px; }
+}
+
+@media (min-width: 2100px) {
+  .alert-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(860px, 1fr)); }
+  .stock-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .watch-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .store-grid { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
 }
