@@ -20,7 +20,7 @@
 <p align="center">
   <a href="#funcionalidades">Funcionalidades</a> ·
   <a href="#screenshots">Screenshots</a> ·
-  <a href="#novo-visual-em-desenho">Novo visual</a> ·
+  <a href="#temas">Temas</a> ·
   <a href="#arranque-rápido-docker-no-nas">Arranque rápido</a> ·
   <a href="#lojas">Lojas</a> ·
   <a href="#comparar-o-mesmo-produto-em-várias-lojas">Comparar</a> ·
@@ -36,7 +36,7 @@
 - Cada **tarefa** é um produto a vigiar: o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), o **preço máximo**, o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Lorcana, Magic ou outro).
 - Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *dentro do preço*, *acima do máximo*, *esgotado*, *não é inglês*, *falta a palavra…*.
 - Os resultados e os alertas trazem a **imagem do produto** que a loja devolve.
-- Importar e exportar as tarefas em JSON.
+- Importar e exportar os produtos vigiados (tarefas) em JSON, no menu **Mais** de *A vigiar*.
 
 **Preços**
 
@@ -53,10 +53,13 @@
 
 **Dashboard**
 
-- Visão geral com o que está em stock agora, o estado do último ciclo, alertas dos últimos 14 dias e um feed em tempo real.
-- Lojas agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com etiquetas e notas.
-- **Detetar** a plataforma de uma loja a partir do link, **testar** todas as lojas de uma vez, e desligar automaticamente as que falham.
-- Atalhos: `1`–`7` mudam de página e `R` verifica logo.
+- **Radar:** o que está em stock agora ao teu preço, em cartões com a imagem do produto, e o que ainda está à procura, com um quadrado por loja (dentro do preço, acima do preço, esgotado, erro).
+- **A vigiar:** todos os produtos em cartões, com filtros por jogo e por estado. Cada produto tem a sua página: as regras, o que cada loja encontrou e porque é que avisou ou não, o histórico de preço e os alertas.
+- **Vigiar produto:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (palavras, preço máximo, lojas) são sugeridas a partir deles.
+- **Lojas** agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detetar** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham.
+- **Temas:** Azul, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
+- Funciona no telemóvel, com uma barra de navegação em baixo.
+- Atalhos: `1`–`7` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
 
 **Feito para correr em casa**
 
@@ -68,51 +71,31 @@
 
 ## Screenshots
 
-O dashboard atual.
+Com dados de exemplo. Quando a loja devolve a foto do produto, aparece no lugar do desenho.
 
-### Visão geral
-<img src="docs/screenshots/dashboard-overview.png" alt="Visão geral: alertas enviados, em stock agora, gráfico de 14 dias e feed em tempo real">
-
-### Tarefas
-<img src="docs/screenshots/dashboard-tasks.png" alt="Tarefas: produtos vigiados com preço máximo, estado e resultados por loja">
-
-### Lojas
-<img src="docs/screenshots/dashboard-stores.png" alt="Lojas: estado de cada loja, plataforma e botões para testar e editar">
-
-## Novo visual (em desenho)
-
-O dashboard vai ser refeito a partir destes mocks. Cada ecrã foi desenhado primeiro como um mock HTML clicável: as fontes estão em [`docs/mocks`](docs/mocks) e abrem no browser (os filtros, a escolha de produtos e os temas funcionam). Os mocks usam dados de exemplo.
+### Radar
+<img src="docs/screenshots/dashboard-radar.png" alt="Radar: produtos em stock ao teu preço em cartões, os que ainda estão à procura com o estado em cada loja, atividade e saúde das lojas">
 
 <table>
 <tr>
-<td colspan="2"><b>Radar</b> · <a href="docs/mocks/radar.html">radar.html</a><br>O que está em stock ao teu preço, em cartões com a imagem do produto, e o que ainda está à procura, com o estado em cada loja.<br><img src="docs/images/mock-radar.png" alt="Mock do Radar: produtos em stock com imagem, preço e botão para abrir na loja"></td>
+<td width="50%"><b>A vigiar</b><br><img src="docs/screenshots/dashboard-a-vigiar.png" alt="A vigiar: os produtos em cartões, com filtros por jogo e por estado"></td>
+<td width="50%"><b>Produto</b><br><img src="docs/screenshots/dashboard-produto.png" alt="Página do produto: regras e o que cada loja encontrou, com o motivo de cada resultado"></td>
 </tr>
 <tr>
-<td width="50%"><b>A vigiar</b> · <a href="docs/mocks/a-vigiar.html">a-vigiar.html</a><br><img src="docs/images/mock-a-vigiar.png" alt="Mock da lista de produtos vigiados, com filtros por jogo e por estado"></td>
-<td width="50%"><b>Detalhe do produto</b> · <a href="docs/mocks/produto.html">produto.html</a><br><img src="docs/images/mock-produto.png" alt="Mock do detalhe de um produto: regras e o que cada loja encontrou, com o motivo"></td>
+<td width="50%"><b>Vigiar produto</b><br><img src="docs/screenshots/dashboard-vigiar.png" alt="Vigiar produto: pesquisa em todas as lojas, escolha dos resultados certos e regras sugeridas"></td>
+<td width="50%"><b>Alertas</b><br><img src="docs/screenshots/dashboard-alertas.png" alt="Alertas: os últimos 14 dias e a lista por dia"></td>
 </tr>
 <tr>
-<td width="50%"><b>Vigiar um produto</b> · <a href="docs/mocks/vigiar-produto.html">vigiar-produto.html</a><br><img src="docs/images/mock-vigiar-produto.png" alt="Mock de vigiar um produto novo: pesquisar, escolher os resultados certos e regras sugeridas"></td>
-<td width="50%"><b>Lojas</b> · <a href="docs/mocks/lojas.html">lojas.html</a><br><img src="docs/images/mock-lojas.png" alt="Mock das lojas com o estado das últimas 24 horas"></td>
+<td width="50%"><b>Lojas</b><br><img src="docs/screenshots/dashboard-lojas.png" alt="Lojas por área e tier, com o estado de cada pesquisa do último ciclo"></td>
+<td width="50%"><b>Comparar</b><br><img src="docs/screenshots/dashboard-comparar.png" alt="Comparar: o mesmo produto em várias lojas, mais barato, mínimo de sempre e última descida"></td>
 </tr>
 <tr>
-<td width="50%"><b>Alertas</b> · <a href="docs/mocks/alertas.html">alertas.html</a><br><img src="docs/images/mock-alertas.png" alt="Mock do histórico de alertas, com o gráfico de 14 dias"></td>
-<td width="50%"><b>Definições</b> · <a href="docs/mocks/definicoes.html">definicoes.html</a><br><img src="docs/images/mock-definicoes.png" alt="Mock das definições: tema, verificação e avisos"></td>
-</tr>
-<tr>
-<td width="50%"><b>No telemóvel</b> · <a href="docs/mocks/telemovel.html">telemovel.html</a><br><img src="docs/images/mock-telemovel.png" alt="Mock do Radar no telemóvel, com a barra de navegação em baixo" width="320"></td>
-<td width="50%" valign="top"><b>O que muda</b><br><br>
-<ul>
-<li>Seis páginas passam a cinco: o <b>Radar</b> substitui a Visão geral e o "Testar loja" passa para o detalhe do produto e para as Lojas.</li>
-<li>Imagens dos produtos em todo o lado.</li>
-<li>Cada resultado diz em português simples porque é que avisou ou não.</li>
-<li>Vigiar um produto novo começa por pesquisar nas lojas, e as regras são sugeridas a partir do que escolhes.</li>
-<li>Filtros por jogo.</li>
-<li>Temas, com o modo escuro por omissão.</li>
-</ul>
-Ainda por desenhar no visual novo: <b>Comparar</b>, <b>histórico de preços</b> e as <b>áreas e tiers</b> das lojas.</td>
+<td width="50%"><b>Definições</b><br><img src="docs/screenshots/dashboard-definicoes.png" alt="Definições: tema, verificação e avisos"></td>
+<td width="50%"><b>No telemóvel</b><br><img src="docs/screenshots/dashboard-telemovel.png" alt="O Radar no telemóvel, com a barra de navegação em baixo" width="300"></td>
 </tr>
 </table>
+
+O visual foi desenhado primeiro como mocks HTML clicáveis, que continuam em [`docs/mocks`](docs/mocks).
 
 ### Temas
 
@@ -233,7 +216,7 @@ Plataformas novas:
   FNAC ES…). Dás-lhe uma **chave** (ex.: `MediaMarktES`) e pões o URL do feed em `AwinFeeds__Feeds__MediaMarktES` no
   `.env`. Funciona como os feeds da secção seguinte.
 
-**Importar / Exportar JSON** (mesmo formato nos dois sentidos). Numa loja que já existe (mesmo nome **ou** mesmo site),
+**Importar / Exportar JSON** (menu **Mais** da página Lojas; mesmo formato nos dois sentidos). Numa loja que já existe (mesmo nome **ou** mesmo site),
 a importação não mexe na configuração: com *Atualizar classificação* ligado, muda só área, tier, tipo e etiquetas.
 
 #### Detetar, testar e ativar lojas
@@ -246,7 +229,7 @@ a importação não mexe na configuração: com *Atualizar classificação* liga
   - **PrestaShop**: a pesquisa `index.php?controller=search` tem cartões `product-miniature`. Preenche os seletores
     HTML genéricos (confirma o esgotado no Testar);
   - **bloqueia o bot** (403/429 ou página anti-bot): para aí e não contorna nada. Fica "Sem integração".
-- **Testar lojas** (botão no topo da página Lojas): pesquisa cada loja (4 de cada vez) com um texto à escolha
+- **Testar várias lojas** (menu **Mais** da página Lojas): pesquisa cada loja (4 de cada vez) com um texto à escolha
   ("pokemon" por omissão), mostra o resultado de cada uma e guarda-o no cartão ("Último teste"). Escolhe quais: as
   visíveis com os filtros, as nunca testadas, as que falharam, as desligadas ou todas. No fim:
   - **Ativar as que funcionam**;
@@ -319,8 +302,8 @@ Como funciona:
 - **Histórico de preços** (`data/price-history.json`): para cada produto que uma tarefa
   reconhece (palavras e idioma certos, esteja ou não em stock ou acima do preço), guarda um ponto sempre que o preço
   ou o stock mudam. São até 500 alterações por produto, e os produtos que não aparecem há 180 dias são apagados. O
-  mesmo produto em várias tarefas conta como um só (loja + URL). Nas tabelas das tarefas, o ícone de gráfico abre o
-  histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa o **Comparar** (com "Só numa loja"
+  mesmo produto em várias tarefas conta como um só (loja + URL). Na página de cada produto, o ícone de gráfico ao lado do preço abre o
+  histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa o **Comparar** (com "Incluir os que só estão numa loja"
   ligado vês também os produtos que só uma loja tem).
 - A `alert-state.json` da v3.0 continua a ser lida; a partir do primeiro ciclo passa a guardar também o preço.
 
@@ -418,7 +401,7 @@ TcgStockBot.slnx
 │   ├── Controllers/            # finos: criam o model, chamam-no, devolvem Json(AjaxDataResult)
 │   ├── Model/{Feature}/        # "fat models": chamam a WebApi através do Sdk
 │   ├── Views/Dashboard/Index.cshtml, Views/Shared/_Layout.cshtml
-│   └── wwwroot/css/dashboard.css, wwwroot/js/dashboard.js
+│   └── wwwroot/                # css/dashboard.css, js/ (core, shell, uma por página, editors, main), fonts/
 ├── TcgStockBot.UnitTest/       # xUnit, uma pasta por feature (+ teste de contrato Sdk ↔ WebApi)
 └── docs/                       # imagens do README, screenshots e os mocks HTML
 ```

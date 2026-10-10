@@ -2,27 +2,19 @@
 
 Esta pasta contém exemplos visuais do dashboard do TcgStockBot.
 
-## Imagens esperadas:
+## Imagens
 
-### `dashboard-overview.png`
-Screenshot da página "Visão Geral" mostrando:
-- Resumo de alertas (68 alertas)
-- Gráfico de 14 dias
-- Estatísticas por loja
-- Feed em tempo real
+Tiradas com dados de exemplo (nada real):
 
-### `dashboard-tasks.png`
-Screenshot da página "Tarefas" mostrando:
-- Lista de produtos monitorados
-- Filtros (Todas, A comer, Em stock, Pausadas)
-- Ações de teste, edição e duplicação
-
-### `dashboard-stores.png`
-Screenshot da página "Lojas" mostrando:
-- Lista de lojas configuradas
-- Status de cada loja (Online/Offline)
-- Tipo de integração (Shopify, WooCommerce, HTML)
-- Últimas verificações
+- `dashboard-radar.png` — Radar: em stock agora, ainda à procura, atividade e lojas
+- `dashboard-a-vigiar.png` — produtos vigiados, filtros por jogo e estado
+- `dashboard-produto.png` — página de um produto: regras e o que cada loja encontrou
+- `dashboard-vigiar.png` — vigiar um produto novo (pesquisa e regras sugeridas)
+- `dashboard-alertas.png` — alertas dos últimos 14 dias
+- `dashboard-lojas.png` — lojas por área e tier
+- `dashboard-comparar.png` — o mesmo produto em várias lojas
+- `dashboard-definicoes.png` — tema, verificação e avisos
+- `dashboard-telemovel.png` — o Radar no telemóvel
 
 ## Como adicionar as imagens:
 
