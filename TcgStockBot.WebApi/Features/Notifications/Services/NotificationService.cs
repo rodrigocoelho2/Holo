@@ -21,6 +21,7 @@ internal sealed class NotificationService(
     IEnumerable<INotifier> notifiers,
     IOptions<EmailOptions> emailOptions,
     IOptions<WhatsAppOptions> whatsAppOptions,
+    IOptions<TelegramOptions> telegramOptions,
     IGlobalizationHelper globalizationHelper,
     ILogger<NotificationService> logger) : INotificationService
 {
@@ -35,6 +36,7 @@ internal sealed class NotificationService(
     {
         var email = emailOptions.Value;
         var whatsApp = whatsAppOptions.Value;
+        var telegram = telegramOptions.Value;
 
         return Task.FromResult(ServiceApiResponse<NotificationDTO>.Success(new NotificationDTO
         {
@@ -51,6 +53,12 @@ internal sealed class NotificationService(
                 Enabled = whatsApp.Enabled,
                 MaskedPhone = Mask(whatsApp.Phone),
                 HasApiKey = !string.IsNullOrEmpty(whatsApp.ApiKey),
+            },
+            Telegram = new TelegramNotificationDTO
+            {
+                Enabled = telegram.Enabled,
+                MaskedChatId = Mask(telegram.ChatId),
+                HasBotToken = !string.IsNullOrEmpty(telegram.BotToken),
             },
         }));
     }

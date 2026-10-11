@@ -41,12 +41,14 @@ internal static class StockTaskMatcher
     }
 
     /// <summary>The words of a game as the MSRP table names it ("Pokémon"), so the lookup finds the right game.</summary>
-    private static string GameWords(TcgGame game) => game switch
+    internal static string GameWords(TcgGame game) => game switch
     {
         TcgGame.Pokemon => "Pokémon",
         TcgGame.OnePiece => "One Piece",
         TcgGame.Lorcana => "Lorcana",
         TcgGame.Magic => "Magic",
+        TcgGame.Riftbound => "Riftbound",
+        TcgGame.Cyberpunk => "Cyberpunk",
         _ => string.Empty,
     };
 

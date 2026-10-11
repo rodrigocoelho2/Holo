@@ -122,6 +122,54 @@ internal static class AlertMessageFormatter
     /// "115,00 €", or "🔻 115,00 € (antes 130,00 €)" for a price drop; followed by " · MSRP 59,99 € (−8%)" when the
     /// reference price is known.
     /// </summary>
+    /// <summary>
+    /// The Telegram message (HTML parse mode: only &lt;b&gt;, &lt;i&gt;, &lt;a&gt; and escaped text).
+    /// </summary>
+    /// <param name="alerts">The alerts.</param>
+    /// <param name="maxAlerts">How many products to list.</param>
+    /// <returns>The message.</returns>
+    public static string Telegram(IReadOnlyList<StockAlert> alerts, int maxAlerts)
+    {
+        var drops = alerts.Count(static alert => alert.IsPriceDrop);
+        var header = alerts.Count == 1
+            ? drops == 1 ? "🔻 <b>Baixou de preço</b>" : alerts[0].Listing.PreOrder ? "🕒 <b>Pré-venda</b>" : "🟢 <b>Em stock</b>"
+            : drops == alerts.Count ? $"🔻 <b>{alerts.Count} descidas de preço</b>"
+            : $"🟢 <b>{alerts.Count} alertas</b>" + (drops > 0 ? $" ({drops} descida(s) de preço)" : string.Empty);
+        var text = new StringBuilder(header);
+
+        foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))
+        {
+            var listing = alert.Listing;
+            text.Append("\n\n<b>").Append(WebUtility.HtmlEncode(listing.Title)).Append("</b>")
+                .Append("\n").Append(WebUtility.HtmlEncode(listing.StoreName)).Append(" · ").Append(WebUtility.HtmlEncode(PriceLine(alert)))
+                .Append("\n<a href=\"").Append(WebUtility.HtmlEncode(listing.Url.AbsoluteUri)).Append("\">Abrir na loja →</a>");
+
+            if (listing.PreOrder)
+            {
+                text.Append("\n<i>").Append(WebUtility.HtmlEncode(PreOrderNote)).Append("</i>");
+            }
+
+            if (alert.LanguageToConfirm)
+            {
+                text.Append("\n<i>").Append(WebUtility.HtmlEncode(LanguageWarning)).Append("</i>");
+            }
+        }
+
+        if (alerts.Count > maxAlerts)
+        {
+            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" no dashboard.");
+        }
+
+        return text.ToString();
+    }
+
+    /// <summary>A notice (store turned off, daily summary) for Telegram.</summary>
+    /// <param name="subject">The subject.</param>
+    /// <param name="text">The plain text.</param>
+    /// <returns>The HTML message.</returns>
+    public static string TelegramNotice(string subject, string text) =>
+        $"ℹ️ <b>{WebUtility.HtmlEncode(subject)}</b>\n\n{WebUtility.HtmlEncode(text)}";
+
     private static string PriceLine(StockAlert alert) => (alert.IsPriceDrop
         ? $"🔻 {Price(alert.Listing.Price)} (antes {Price(alert.PreviousPrice)})"
         : Price(alert.Listing.Price)) + MsrpPart(alert);

@@ -80,6 +80,9 @@ public enum TranslationKeys
     /// <summary>The MSRP tolerance is outside the allowed range.</summary>
     MsrpToleranceRange,
 
+    /// <summary>An hour of the day outside 0–23.</summary>
+    HourRange,
+
     /// <summary>A key that may only contain letters, digits and '_'.</summary>
     InvalidKey,
 
@@ -100,4 +103,7 @@ public enum TranslationKeys
 
     /// <summary>One line of the "stores turned off" notice.</summary>
     StoreAutoDisabledLine,
+
+    /// <summary>Pre-orders open after the release date.</summary>
+    PreOrderAfterRelease,
 }

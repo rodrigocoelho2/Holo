@@ -22,6 +22,7 @@ internal sealed class SettingService(
     private const string FieldDelayBetweenRequests = "DelayBetweenRequestsSeconds";
     private const string FieldAutoDisableAfterFailures = "AutoDisableAfterFailures";
     private const string FieldUserAgent = "UserAgent";
+    private const string FieldDailySummaryHour = "DailySummaryHour";
 
     private readonly ISettingRepository _settingRepository = settingRepository;
     private readonly IGlobalizationHelper _globalizationHelper = globalizationHelper;
@@ -68,6 +69,11 @@ internal sealed class SettingService(
         if (item.AutoDisableAfterFailures < 0)
         {
             validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldAutoDisableAfterFailures, nameof(TranslationKeys.NegativeValue)));
+        }
+
+        if (item.DailySummaryHour is < 0 or > 23)
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldDailySummaryHour, nameof(TranslationKeys.HourRange)));
         }
 
         if (string.IsNullOrWhiteSpace(item.UserAgent))

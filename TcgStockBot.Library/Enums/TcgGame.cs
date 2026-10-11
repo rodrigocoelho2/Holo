@@ -20,4 +20,10 @@ public enum TcgGame
 
     /// <summary>Any other game.</summary>
     Other,
+
+    /// <summary>Riftbound (League of Legends TCG).</summary>
+    Riftbound,
+
+    /// <summary>Cyberpunk TCG.</summary>
+    Cyberpunk,
 }

@@ -25,6 +25,12 @@ public sealed class BotConfiguration
     /// <summary>Gets or sets how many failed cycles in a row turn a store off (0 = never).</summary>
     public int AutoDisableAfterFailures { get; set; } = 6;
 
+    /// <summary>Gets or sets a value indicating whether a summary of the day is e-mailed once a day.</summary>
+    public bool DailySummaryEnabled { get; set; }
+
+    /// <summary>Gets or sets the local hour (0–23) of the daily summary.</summary>
+    public int DailySummaryHour { get; set; } = 9;
+
     /// <summary>Gets or sets the User-Agent sent to stores.</summary>
     public string UserAgent { get; set; } = "TcgStockBot/1.0 (personal stock alert)";
 

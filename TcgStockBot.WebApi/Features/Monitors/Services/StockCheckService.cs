@@ -120,7 +120,7 @@ internal sealed class StockCheckService(
                 completedSearches.Add(StockAlert.SearchKey(store.Name, task.Id));
                 foreach (var listing in report.Listings.Where(static listing => listing.Outcome.IsRelevant() && listing.Price is > 0))
                 {
-                    observations.Add(new PriceObservation(store.Name, listing.Title, listing.Url, listing.ProductId, listing.Currency, listing.Price!.Value, listing.InStock, task.Id));
+                    observations.Add(new PriceObservation(store.Name, listing.Title, listing.Url, listing.ProductId, listing.Currency, listing.Price!.Value, listing.InStock, task.Id, listing.ImageUrl));
                 }
 
                 matches.AddRange(report.Listings

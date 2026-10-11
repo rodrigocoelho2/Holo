@@ -10,6 +10,9 @@ public sealed class NotificationDTO
 
     /// <summary>Gets or sets the WhatsApp channel state.</summary>
     public WhatsAppNotificationDTO WhatsApp { get; set; } = new();
+
+    /// <summary>Gets or sets the Telegram channel.</summary>
+    public TelegramNotificationDTO Telegram { get; set; } = new();
 }
 
 /// <summary>
@@ -46,4 +49,19 @@ public sealed class WhatsAppNotificationDTO
 
     /// <summary>Gets or sets a value indicating whether an API key is configured.</summary>
     public bool HasApiKey { get; set; }
+}
+
+/// <summary>
+/// The Telegram channel as configured (never the bot token).
+/// </summary>
+public sealed class TelegramNotificationDTO
+{
+    /// <summary>Gets or sets a value indicating whether Telegram alerts are on.</summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>Gets or sets the chat id with all but the last digits hidden.</summary>
+    public string MaskedChatId { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets a value indicating whether a bot token is set.</summary>
+    public bool HasBotToken { get; set; }
 }

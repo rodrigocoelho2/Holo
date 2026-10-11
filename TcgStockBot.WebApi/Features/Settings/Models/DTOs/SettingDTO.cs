@@ -26,6 +26,8 @@ public sealed class SettingDTO
         DelayBetweenRequestsSeconds = (int)entity.DelayBetweenRequests.TotalSeconds;
         UserAgent = entity.UserAgent;
         AutoDisableAfterFailures = entity.AutoDisableAfterFailures;
+        DailySummaryEnabled = entity.DailySummaryEnabled;
+        DailySummaryHour = entity.DailySummaryHour;
     }
 
     /// <summary>Gets or sets a value indicating whether the bot is paused.</summary>
@@ -45,4 +47,10 @@ public sealed class SettingDTO
 
     /// <summary>Gets or sets how many failed cycles in a row turn a store off (0 = never).</summary>
     public int AutoDisableAfterFailures { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the daily summary e-mail is on.</summary>
+    public bool DailySummaryEnabled { get; set; }
+
+    /// <summary>Gets or sets the local hour of the daily summary.</summary>
+    public int DailySummaryHour { get; set; }
 }

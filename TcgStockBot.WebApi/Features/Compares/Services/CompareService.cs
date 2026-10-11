@@ -164,7 +164,13 @@ internal sealed class CompareService(
     {
         if (groupKey.StartsWith(SoloPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            return new CompareGroupDTO { Key = groupKey, Title = entry.Title, SetName = string.Empty, KindLabel = ProductKindClassifier.Classify(entry.Title).Label };
+            var soloKind = ProductKindClassifier.Classify(entry.Title);
+            var soloTask = entry.StockTaskIds.Select(id => tasks.GetValueOrDefault(id)).FirstOrDefault(static task => task is not null);
+            return new CompareGroupDTO
+            {
+                Key = groupKey, Title = entry.Title, SetName = string.Empty, KindLabel = soloKind.Label, Kind = soloKind.Code,
+                Game = soloTask?.Game ?? TcgGame.Pokemon, StockTaskId = soloTask?.Id,
+            };
         }
 
         var parts = groupKey.Split('|');
@@ -176,7 +182,11 @@ internal sealed class CompareService(
             : string.Empty;
         var variant = variantLabel.Length > 0 ? $" – {variantLabel}" : parts.Length > 2 && parts[2].Length > 0 ? $" – {Portuguese.TextInfo.ToTitleCase(parts[2])}" : string.Empty;
 
-        return new CompareGroupDTO { Key = groupKey, Title = $"{setName} · {kindLabel}{variant}", SetName = setName, KindLabel = kindLabel };
+        return new CompareGroupDTO
+        {
+            Key = groupKey, Title = $"{setName} · {kindLabel}{variant}", SetName = setName, KindLabel = kindLabel,
+            Kind = parts.Length > 1 ? parts[1] : ProductKindClassifier.Other.Code, Game = task?.Game ?? TcgGame.Pokemon, StockTaskId = task?.Id,
+        };
     }
 
     /// <summary>The group's reference price, from its first listing's title and the set (task) it belongs to.</summary>
@@ -195,6 +205,10 @@ internal sealed class CompareService(
         group.MsrpLabel = $"{reference.Game} · {ProductKindClassifier.LabelOf(reference.Kind)}";
     }
 
+    /// <summary>The price in force at a moment (the last change before it), or the first price when the listing is newer.</summary>
+    internal static decimal? PriceAt(PriceHistoryEntry entry, DateTimeOffset moment) =>
+        entry.Points.LastOrDefault(point => point.At <= moment)?.Price ?? entry.Points.FirstOrDefault()?.Price;
+
     private static CompareListingDTO Listing(string historyKey, PriceHistoryEntry entry, bool isManual, bool withPoints)
     {
         var current = entry.Points[^1];
@@ -211,6 +225,9 @@ internal sealed class CompareService(
             LowestPriceAt = lowest.At,
             LastSeen = entry.LastSeen,
             IsManual = isManual,
+            FirstSeen = entry.FirstSeen,
+            ImageUrl = entry.ImageUrl,
+            Price30DaysAgo = PriceAt(entry, entry.LastSeen.AddDays(-30)),
             Points = withPoints ? entry.Points.Select(static point => new PricePointDTO(point)).ToList() : [],
         };
 

@@ -13,6 +13,9 @@ public sealed class CompareGroupDTO
     public decimal? Msrp { get; set; }
     public MsrpBasis? MsrpBasis { get; set; }
     public string MsrpLabel { get; set; } = string.Empty;
+    public TcgGame Game { get; set; } = TcgGame.Pokemon;
+    public string Kind { get; set; } = "other";
+    public string? StockTaskId { get; set; }
 }
 
 /// <summary>One store's listing of a compared product.</summary>
@@ -31,6 +34,9 @@ public sealed class CompareListingDTO
     public DateTimeOffset? LastDropAt { get; set; }
     public DateTimeOffset LastSeen { get; set; }
     public bool IsManual { get; set; }
+    public DateTimeOffset FirstSeen { get; set; }
+    public decimal? Price30DaysAgo { get; set; }
+    public string? ImageUrl { get; set; }
     public List<PricePointDTO> Points { get; set; } = [];
 }
 

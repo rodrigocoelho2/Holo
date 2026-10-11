@@ -27,6 +27,8 @@ using TcgStockBot.WebApi.Features.Stores.Services.Adapters.Amazon;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 using TcgStockBot.WebApi.Features.Msrps.Repositories;
 using TcgStockBot.WebApi.Features.Msrps.Services;
+using TcgStockBot.WebApi.Features.Releases.Repositories;
+using TcgStockBot.WebApi.Features.Releases.Services;
 
 namespace TcgStockBot.WebApi;
 
@@ -51,6 +53,7 @@ internal static class TcgStockBotStartup
             .ValidateOnStart();
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
+        services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
 
         services.AddControllers()
             .ConfigureApplicationPartManager(manager => manager.FeatureProviders.Add(new InternalControllerFeatureProvider()))
@@ -106,6 +109,10 @@ internal static class TcgStockBotStartup
         services.AddHttpClient(WhatsAppNotifier.HttpClientName, static client => client.Timeout = TimeSpan.FromSeconds(30))
             .RemoveAllLoggers();
 
+        // Same for Telegram: the bot token is part of the URL.
+        services.AddHttpClient(TelegramNotifier.HttpClientName, static client => client.Timeout = TimeSpan.FromSeconds(30))
+            .RemoveAllLoggers();
+
         // Stores
         services.AddSingleton<IStoreRepository, StoreRepository>();
         services.AddSingleton<IStoreAdapter, ShopifyStoreAdapter>();
@@ -144,6 +151,10 @@ internal static class TcgStockBotStartup
         services.AddSingleton<IPriceHistoryRepository, PriceHistoryRepository>();
         services.AddSingleton<IPriceHistoryService, PriceHistoryService>();
 
+        // Releases
+        services.AddSingleton<IReleaseRepository, ReleaseRepository>();
+        services.AddSingleton<IReleaseService, ReleaseService>();
+
         // Compares
         services.AddSingleton<ICompareOverrideRepository, CompareOverrideRepository>();
         services.AddSingleton<ICompareService, CompareService>();
@@ -152,6 +163,7 @@ internal static class TcgStockBotStartup
         services.AddSingleton<INotifier, LogNotifier>();
         services.AddSingleton<INotifier, EmailNotifier>();
         services.AddSingleton<INotifier, WhatsAppNotifier>();
+        services.AddSingleton<INotifier, TelegramNotifier>();
         services.AddSingleton<INotificationService, NotificationService>();
 
         // Monitors
@@ -160,6 +172,7 @@ internal static class TcgStockBotStartup
         services.AddSingleton<IStockCheckService, StockCheckService>();
         services.AddSingleton<IMonitorService, MonitorService>();
         services.AddHostedService<StockMonitorWorker>();
+        services.AddHostedService<DailySummaryWorker>();
 
         return services;
     }

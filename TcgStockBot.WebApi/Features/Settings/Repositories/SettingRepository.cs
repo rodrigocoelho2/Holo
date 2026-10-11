@@ -21,6 +21,8 @@ internal sealed class SettingRepository(BotDataContext dataContext) : Repository
             DelayBetweenRequests = configuration.DelayBetweenRequests,
             UserAgent = configuration.UserAgent,
             AutoDisableAfterFailures = configuration.AutoDisableAfterFailures,
+            DailySummaryEnabled = configuration.DailySummaryEnabled,
+            DailySummaryHour = configuration.DailySummaryHour,
         });
     }
 
@@ -35,6 +37,8 @@ internal sealed class SettingRepository(BotDataContext dataContext) : Repository
             configuration.DelayBetweenRequests = item.DelayBetweenRequests;
             configuration.UserAgent = item.UserAgent;
             configuration.AutoDisableAfterFailures = item.AutoDisableAfterFailures;
+            configuration.DailySummaryEnabled = item.DailySummaryEnabled;
+            configuration.DailySummaryHour = item.DailySummaryHour;
         }, CancellationToken.None);
 
         return item;

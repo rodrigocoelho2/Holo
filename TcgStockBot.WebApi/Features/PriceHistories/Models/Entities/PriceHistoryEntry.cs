@@ -32,6 +32,9 @@ public sealed class PriceHistoryEntry
 
     /// <summary>Gets or sets the stock tasks that recognised this product (its set, for the Compare view).</summary>
     public List<string> StockTaskIds { get; set; } = [];
+
+    /// <summary>Gets or sets the last product photo URL the store returned, when any.</summary>
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>

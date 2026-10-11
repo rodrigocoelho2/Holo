@@ -86,6 +86,7 @@ internal sealed class PriceHistoryService(
                 entry.Title = observation.Title;
                 entry.Url = observation.Url;
                 entry.ProductId = observation.ProductId ?? entry.ProductId;
+                entry.ImageUrl = observation.ImageUrl ?? entry.ImageUrl;
                 entry.Currency = observation.Currency;
                 entry.LastSeen = now;
                 foreach (var taskId in sameProduct.Select(static seen => seen.StockTaskId).OfType<string>())

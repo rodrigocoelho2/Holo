@@ -59,6 +59,9 @@ internal sealed class BotDataContext
     /// <summary>Gets the path of the manual corrections of the Compare grouping.</summary>
     public string CompareOverridesPath => Path.Combine(DataDirectory, "compare-overrides.json");
 
+    /// <summary>Gets the path of the launch calendar.</summary>
+    public string ReleasesPath => Path.Combine(DataDirectory, "releases.json");
+
     /// <summary>Gets the optional MSRP reference prices file (when present it replaces the embedded defaults).</summary>
     public string MsrpPath => Path.Combine(DataDirectory, "msrp.json");
 

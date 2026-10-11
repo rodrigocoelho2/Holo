@@ -10,4 +10,7 @@ public enum NotificationChannel
 
     /// <summary>WhatsApp message through CallMeBot.</summary>
     WhatsApp,
+
+    /// <summary>Telegram (Bot API).</summary>
+    Telegram,
 }

@@ -124,6 +124,22 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>A task that completes on success.</returns>
     public Task CompareAssignAsync(CompareAssignRequest item) => PostAsync("compare/assign", item);
 
+    // ----- Release -----
+
+    /// <summary>Lists every release, soonest first.</summary>
+    /// <returns>The releases.</returns>
+    public Task<List<ReleaseDTO>> ReleaseListAsync() => GetAsync<List<ReleaseDTO>>("release/list");
+
+    /// <summary>Creates (empty id) or replaces a release.</summary>
+    /// <param name="item">The release.</param>
+    /// <returns>The saved release.</returns>
+    public Task<ReleaseDTO> ReleaseSaveAsync(ReleaseSaveRequest item) => PostAsync<ReleaseDTO>("release", item);
+
+    /// <summary>Deletes a release.</summary>
+    /// <param name="identifier">The release identifier.</param>
+    /// <returns>A task that completes on success.</returns>
+    public Task ReleaseDeleteAsync(string identifier) => DeleteAsync($"release?identifier={Uri.EscapeDataString(identifier)}");
+
     // ----- Monitor -----
 
     /// <summary>Gets what the bot is doing right now.</summary>

@@ -28,6 +28,8 @@ public sealed class SettingDTO
     public int DelayBetweenRequestsSeconds { get; set; }
     public string UserAgent { get; set; } = string.Empty;
     public int AutoDisableAfterFailures { get; set; }
+    public bool DailySummaryEnabled { get; set; }
+    public int DailySummaryHour { get; set; }
 }
 
 /// <summary>Input of SettingSave.</summary>
@@ -38,6 +40,8 @@ public sealed class SettingSaveRequest
     public int DelayBetweenRequestsSeconds { get; set; }
     public string UserAgent { get; set; } = string.Empty;
     public int AutoDisableAfterFailures { get; set; } = 6;
+    public bool DailySummaryEnabled { get; set; }
+    public int DailySummaryHour { get; set; } = 9;
 }
 
 /// <summary>State of the notification channels (mirror of the WebApi NotificationDTO).</summary>
@@ -45,6 +49,7 @@ public sealed class NotificationDTO
 {
     public EmailNotificationDTO Email { get; set; } = new();
     public WhatsAppNotificationDTO WhatsApp { get; set; } = new();
+    public TelegramNotificationDTO Telegram { get; set; } = new();
 }
 
 /// <summary>State of the email channel.</summary>
@@ -66,6 +71,13 @@ public sealed class WhatsAppNotificationDTO
 }
 
 /// <summary>Input of NotificationTest.</summary>
+public sealed class TelegramNotificationDTO
+{
+    public bool Enabled { get; set; }
+    public string MaskedChatId { get; set; } = string.Empty;
+    public bool HasBotToken { get; set; }
+}
+
 public sealed class NotificationTestRequest
 {
     public NotificationChannel Channel { get; set; }

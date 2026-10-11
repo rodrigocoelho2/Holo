@@ -11,7 +11,7 @@ namespace TcgStockBot.WebApi.Features.PriceHistories.Models.Entities;
 /// <param name="Price">The price.</param>
 /// <param name="InStock">Whether it can be bought.</param>
 /// <param name="StockTaskId">The task that recognised it (null when unknown).</param>
-public sealed record PriceObservation(string StoreName, string Title, string Url, string? ProductId, string Currency, decimal Price, bool InStock, string? StockTaskId = null)
+public sealed record PriceObservation(string StoreName, string Title, string Url, string? ProductId, string Currency, decimal Price, bool InStock, string? StockTaskId = null, string? ImageUrl = null)
 {
     /// <summary>Gets the history key of this product.</summary>
     public string Key => KeyFor(StoreName, Url);

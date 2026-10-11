@@ -31,6 +31,15 @@ public sealed class CompareGroupDTO
 
     /// <summary>Gets or sets which reference price was used ("Pokémon · Elite Trainer Box").</summary>
     public string MsrpLabel { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the card game (from the task that found the product).</summary>
+    public TcgGame Game { get; set; } = TcgGame.Pokemon;
+
+    /// <summary>Gets or sets the product kind code ("etb").</summary>
+    public string Kind { get; set; } = "other";
+
+    /// <summary>Gets or sets the task (watched product) the group comes from, when it still exists.</summary>
+    public string? StockTaskId { get; set; }
 }
 
 /// <summary>
@@ -76,6 +85,15 @@ public sealed class CompareListingDTO
 
     /// <summary>Gets or sets a value indicating whether this listing is in the group by a manual correction.</summary>
     public bool IsManual { get; set; }
+
+    /// <summary>Gets or sets when the bot first saw this listing.</summary>
+    public DateTimeOffset FirstSeen { get; set; }
+
+    /// <summary>Gets or sets the price 30 days ago (the price then in force; the first price when the listing is newer).</summary>
+    public decimal? Price30DaysAgo { get; set; }
+
+    /// <summary>Gets or sets the last product photo URL the store returned.</summary>
+    public string? ImageUrl { get; set; }
 
     /// <summary>Gets or sets the price/stock changes, oldest first (only in CompareGet; empty in CompareList).</summary>
     public List<PricePointDTO> Points { get; set; } = [];
