@@ -1,8 +1,8 @@
 {
   "name": "Card Forge",
   "short_name": "Card Forge",
-  "description": "Stock e preços de TCG selado nas lojas portuguesas. Avisa-te quando aparece ao teu preço.",
-  "lang": "pt-PT",
+  "description": "Sealed TCG stock and prices in Portuguese and Spanish stores. Get alerted when it shows up at your price.",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -18,7 +18,7 @@
   ],
   "shortcuts": [
     { "name": "Radar", "url": "/#/radar", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Produtos", "url": "/#/produtos", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Lançamentos", "url": "/#/lancamentos", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Products", "url": "/#/products", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Releases", "url": "/#/releases", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] }
   ]
 }

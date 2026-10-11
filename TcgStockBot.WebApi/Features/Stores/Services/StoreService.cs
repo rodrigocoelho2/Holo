@@ -107,7 +107,7 @@ internal sealed class StoreService(
                 {
                     store.ConsecutiveFailures = 0;
                     store.AutoDisabledAt = null;
-                    store.Tags.RemoveAll(static tag => tag.Equals(StoreHealthService.FailingTag, StringComparison.OrdinalIgnoreCase));
+                    store.Tags.RemoveAll(static tag => StoreHealthService.IsTag(tag, StoreHealthService.LegacyFailingTags));
                 }
             });
         }

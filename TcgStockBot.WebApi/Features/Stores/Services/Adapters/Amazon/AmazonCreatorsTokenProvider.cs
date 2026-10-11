@@ -69,12 +69,12 @@ internal sealed class AmazonCreatorsTokenProvider(
         if (!settings.IsConfigured)
         {
             throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.NotConfigured,
-                "define Amazon__CredentialId, Amazon__CredentialSecret e Amazon__PartnerTag (Associates Central → Creators API).");
+                "set Amazon__CredentialId, Amazon__CredentialSecret and Amazon__PartnerTag (Associates Central → Creators API).");
         }
 
         var endpoint = settings.ResolveTokenEndpoint()
             ?? throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.NotConfigured,
-                $"a versão de credencial '{settings.CredentialVersion}' não é suportada (usa 3.1, 3.2 ou 3.3; amazon.es = 3.2).");
+                $"credential version '{settings.CredentialVersion}' is not supported (use 3.1, 3.2 or 3.3; amazon.es = 3.2).");
 
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
@@ -88,17 +88,17 @@ internal sealed class AmazonCreatorsTokenProvider(
         {
             // The body may echo the client id; never put it in the message.
             throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.Unauthorized,
-                $"o servidor de autenticação respondeu HTTP {(int)response.StatusCode}. Confirma o Credential ID, o Secret e a versão ({settings.CredentialVersion}).");
+                $"the authentication server answered HTTP {(int)response.StatusCode}. Check the Credential ID, the Secret and the version ({settings.CredentialVersion}).");
         }
 
         response.EnsureSuccessStatusCode();
 
         var token = await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken)
-            ?? throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.ApiError, "resposta de autenticação vazia.");
+            ?? throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.ApiError, "empty authentication response.");
 
         if (string.IsNullOrWhiteSpace(token.AccessToken))
         {
-            throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.ApiError, "a resposta de autenticação não trouxe access_token.");
+            throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.ApiError, "the authentication response had no access_token.");
         }
 
         var lifetime = TimeSpan.FromSeconds(token.ExpiresIn is > 0 ? token.ExpiresIn.Value : 3600);

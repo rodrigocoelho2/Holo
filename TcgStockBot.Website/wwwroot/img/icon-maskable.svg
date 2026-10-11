@@ -1,34 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#232733"/>
-      <stop offset="1" stop-color="#14161D"/>
-    </linearGradient>
-    <linearGradient id="ember" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#FF5A2C"/>
-      <stop offset="1" stop-color="#FFB547"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.62" r="0.5">
-      <stop offset="0" stop-color="#FF7A3D" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#FF7A3D" stop-opacity="0"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs>
+    <radialGradient id="g" cx="0.3" cy="0.25" r="0.9">
+      <stop offset="0" stop-color="#262A35"/>
+      <stop offset="1" stop-color="#121419"/>
     </radialGradient>
-  </defs><rect width="64" height="64" fill="url(#bg)"/><g transform="translate(6.4 6.4) scale(0.8)">
-  
-  <circle cx="32" cy="36" r="26" fill="url(#glow)"/>
-  <!-- back card -->
-  <g transform="rotate(-16 32 35)">
-    <rect x="21" y="9" width="20" height="27" rx="3.2" fill="#2E3342" stroke="#FFB547" stroke-width="2"/>
+  </defs><rect width="64" height="64" fill="url(#g)"/><g transform="translate(6.4 6.4) scale(0.8)">
+  <g transform="rotate(-9 30 34)">
+    <rect x="17" y="13" width="26" height="38" rx="4.5" fill="#F6F1E9"/>
+    <path d="M30 25l2 4.6 4.6 2-4.6 2-2 4.6-2-4.6-4.6-2 4.6-2z" fill="#FF6A33"/>
   </g>
-  <!-- front card -->
-  <g transform="rotate(9 32 35)">
-    <rect x="23" y="8" width="20" height="27" rx="3.2" fill="url(#ember)"/>
-    <path d="M33 14.5l1.9 4.1 4.1 1.9-4.1 1.9-1.9 4.1-1.9-4.1-4.1-1.9 4.1-1.9z" fill="#14161D" opacity="0.85"/>
-  </g>
-  <!-- anvil -->
-  <path d="M5 36.5h50.5v4c0 2.7-2.1 4.8-4.8 4.8H43.2c-3 0-4.8 2.2-4.8 5.2h7.1V56H18.5v-5.5h7.1c0-3-1.8-5.2-4.8-5.2h-5.2C10.3 45.3 6.4 41.6 5 36.5z" fill="#E9ECF3"/>
-  <path d="M8.2 39.4h44.6" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="1.2" stroke-linecap="round"/>
-  <!-- sparks -->
-  <circle cx="52" cy="13" r="2" fill="#FFB547"/>
-  <circle cx="56.5" cy="21" r="1.3" fill="#FF7A3D"/>
-  <circle cx="10" cy="18" r="1.4" fill="#FF7A3D"/>
+  <circle cx="48.5" cy="15.5" r="3" fill="#FF6A33"/>
+  <circle cx="53" cy="24" r="1.7" fill="#FFB547"/>
 </g></svg>

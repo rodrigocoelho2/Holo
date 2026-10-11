@@ -10,7 +10,7 @@ namespace TcgStockBot.Website.Model;
 /// <param name="apiClient">The TcgStockBot.WebApi client.</param>
 public abstract class WebsiteBaseModel(TcgStockBotClient apiClient)
 {
-    private const string ApiUnavailableMessage = "Sem ligação à WebApi do bot. Confirma que o contentor tcgstockbot-webapi está a correr.";
+    private const string ApiUnavailableMessage = "Can't reach the bot (WebApi). Check that the tcgstockbot-webapi container is running.";
 
     /// <summary>Gets the API client.</summary>
     protected TcgStockBotClient ApiClient { get; } = apiClient;

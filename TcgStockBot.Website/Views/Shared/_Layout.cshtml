@@ -3,14 +3,14 @@
     var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 }
 <!doctype html>
-<html lang="pt-PT" data-mode="dark" data-accent="azul">
+<html lang="en" data-mode="dark" data-accent="azul">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="request-verification-token" content="@antiforgeryToken" />
     <meta name="color-scheme" content="dark light" />
     <title>@(ViewData["Title"] is string title && title != "Card Forge" ? $"{title} · Card Forge" : "Card Forge")</title>
-    <meta name="description" content="Card Forge vigia as lojas portuguesas e avisa-te quando o TCG selado que queres aparece em stock ao teu preço." />
+    <meta name="description" content="Card Forge watches Portuguese and Spanish stores and tells you when the sealed TCG product you want is in stock at your price." />
     <meta name="theme-color" content="#14161D" />
     <meta name="application-name" content="Card Forge" />
     <meta name="apple-mobile-web-app-title" content="Card Forge" />

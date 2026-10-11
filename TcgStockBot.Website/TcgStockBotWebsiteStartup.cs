@@ -50,7 +50,8 @@ internal static class TcgStockBotWebsiteStartup
         });
 
         app.UseRouting();
-        app.UseDashboardAuthentication();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.MapControllerRoute(name: "default", pattern: "{controller=Dashboard}/{action=Index}");
 

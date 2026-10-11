@@ -106,4 +106,19 @@ public enum TranslationKeys
 
     /// <summary>Pre-orders open after the release date.</summary>
     PreOrderAfterRelease,
+
+    /// <summary>A user name with characters or a length that is not allowed.</summary>
+    UserNameInvalid,
+
+    /// <summary>A password shorter than the minimum.</summary>
+    PasswordTooShort,
+
+    /// <summary>Wrong user name or password (never says which).</summary>
+    WrongCredentials,
+
+    /// <summary>The current password is wrong.</summary>
+    PasswordWrong,
+
+    /// <summary>The last admin account cannot be deleted.</summary>
+    LastAdmin,
 }

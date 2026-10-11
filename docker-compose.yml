@@ -34,7 +34,8 @@ services:
     environment:
       TcgStockBotApi__Url: http://webapi:8080/
       TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
-      Dashboard__Password: ${DASHBOARD_PASSWORD:?Define DASHBOARD_PASSWORD no .env}
+      Dashboard__Password: ${DASHBOARD_PASSWORD:?Define DASHBOARD_PASSWORD no .env}   # chave para criar a primeira conta
+      Dashboard__AllowRegistration: ${ALLOW_REGISTRATION:-true}                          # false = só o admin cria contas
     volumes:
       - tcgstockbot-keys:/keys              # chaves das sessões: "manter sessão" sobrevive às atualizações
     logging: *logging

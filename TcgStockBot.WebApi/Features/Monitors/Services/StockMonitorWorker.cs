@@ -40,7 +40,7 @@ internal sealed class StockMonitorWorker(
                 catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
                 {
                     logger.LogError(exception, "Check cycle crashed; retrying next cycle");
-                    activity.Log("error", $"A verificação falhou: {exception.Message}");
+                    activity.Log("error", $"The check failed: {exception.Message}");
                 }
             }
 

@@ -20,6 +20,9 @@ public sealed class DashboardModel
     /// <summary>Gets the refresh interval of the live data, in milliseconds.</summary>
     public int PollMilliseconds { get; init; } = 3000;
 
-    /// <summary>Gets a value indicating whether the dashboard has a password (shows "Terminar sessão").</summary>
-    public bool CanSignOut { get; init; }
+    /// <summary>Gets the signed-in user name.</summary>
+    public string UserName { get; init; } = string.Empty;
+
+    /// <summary>Gets a value indicating whether the signed-in account is an admin.</summary>
+    public bool IsAdmin { get; init; }
 }

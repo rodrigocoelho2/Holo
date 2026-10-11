@@ -1,0 +1,54 @@
+@model TcgStockBot.Website.Model.Account.AccountPageModel
+@{
+    ViewData["Title"] = "Sign in";
+    ViewData["Tab"] = "sign-in";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<main class="login-page">
+    <form class="login-card" method="post" action="/sign-in" autocomplete="on">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        <partial name="_AccountCard" model="Model" />
+
+        <div class="login-heading">
+            <h1>Welcome back</h1>
+            <p>Sign in to see what's in stock at your price.</p>
+        </div>
+
+        <label class="login-field">
+            <span>User name</span>
+            <input name="userName" type="text" value="@Model.UserName" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus />
+        </label>
+
+        <label class="login-field">
+            <span>Password</span>
+            <span class="password-box">
+                <input id="password" name="password" type="password" autocomplete="current-password" required />
+                <button type="button" class="password-toggle" data-for="password" aria-pressed="false" aria-label="Show password">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0" /></svg>
+                </button>
+            </span>
+        </label>
+
+        <label class="login-check">
+            <input type="checkbox" name="remember" value="true" @(Model.Remember ? "checked" : "") />
+            <span>Keep me signed in on this device <small>(@Model.RememberDays days)</small></span>
+        </label>
+
+        <button class="login-submit" type="submit">Sign in</button>
+
+        @if (Model.CanCreateAccount)
+        {
+            <p class="login-switch">No account yet? <a href="/create-account">Create one</a></p>
+        }
+        else
+        {
+            <p class="login-note">No account yet? Ask whoever runs this Card Forge to create one for you.</p>
+        }
+    </form>
+</main>
+
+<partial name="_PasswordToggle" />

@@ -1,8 +1,8 @@
 "use strict";
 
 /* ==========================================================================
-   Produtos — the catalogue of everything the bot found (one card per product, every store inside), and the product
-   page ("ficha"): stores table, price chart by period, history and manual regrouping.
+   Products — the catalogue of everything the bot found (one card per product, every store inside), and the product
+   page: stores table, price chart by period, history and manual regrouping.
    A product is a Compare group: the set (task) + product kind, unless corrected by hand.
    ========================================================================== */
 
@@ -27,7 +27,7 @@ function storeColors(storeNames) {
 }
 
 const DAY = 864e5;
-const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "—");
+const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" }) : "—");
 
 async function loadCatalog() {
   try {
@@ -36,7 +36,7 @@ async function loadCatalog() {
     state.compare = state.compare || [];
     toast(errorText(error), "error");
   }
-  if (state.route.view === "produtos") renderView(true);
+  if (state.route.view === "products") renderView(true);
 }
 
 async function loadFicha(key, { quiet = false } = {}) {
@@ -46,7 +46,7 @@ async function loadFicha(key, { quiet = false } = {}) {
     state.ficha = { key, missing: true, message: errorText(error) };
     if (!quiet) toast(errorText(error), "error");
   }
-  if (state.route.view === "ficha" && state.route.param === key) renderView(true);
+  if (state.route.view === "product" && state.route.param === key) renderView(true);
 }
 
 /** Cheapest in stock, runner-up, lowest ever and most recent drop of one product. */
@@ -59,7 +59,7 @@ function compareSummary(group) {
   return { best: inStock[0] || null, second: inStock[1] || null, inStockCount: inStock.length, lowestEver, lastDrop };
 }
 
-/** What a catalogue card shows: "desde", stock, movement over 30 days, picture, dates. */
+/** What a catalogue card shows: "from", stock, movement over 30 days, picture, dates. */
 function catalogItem(group) {
   const summary = compareSummary(group);
   const priced = group.listings.filter((listing) => listing.currentPrice !== null).map((listing) => listing.currentPrice);
@@ -80,24 +80,24 @@ function catalogItem(group) {
 
 /** "↓ 8%" (accent), "↑ 5%" (red) or "=" — the 30-day movement of the lowest price. */
 function movePill(move, long = false) {
-  if (move === null || move === undefined || !Number.isFinite(move)) return h("span", { class: "move-pill flat", title: "Sem preço de há 30 dias" }, long ? "sem dados" : "—");
+  if (move === null || move === undefined || !Number.isFinite(move)) return h("span", { class: "move-pill flat", title: "No price from 30 days ago" }, long ? "no data" : "—");
   const rounded = Math.round(move);
-  if (rounded === 0) return h("span", { class: "move-pill flat", title: "O preço mais baixo não mudou em 30 dias" }, "=");
-  return h("span", { class: `move-pill ${rounded < 0 ? "down" : "up"}`, title: "Preço mais baixo agora vs há 30 dias" }, `${rounded < 0 ? "↓" : "↑"} ${Math.abs(rounded)}%`);
+  if (rounded === 0) return h("span", { class: "move-pill flat", title: "The lowest price didn't change in 30 days" }, "=");
+  return h("span", { class: `move-pill ${rounded < 0 ? "down" : "up"}`, title: "Lowest price now vs 30 days ago" }, `${rounded < 0 ? "↓" : "↑"} ${Math.abs(rounded)}%`);
 }
 
-const CATALOG_SORTS = { stores: "Mais lojas com stock", cheap: "Mais baratos", drop: "Maior descida (30 dias)", recent: "Novos no catálogo", name: "Nome" };
+const CATALOG_SORTS = { stores: "Most stores in stock", cheap: "Cheapest", drop: "Biggest drop (30 days)", recent: "Newest in the catalogue", name: "Name" };
 
-RENDERERS.produtos = function viewCatalog() {
+RENDERERS.products = function viewCatalog() {
   if (state.compare === null) {
-    return [pageHead("Produtos", "A carregar o catálogo…"), h("div", { class: "card soft" }, h("p", { class: "muted pad" }, "A carregar…"))];
+    return [pageHead("Products", "Loading the catalogue…"), h("div", { class: "card soft" }, h("p", { class: "muted pad" }, "Loading…"))];
   }
 
   const all = state.compare.map(catalogItem);
   const inTab = all.filter((item) => inGameTab(item.group.game));
   const kinds = [...new Set(inTab.map((item) => item.group.kind))].sort((a, b) => kindOrder(a) - kindOrder(b));
   if (state.catalogKind !== "all" && !kinds.includes(state.catalogKind)) state.catalogKind = "all";
-  const storeNames = [...new Set(inTab.flatMap((item) => item.group.listings.map((listing) => listing.storeName)))].sort((a, b) => a.localeCompare(b, "pt"));
+  const storeNames = [...new Set(inTab.flatMap((item) => item.group.listings.map((listing) => listing.storeName)))].sort((a, b) => a.localeCompare(b, "en"));
   if (state.catalogStore && !storeNames.includes(state.catalogStore)) state.catalogStore = "";
 
   const grid = h("div", { class: "catalog-grid" });
@@ -114,32 +114,32 @@ RENDERERS.produtos = function viewCatalog() {
       cheap: (a, b) => (a.soldOut - b.soldOut) || ((a.from ?? Infinity) - (b.from ?? Infinity)),
       drop: (a, b) => (a.move ?? Infinity) - (b.move ?? Infinity),
       recent: (a, b) => (b.firstSeen ?? 0) - (a.firstSeen ?? 0),
-      name: (a, b) => a.group.title.localeCompare(b.group.title, "pt"),
+      name: (a, b) => a.group.title.localeCompare(b.group.title, "en"),
     };
     visible.sort(sorters[state.catalogSort] || sorters.stores);
-    counter.textContent = `${visible.length} ${visible.length === 1 ? "produto" : "produtos"} · ${storeNames.length} lojas`;
+    counter.textContent = `${visible.length} ${visible.length === 1 ? "product" : "products"} · ${storeNames.length} stores`;
     grid.replaceChildren(...(visible.length
       ? visible.slice(0, state.catalogShown).map(catalogCard)
-      : [h("div", { class: "card soft span-all" }, emptyState("grid", all.length === 0 ? "O catálogo ainda está vazio." : "Nenhum produto com estes filtros.",
-        all.length === 0 ? "Depois do primeiro ciclo, tudo o que o bot encontra para os produtos que vigias aparece aqui, agrupado por produto." : null,
-        all.length === 0 ? linkButton("Vigiar produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" }) : null))]));
+      : [h("div", { class: "card soft span-all" }, emptyState("grid", all.length === 0 ? "The catalogue is still empty." : "No products with these filters.",
+        all.length === 0 ? "After the first cycle, everything the bot finds for the products you watch shows up here, grouped by product." : null,
+        all.length === 0 ? linkButton("Watch a product", routeHash("watch"), { iconName: "plus", kind: "primary" }) : null))]));
     more.replaceChildren(visible.length > state.catalogShown
-      ? button(`Mostrar mais ${Math.min(48, visible.length - state.catalogShown)}`, { onClick: () => { state.catalogShown += 48; renderGrid(); } })
+      ? button(`Show ${Math.min(48, visible.length - state.catalogShown)} more`, { onClick: () => { state.catalogShown += 48; renderGrid(); } })
       : "");
   };
   renderGrid();
   const rerender = () => { state.catalogShown = 48; renderGrid(); };
 
   return [
-    pageHead("Produtos", "Tudo o que o bot encontra nas lojas, agrupado por produto: o preço mais baixo, quem tem stock e como o preço mexeu.", [
-      searchField(state.catalogQuery, "Procurar produto ou loja", (value) => { state.catalogQuery = value; rerender(); }, "catalog-search", "Procurar produtos"),
+    pageHead("Products", "Everything the bot finds in the stores, grouped by product: the lowest price, who has stock and how the price moved.", [
+      searchField(state.catalogQuery, "Search products or stores", (value) => { state.catalogQuery = value; rerender(); }, "catalog-search", "Search products"),
     ]),
-    gameTabs(all.map((item) => item.group.game), "produtos"),
+    gameTabs(all.map((item) => item.group.game), "products"),
     h("div", { class: "toolbar wrap catalog-toolbar" },
-      selectPill("Formato", state.catalogKind, [["all", "Todos"], ...kinds.map((kind) => [kind, kindLabel(kind)])], (value) => { state.catalogKind = value; rerender(); }),
-      storeNames.length > 1 ? selectPill("Loja", state.catalogStore, [["", "Todas"], ...storeNames.map((name) => [name, name])], (value) => { state.catalogStore = value; rerender(); }) : null,
-      labelledSwitch(state.catalogStock, "Só em stock", (checked) => { state.catalogStock = checked; writePreference("catalogStock", checked); rerender(); }),
-      selectPill("Ordenar", state.catalogSort, Object.entries(CATALOG_SORTS), (value) => { state.catalogSort = value; writePreference("catalogSort", value); rerender(); }),
+      selectPill("Format", state.catalogKind, [["all", "All"], ...kinds.map((kind) => [kind, kindLabel(kind)])], (value) => { state.catalogKind = value; rerender(); }),
+      storeNames.length > 1 ? selectPill("Store", state.catalogStore, [["", "All"], ...storeNames.map((name) => [name, name])], (value) => { state.catalogStore = value; rerender(); }) : null,
+      labelledSwitch(state.catalogStock, "In stock only", (checked) => { state.catalogStock = checked; writePreference("catalogStock", checked); rerender(); }),
+      selectPill("Sort", state.catalogSort, Object.entries(CATALOG_SORTS), (value) => { state.catalogSort = value; writePreference("catalogSort", value); rerender(); }),
       counter),
     grid,
     more,
@@ -148,26 +148,26 @@ RENDERERS.produtos = function viewCatalog() {
 
 function catalogCard(item) {
   const { group, summary } = item;
-  return h("a", { class: `catalog-card ${item.soldOut ? "sold-out" : ""}`, href: routeHash("ficha", group.key) },
+  return h("a", { class: `catalog-card ${item.soldOut ? "sold-out" : ""}`, href: routeHash("product", group.key) },
     h("div", { class: "catalog-art" },
       productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero" }),
-      h("span", { class: `stock-badge ${item.soldOut ? "out" : "in"}` }, item.soldOut ? "Esgotado" : "Em stock")),
+      h("span", { class: `stock-badge ${item.soldOut ? "out" : "in"}` }, item.soldOut ? "Sold out" : "In stock")),
     h("div", { class: "catalog-body" },
       h("div", { class: "catalog-meta" }, gamePill(group.game), h("span", { class: "muted small" }, group.kindLabel || kindLabel(group.kind))),
       h("h3", { class: "catalog-title", title: group.title }, group.title),
       h("div", { class: "catalog-price" },
-        h("span", { class: "muted small" }, item.soldOut ? "último preço" : "desde"),
+        h("span", { class: "muted small" }, item.soldOut ? "last price" : "from"),
         h("strong", { class: "price-l mono" }, money(item.from)),
         msrpPill(summary.best?.currentPrice, group.msrp)),
       h("div", { class: "catalog-foot" },
         h("span", { class: "catalog-stock" }, h("span", { class: `bot-dot ${item.soldOut ? "off" : "on"}`, "aria-hidden": "true" }),
-          `em stock ${summary.inStockCount}/${item.stores} ${item.stores === 1 ? "loja" : "lojas"}`),
+          `in stock at ${summary.inStockCount}/${item.stores} ${item.stores === 1 ? "store" : "stores"}`),
         h("span", { class: "catalog-move" }, h("span", { class: "dim small" }, "30d"), movePill(item.move)))));
 }
 
 /* ----- Ficha (product page) ----- */
 
-const PERIODS = [["7", "7 d"], ["30", "30 d"], ["90", "90 d"], ["180", "180 d"], ["365", "1 ano"], ["all", "Tudo"]];
+const PERIODS = [["7", "7 d"], ["30", "30 d"], ["90", "90 d"], ["180", "180 d"], ["365", "1 year"], ["all", "All"]];
 
 /** Cardmarket search for the product (only games Cardmarket lists). */
 const CARDMARKET_GAMES = { Pokemon: "Pokemon", OnePiece: "OnePiece", Lorcana: "Lorcana", Magic: "Magic", Riftbound: "Riftbound" };
@@ -178,16 +178,16 @@ function cardmarketUrl(group) {
   return `https://www.cardmarket.com/en/${slug}/Products/Search?searchString=${encodeURIComponent(query)}`;
 }
 
-RENDERERS.ficha = function viewFicha() {
+RENDERERS.product = function viewFicha() {
   const key = state.route.param;
   const group = state.ficha && state.ficha.key === key ? state.ficha : null;
-  const back = h("a", { class: "back-link", href: routeHash("produtos") }, icon("back"), "Produtos");
+  const back = h("a", { class: "back-link", href: routeHash("products") }, icon("back"), "Products");
   if (!group) {
     loadFicha(key);
-    return [back, h("div", { class: "card soft" }, h("p", { class: "muted pad" }, "A carregar o produto…"))];
+    return [back, h("div", { class: "card soft" }, h("p", { class: "muted pad" }, "Loading the product…"))];
   }
   if (group.missing) {
-    return [back, h("div", { class: "card soft" }, emptyState("grid", "Este produto já não existe no catálogo.", group.message || "Pode ter sido separado ou juntado a outro."))];
+    return [back, h("div", { class: "card soft" }, emptyState("grid", "This product is no longer in the catalogue.", group.message || "It may have been split or merged into another one."))];
   }
 
   const item = catalogItem(group);
@@ -203,33 +203,33 @@ RENDERERS.ficha = function viewFicha() {
       h("div", { class: "ficha-art" }, productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero" })),
       h("div", { class: "ficha-main" },
         h("div", { class: "catalog-meta" }, gamePill(group.game), h("span", { class: "muted" }, group.kindLabel || kindLabel(group.kind)),
-          group.key.startsWith("solo|") ? pill("separado à mão", "plain") : null),
+          group.key.startsWith("solo|") ? pill("split by hand", "plain") : null),
         h("h1", { class: "ficha-title" }, group.title),
-        task ? h("a", { class: "ficha-task", href: routeHash("produto", task.id) }, icon("eye"), `Vigiado em “${task.name}” · ${priceRuleText(task, true)}`) : null,
+        task ? h("a", { class: "ficha-task", href: routeHash("watched", task.id) }, icon("eye"), `Watched in “${task.name}” · ${priceRuleText(task, true)}`) : null,
         h("div", { class: "ficha-price" },
           h("div", {},
-            h("span", { class: "muted small" }, summary.best ? `Mais barato com stock · ${summary.best.storeName}` : "Sem stock em nenhuma loja"),
+            h("span", { class: "muted small" }, summary.best ? `Cheapest in stock · ${summary.best.storeName}` : "Not in stock anywhere"),
             h("div", { class: "ficha-price-row" }, h("span", { class: "price-xl" }, money(item.from)), msrpPill(summary.best?.currentPrice, group.msrp)))),
         h("div", { class: "ficha-actions" },
-          summary.best && safeHref(summary.best.url) ? linkButton("Abrir na loja", summary.best.url, { kind: "primary", external: true, trailingIcon: "external" }) : null,
+          summary.best && safeHref(summary.best.url) ? linkButton("Open in store", summary.best.url, { kind: "primary", external: true, trailingIcon: "external" }) : null,
           cardmarket ? linkButton("Cardmarket", cardmarket, { external: true, trailingIcon: "external" }) : null,
-          task ? linkButton("Regras de alerta", routeHash("produto", task.id), { iconName: "sliders" }) : null))),
+          task ? linkButton("Alert rules", routeHash("watched", task.id), { iconName: "sliders" }) : null))),
 
     h("div", { class: "stat-boxes six" },
-      stat("Estado", summary.best ? "Em stock" : "Esgotado", summary.best ? `${summary.inStockCount} ${summary.inStockCount === 1 ? "loja" : "lojas"} com stock` : "avisamos quando voltar", summary.best ? "accent" : "red"),
-      stat("Lojas", `${item.stores}`, `${summary.inStockCount} com stock`),
-      stat("Mínimo de sempre", money(summary.lowestEver?.lowestPrice), summary.lowestEver ? `${summary.lowestEver.storeName} · ${shortDate(summary.lowestEver.lowestPriceAt)}` : null),
-      stat("MSRP", group.msrp ? money(group.msrp) : "—", group.msrp ? `${group.msrpLabel} · ${(MSRP_BASIS[group.msrpBasis] || MSRP_BASIS.Estimate)[0].toLowerCase()}` : "sem referência"),
-      stat("Mov. 30 dias", movePill(item.move, true), "preço mais baixo"),
-      stat("No catálogo desde", item.firstSeen ? shortDate(new Date(item.firstSeen).toISOString()) : "—", item.lastSeen ? `última leitura ${relative(new Date(item.lastSeen).toISOString())}` : null)),
+      stat("Status", summary.best ? "In stock" : "Sold out", summary.best ? `${summary.inStockCount} ${summary.inStockCount === 1 ? "store has" : "stores have"} stock` : "you get alerted when it's back", summary.best ? "accent" : "red"),
+      stat("Stores", `${item.stores}`, `${summary.inStockCount} in stock`),
+      stat("All-time low", money(summary.lowestEver?.lowestPrice), summary.lowestEver ? `${summary.lowestEver.storeName} · ${shortDate(summary.lowestEver.lowestPriceAt)}` : null),
+      stat("MSRP", group.msrp ? money(group.msrp) : "—", group.msrp ? `${group.msrpLabel} · ${(MSRP_BASIS[group.msrpBasis] || MSRP_BASIS.Estimate)[0].toLowerCase()}` : "no reference"),
+      stat("30-day move", movePill(item.move, true), "lowest price"),
+      stat("In the catalogue since", item.firstSeen ? shortDate(new Date(item.firstSeen).toISOString()) : "—", item.lastSeen ? `last read ${relative(new Date(item.lastSeen).toISOString())}` : null)),
 
     fichaStores(group, summary, colors),
     fichaChart(group, colors),
     fichaHistory(group),
     h("section", { class: "card section-card", "aria-labelledby": "fix-h" },
-      h("h2", { id: "fix-h" }, "Correção"),
-      h("p", { class: "muted small" }, "Falta uma loja com este produto, ou há aqui um anúncio que não é este produto? Junta ou separa anúncios. A correção fica guardada e vale para os próximos ciclos."),
-      h("div", { class: "card-actions left" }, button("Juntar anúncio…", { iconName: "plus", onClick: () => joinListing(group) }))),
+      h("h2", { id: "fix-h" }, "Corrections"),
+      h("p", { class: "muted small" }, "Is a store with this product missing, or is a listing here not this product? Merge or split listings. The correction is saved and applies to the next cycles."),
+      h("div", { class: "card-actions left" }, button("Merge a listing…", { iconName: "plus", onClick: () => joinListing(group) }))),
   ];
 };
 
@@ -240,24 +240,24 @@ function fichaStores(group, summary, colors) {
   const soldOut = group.listings.filter((listing) => !listing.currentInStock).length;
   return h("section", { class: "card section-card", "aria-labelledby": "stores-table-h" },
     h("div", { class: "card-head-row" },
-      h("h2", { id: "stores-table-h" }, "Lojas"),
-      soldOut ? labelledSwitch(state.fichaHideSoldOut, `Esconder esgotadas (${soldOut})`, (checked) => { state.fichaHideSoldOut = checked; renderView(true); }) : null),
+      h("h2", { id: "stores-table-h" }, "Stores"),
+      soldOut ? labelledSwitch(state.fichaHideSoldOut, `Hide sold out (${soldOut})`, (checked) => { state.fichaHideSoldOut = checked; renderView(true); }) : null),
     h("div", { class: "table-wrap" }, h("table", { class: "table ficha-table" },
-      h("thead", {}, h("tr", {}, h("th", {}, "Loja"), h("th", { class: "num" }, "Preço"), h("th", {}, "Stock"), h("th", { class: "num" }, "Mínimo"), h("th", {}, "Atualizado"), h("th", {}))),
+      h("thead", {}, h("tr", {}, h("th", {}, "Store"), h("th", { class: "num" }, "Price"), h("th", {}, "Stock"), h("th", { class: "num" }, "Low"), h("th", {}, "Updated"), h("th", {}))),
       h("tbody", {}, rows.map((listing) => h("tr", { class: listing === summary.best ? "best" : "" },
         h("td", { class: "title-cell" },
           h("div", { class: "store-line" }, h("span", { class: "swatch", style: `background:${colors.get(listing.storeName)}` }), h("strong", {}, listing.storeName),
-            listing === summary.best ? h("span", { class: "best-badge" }, "mais barato") : null,
-            listing.isManual ? pill("manual", "plain", "Neste produto por uma correção manual") : null),
+            listing === summary.best ? h("span", { class: "best-badge" }, "cheapest") : null,
+            listing.isManual ? pill("manual", "plain", "In this product because of a manual correction") : null),
           h("div", { class: "listing-title muted small", title: listing.title }, listing.title),
           h("div", { class: "link-row" },
-            h("button", { type: "button", class: "text-link small", onclick: () => separateListing(group, listing) }, "Separar"),
-            listing.isManual ? h("button", { type: "button", class: "text-link small", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Repor automático") : null)),
+            h("button", { type: "button", class: "text-link small", onclick: () => separateListing(group, listing) }, "Split"),
+            listing.isManual ? h("button", { type: "button", class: "text-link small", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Back to automatic") : null)),
         h("td", { class: "num nowrap" }, h("span", { class: "mono strong" }, money(listing.currentPrice)), h("div", {}, msrpPill(listing.currentPrice, group.msrp))),
-        h("td", { class: "nowrap" }, listing.currentInStock ? pill("Em stock", "accent") : pill("Esgotado", "plain")),
+        h("td", { class: "nowrap" }, listing.currentInStock ? pill("In stock", "accent") : pill("Sold out", "plain")),
         h("td", { class: "num nowrap" }, h("div", { class: "mono" }, money(listing.lowestPrice)), h("div", { class: "muted small" }, shortDate(listing.lowestPriceAt))),
         h("td", { class: "nowrap muted small", title: dateTime(listing.lastSeen) }, relative(listing.lastSeen)),
-        h("td", { class: "actions" }, safeHref(listing.url) ? linkButton("Abrir", listing.url, { kind: "small", external: true, trailingIcon: "external" }) : null)))))));
+        h("td", { class: "actions" }, safeHref(listing.url) ? linkButton("Open", listing.url, { kind: "small", external: true, trailingIcon: "external" }) : null)))))));
 }
 
 /** The group with only the chosen stores and the points of the chosen period (the line starts at the period start). */
@@ -284,9 +284,9 @@ function fichaChart(group, colors) {
 
   return h("section", { class: "card section-card", "aria-labelledby": "chart-h" },
     h("div", { class: "card-head-row wrap" },
-      h("h2", { id: "chart-h" }, "Evolução do preço"),
-      segmented(PERIODS.map(([value, label]) => [value, label]), state.fichaPeriod, (value) => { state.fichaPeriod = value; writePreference("fichaPeriod", value); renderView(true); }, "Período")),
-    stores.length > 1 ? h("div", { class: "store-toggles", role: "group", "aria-label": "Lojas no gráfico" }, stores.map((name) => {
+      h("h2", { id: "chart-h" }, "Price history"),
+      segmented(PERIODS.map(([value, label]) => [value, label]), state.fichaPeriod, (value) => { state.fichaPeriod = value; writePreference("fichaPeriod", value); renderView(true); }, "Period")),
+    stores.length > 1 ? h("div", { class: "store-toggles", role: "group", "aria-label": "Stores in the chart" }, stores.map((name) => {
       const on = !state.fichaHidden.includes(name);
       return h("button", {
         type: "button", class: `chip ${on ? "on" : ""}`, "aria-pressed": on ? "true" : "false",
@@ -294,11 +294,11 @@ function fichaChart(group, colors) {
       }, h("span", { class: "swatch", style: `background:${colors.get(name)}` }), name);
     })) : null,
     h("div", { class: "chart-stats" },
-      h("div", {}, h("span", {}, "Preço habitual"), h("strong", { class: "mono" }, money(usual))),
-      h("div", {}, h("span", {}, "Mínimo"), h("strong", { class: "mono accent" }, money(prices[0] ?? null))),
-      h("div", {}, h("span", {}, "Máximo"), h("strong", { class: "mono" }, money(prices.at(-1) ?? null))),
-      h("div", {}, h("span", {}, "Alterações"), h("strong", { class: "mono" }, changes))),
-    shown.listings.length ? compareChart(shown, colors, { width: 1100, height: 320 }) : emptyState("chart", "Sem leituras neste período."));
+      h("div", {}, h("span", {}, "Usual price"), h("strong", { class: "mono" }, money(usual))),
+      h("div", {}, h("span", {}, "Low"), h("strong", { class: "mono accent" }, money(prices[0] ?? null))),
+      h("div", {}, h("span", {}, "High"), h("strong", { class: "mono" }, money(prices.at(-1) ?? null))),
+      h("div", {}, h("span", {}, "Changes"), h("strong", { class: "mono" }, changes))),
+    shown.listings.length ? compareChart(shown, colors, { width: 1100, height: 320 }) : emptyState("chart", "No readings in this period."));
 }
 
 /** Every change the bot saw, newest first: first reading, restock, sold out, price up or down. */
@@ -309,32 +309,32 @@ function fichaHistory(group) {
       const previous = listing.points[index - 1];
       const at = point.at;
       if (!previous) {
-        events.push({ at, store: listing.storeName, kind: "Primeira leitura", tone: "plain", detail: `${money(point.price)} · ${point.inStock ? "em stock" : "esgotado"}` });
+        events.push({ at, store: listing.storeName, kind: "First reading", tone: "plain", detail: `${money(point.price)} · ${point.inStock ? "in stock" : "sold out"}` });
         return;
       }
       if (previous.inStock !== point.inStock) {
-        events.push({ at, store: listing.storeName, kind: point.inStock ? "Reposição" : "Esgotou", tone: point.inStock ? "accent" : "red", detail: money(point.price) });
+        events.push({ at, store: listing.storeName, kind: point.inStock ? "Restock" : "Sold out", tone: point.inStock ? "accent" : "red", detail: money(point.price) });
       }
       if (previous.price !== point.price) {
         const down = point.price < previous.price;
-        events.push({ at, store: listing.storeName, kind: down ? "Baixou" : "Subiu", tone: down ? "accent" : "amber", detail: `${money(previous.price)} → ${money(point.price)}` });
+        events.push({ at, store: listing.storeName, kind: down ? "Dropped" : "Went up", tone: down ? "accent" : "amber", detail: `${money(previous.price)} → ${money(point.price)}` });
       }
     });
   }
   events.sort((a, b) => new Date(b.at) - new Date(a.at));
   const box = h("div", {});
   const render = (limit) => append(box.replaceChildren() || box, [
-    events.length === 0 ? h("p", { class: "muted small" }, "Ainda sem leituras.") : h("div", { class: "table-wrap" }, h("table", { class: "table" },
-      h("thead", {}, h("tr", {}, h("th", {}, "Quando"), h("th", {}, "Loja"), h("th", {}, "Tipo"), h("th", {}, "Detalhe"))),
+    events.length === 0 ? h("p", { class: "muted small" }, "No readings yet.") : h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      h("thead", {}, h("tr", {}, h("th", {}, "When"), h("th", {}, "Store"), h("th", {}, "Type"), h("th", {}, "Detail"))),
       h("tbody", {}, events.slice(0, limit).map((event) => h("tr", {},
         h("td", { class: "nowrap muted" }, dateTime(event.at)),
         h("td", { class: "nowrap" }, event.store),
         h("td", { class: "nowrap" }, pill(event.kind, event.tone)),
         h("td", { class: "mono small" }, event.detail)))))),
-    events.length > limit ? h("div", { class: "center" }, button(`Mostrar as ${events.length}`, { kind: "small", onClick: () => render(Infinity) })) : null]);
+    events.length > limit ? h("div", { class: "center" }, button(`Show all ${events.length}`, { kind: "small", onClick: () => render(Infinity) })) : null]);
   render(25);
   return h("section", { class: "card section-card", "aria-labelledby": "history-h" },
-    h("div", { class: "card-head-row" }, h("h2", { id: "history-h" }, "Histórico"), h("span", { class: "muted small" }, `${events.length} ${events.length === 1 ? "entrada" : "entradas"}`)),
+    h("div", { class: "card-head-row" }, h("h2", { id: "history-h" }, "History"), h("span", { class: "muted small" }, `${events.length} ${events.length === 1 ? "entry" : "entries"}`)),
     box);
 }
 
@@ -347,7 +347,7 @@ function compareChart(group, colors, size = {}) {
   const series = group.listings
     .map((listing) => ({ listing, color: colors.get(listing.storeName), points: listing.points.map((point) => ({ ...point, time: new Date(point.at).getTime() })) }))
     .filter((item) => item.points.length > 0);
-  if (series.length === 0) return emptyState("chart", "Sem pontos.");
+  if (series.length === 0) return emptyState("chart", "No points.");
 
   const width = size.width || 640, height = size.height || 260, left = 52, right = 110, top = 14, bottom = 28;
   const all = series.flatMap((item) => item.points);
@@ -403,7 +403,7 @@ function compareChart(group, colors, size = {}) {
   tooltip.hidden = true;
   const plot = svg("svg", {
     class: "history-chart", viewBox: `0 0 ${width} ${height}`, role: "img", tabindex: 0,
-    "aria-label": `Preço de ${group.title} em ${series.length} lojas. A tabela abaixo tem todos os valores.`,
+    "aria-label": `Price of ${group.title} in ${series.length} stores. The table below has every value.`,
   }, grid, lines, labels, crosshair, svg("rect", { class: "history-hit", x: left, y: top, width: width - left - right, height: height - top - bottom }));
 
   const showAt = (time, px) => {
@@ -414,7 +414,7 @@ function compareChart(group, colors, size = {}) {
     }).filter(Boolean).sort((a, b) => (b.point.inStock - a.point.inStock) || (a.point.price - b.point.price));
     tooltip.replaceChildren(h("span", { class: "muted" }, dateTime(new Date(time).toISOString())), ...rows.map(({ item, point }) =>
       h("div", { class: `tip-row ${point.inStock ? "" : "sold-out"}` }, h("span", { class: "line-key", style: `background:${item.color}` }),
-        h("strong", {}, money(point.price)), item.listing.storeName, point.inStock ? null : "· esgotado")));
+        h("strong", {}, money(point.price)), item.listing.storeName, point.inStock ? null : "· sold out")));
     tooltip.hidden = false;
     tooltip.style.left = `${Math.min(Math.max((px / width) * 100, 16), 72)}%`;
   };
@@ -442,13 +442,13 @@ function compareChart(group, colors, size = {}) {
         onfocus: () => focus(item.listing.storeName), onblur: () => focus(null),
       }, svg("svg", { viewBox: "0 0 20 8", class: "key-line" }, svg("path", { class: "history-line store-line", style: `stroke:${item.color}`, d: "M1,4 H19" })), item.listing.storeName)),
     h("span", { class: "legend-end" },
-      svg("svg", { viewBox: "0 0 20 8", class: "key-line" }, svg("path", { class: "history-line store-line sold-out", style: "stroke:var(--text-2)", d: "M1,4 H19" })), "esgotado")));
+      svg("svg", { viewBox: "0 0 20 8", class: "key-line" }, svg("path", { class: "history-line store-line sold-out", style: "stroke:var(--text-2)", d: "M1,4 H19" })), "sold out")));
 }
 
 async function assignListing(historyKey, groupKey, reopenKey) {
   try {
     await post("/compare/assign", { historyKey, groupKey });
-    toast("Correção guardada", "success");
+    toast("Correction saved", "success");
   } catch (error) {
     toast(errorText(error), "error");
     return;
@@ -456,20 +456,20 @@ async function assignListing(historyKey, groupKey, reopenKey) {
   await loadCatalog();
   if (reopenKey && (state.compare || []).some((group) => group.key === reopenKey)) {
     await loadFicha(reopenKey, { quiet: true });
-    if (state.route.view !== "ficha" || state.route.param !== reopenKey) go("ficha", reopenKey);
+    if (state.route.view !== "product" || state.route.param !== reopenKey) go("product", reopenKey);
   } else {
-    go("produtos");
+    go("products");
   }
 }
 
 async function separateListing(group, listing) {
   const others = (state.compare || []).filter((other) => other.key !== group.key && !other.key.startsWith("solo|"));
   const target = await chooseDialog({
-    title: "Separar anúncio?",
-    message: `“${listing.title}” (${listing.storeName}) deixa de contar como ${group.title}.`,
-    label: "Passa a ser",
-    options: [["solo", "Um produto à parte"], ...others.map((other) => [other.key, other.title])],
-    confirmLabel: "Separar",
+    title: "Split this listing?",
+    message: `“${listing.title}” (${listing.storeName}) no longer counts as ${group.title}.`,
+    label: "Becomes",
+    options: [["solo", "A product of its own"], ...others.map((other) => [other.key, other.title])],
+    confirmLabel: "Split",
   });
   if (target !== null) await assignListing(listing.historyKey, target, group.key);
 }
@@ -491,16 +491,16 @@ async function joinListing(group) {
     .sort((a, b) => (b.sameSet - a.sameSet) || a.item.title.localeCompare(b.item.title))
     .slice(0, 300);
   if (candidates.length === 0) {
-    toast("Não há outros anúncios no histórico.", "error");
+    toast("There are no other listings in the history.", "error");
     return;
   }
 
   const target = await chooseDialog({
-    title: `Juntar a ${group.title}`,
-    message: "Escolhe o anúncio de outra loja que é este mesmo produto (os do mesmo set aparecem primeiro):",
-    label: "Anúncio",
-    options: candidates.map(({ item }) => [item.key, `${item.storeName} — ${item.title} · ${money(item.currentPrice)}${item.currentInStock ? " · em stock" : " · esgotado"}`]),
-    confirmLabel: "Juntar",
+    title: `Merge into ${group.title}`,
+    message: "Pick the listing of another store that is this same product (the ones from the same set come first):",
+    label: "Listing",
+    options: candidates.map(({ item }) => [item.key, `${item.storeName} — ${item.title} · ${money(item.currentPrice)}${item.currentInStock ? " · in stock" : " · sold out"}`]),
+    confirmLabel: "Merge",
   });
   if (target !== null) await assignListing(target, group.key, group.key);
 }

@@ -1,14 +1,14 @@
 "use strict";
 
 /* ==========================================================================
-   A vigiar (the watch list), the product page and the "Vigiar produto" wizard.
-   A "produto" is a stock task: usually one set (Chaos Rising) or one product (30th ETB), with the words it must /
+   Watching (the watch list), the watched product page and the "Watch a product" wizard.
+   A watched product is a stock task: usually one set (Chaos Rising) or one product (30th ETB), with the words it must /
    must not have, the product kinds wanted, the price rule (MSRP + margin, or a fixed maximum) and the stores.
    ========================================================================== */
 
 /* ----- A vigiar ----- */
 
-RENDERERS["a-vigiar"] = function viewWatchlist() {
+RENDERERS.watching = function viewWatchlist() {
   const insights = state.tasks.map(taskInsight);
   const storeCount = new Set(insights.flatMap((insight) => insight.stores.map((store) => store.name))).size;
   const inGame = insights.filter((insight) => inGameTab(insight.task.game));
@@ -21,54 +21,54 @@ RENDERERS["a-vigiar"] = function viewWatchlist() {
     const visible = inGame.filter((insight) => (state.watchStatus === "all" || statusOf(insight) === state.watchStatus)
       && (!state.watchQuery || matchesWords(state.watchQuery, insight.task.name, insight.task.searchQuery, insight.task.id)));
     const order = { stock: 0, searching: 1, waiting: 1, error: 2, paused: 3 };
-    visible.sort((a, b) => (order[a.status] - order[b.status]) || (a.task.name || "").localeCompare(b.task.name || "", "pt"));
+    visible.sort((a, b) => (order[a.status] - order[b.status]) || (a.task.name || "").localeCompare(b.task.name || "", "en"));
     grid.replaceChildren(...(visible.length ? visible.map(watchCard)
-      : [h("div", { class: "card soft span-all" }, emptyState("eye", state.tasks.length === 0 ? "Ainda não vigias nenhum produto." : "Nenhum produto neste filtro.",
-        state.tasks.length === 0 ? "Procura um produto em todas as lojas, escolhe os resultados certos e o bot passa a vigiá-lo." : null,
-        state.tasks.length === 0 ? linkButton("Vigiar produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" }) : null))]));
+      : [h("div", { class: "card soft span-all" }, emptyState("eye", state.tasks.length === 0 ? "You are not watching any product yet." : "No products with this filter.",
+        state.tasks.length === 0 ? "Search a product in every store, pick the right results and the bot starts watching it." : null,
+        state.tasks.length === 0 ? linkButton("Watch a product", routeHash("watch"), { iconName: "plus", kind: "primary" }) : null))]));
   };
   renderGrid();
 
   return [
-    pageHead("A vigiar", `${state.tasks.length} ${state.tasks.length === 1 ? "produto" : "produtos"} em ${storeCount} ${storeCount === 1 ? "loja" : "lojas"}. Cada cartão mostra o melhor preço de cada tipo (ETB, Bundle, Display…).`, [
+    pageHead("Watching", `${state.tasks.length} ${state.tasks.length === 1 ? "product" : "products"} in ${storeCount} ${storeCount === 1 ? "store" : "stores"}. Each card shows the best price of each type (ETB, Bundle, Display…).`, [
       watchMenu(),
-      linkButton("Vigiar produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" }),
+      linkButton("Watch a product", routeHash("watch"), { iconName: "plus", kind: "primary" }),
     ]),
-    gameTabs(insights.map((insight) => insight.task.game), "produtos"),
+    gameTabs(insights.map((insight) => insight.task.game), "products"),
     h("div", { class: "toolbar wrap" },
-      segmented([["all", "Todos", null], ["stock", "Com ofertas", counts.stock], ["searching", "À procura", counts.searching], ["paused", "Em pausa", counts.paused]],
-        state.watchStatus, (value) => { state.watchStatus = value; renderGrid(); }, "Estado"),
-      h("div", { class: "toolbar-end" }, searchField(state.watchQuery, "Filtrar", (value) => { state.watchQuery = value; renderGrid(); }, "watch-search", "Filtrar produtos"))),
+      segmented([["all", "All", null], ["stock", "With offers", counts.stock], ["searching", "Searching", counts.searching], ["paused", "Paused", counts.paused]],
+        state.watchStatus, (value) => { state.watchStatus = value; renderGrid(); }, "Status"),
+      h("div", { class: "toolbar-end" }, searchField(state.watchQuery, "Filter", (value) => { state.watchQuery = value; renderGrid(); }, "watch-search", "Filter products"))),
     grid,
   ];
 };
 
-/** "Mais" menu of the watch list: bulk actions and JSON import/export. */
+/** "More" menu of the watch list: bulk actions and JSON import/export. */
 function watchMenu() {
   const tasks = state.tasks;
   const item = (label, iconName, onClick, disabled = false, danger = false) =>
     h("button", { type: "button", class: `menu-item ${danger ? "danger" : ""}`, disabled, onclick: (event) => { event.currentTarget.closest("details").open = false; onClick(); } }, icon(iconName), label);
   return h("details", { class: "menu" },
-    h("summary", { class: "btn", "aria-label": "Mais ações" }, icon("more"), "Mais"),
+    h("summary", { class: "btn", "aria-label": "More actions" }, icon("more"), "More"),
     h("div", { class: "menu-list" },
-      item("Retomar todos", "play", () => setTaskEnabled(null, true), tasks.length === 0),
-      item("Pausar todos", "pause", () => setTaskEnabled(null, false), tasks.length === 0),
-      item("Passar todos para MSRP + 10%", "check", switchAllToMsrp, !tasks.some((task) => task.priceRule !== "Msrp" && gameKey(task.game) === "Pokemon")),
+      item("Resume all", "play", () => setTaskEnabled(null, true), tasks.length === 0),
+      item("Pause all", "pause", () => setTaskEnabled(null, false), tasks.length === 0),
+      item("Switch all to MSRP + 10%", "check", switchAllToMsrp, !tasks.some((task) => task.priceRule !== "Msrp" && gameKey(task.game) === "Pokemon")),
       h("hr"),
-      item("Formulário completo (novo)", "edit", () => openTaskDrawer(null)),
-      item("Exportar JSON", "download", exportTasks, tasks.length === 0),
-      item("Importar JSON", "upload", openTaskImportDrawer),
+      item("Full form (new)", "edit", () => openTaskDrawer(null)),
+      item("Export JSON", "download", exportTasks, tasks.length === 0),
+      item("Import JSON", "upload", openTaskImportDrawer),
       h("hr"),
-      item("Apagar todos", "trash", deleteAllTasks, tasks.length === 0, true)));
+      item("Delete all", "trash", deleteAllTasks, tasks.length === 0, true)));
 }
 
 /** Moves every Pokémon product still on a fixed maximum to "MSRP + 10%" (the fixed maximum is dropped). */
 async function switchAllToMsrp() {
   const targets = state.tasks.filter((task) => task.priceRule !== "Msrp" && gameKey(task.game) === "Pokemon");
   if (!await confirmDialog({
-    title: `Passar ${targets.length} ${targets.length === 1 ? "produto" : "produtos"} para MSRP + 10%?`,
-    message: "Cada tipo (ETB, Bundle, Display, Booster…) passa a ser comparado com o seu MSRP, mais 10%. O preço máximo fixo deixa de contar; tipos sem MSRP deixam de avisar. Podes mudar cada um em “Editar regras”.",
-    confirmLabel: "Passar para MSRP",
+    title: `Switch ${targets.length} ${targets.length === 1 ? "product" : "products"} to MSRP + 10%?`,
+    message: "Each type (ETB, Bundle, Display, Booster…) is compared with its own MSRP, plus 10%. The fixed max price no longer counts; types without an MSRP stop alerting. You can change each one in “Edit rules”.",
+    confirmLabel: "Switch to MSRP",
   })) return;
   let failed = 0;
   for (const task of targets) {
@@ -79,7 +79,7 @@ async function switchAllToMsrp() {
     }
   }
   await reloadConfiguration();
-  toast(failed ? `${targets.length - failed} atualizados, ${failed} com erro` : `${targets.length} produtos a usar MSRP + 10%`, failed ? "error" : "success");
+  toast(failed ? `${targets.length - failed} updated, ${failed} failed` : `${targets.length} products now use MSRP + 10%`, failed ? "error" : "success");
 }
 
 const STATUS_TONES = { stock: "accent", searching: "", waiting: "", error: "red", paused: "muted" };
@@ -87,7 +87,7 @@ const STATUS_TONES = { stock: "accent", searching: "", waiting: "", error: "red"
 /** One watched product: what it is, its rule, and per product kind the best offer now. */
 function watchCard(insight) {
   const { task } = insight;
-  const link = routeHash("produto", task.id);
+  const link = routeHash("watched", task.id);
   const kinds = kindBreakdown(insight);
   const shown = kinds.slice(0, 5);
   const offerCount = new Set(insight.matches.map((listing) => listing.url)).size;
@@ -103,10 +103,10 @@ function watchCard(insight) {
     h("div", { class: "rule-line" }, icon("check", "rule-icon"), h("span", {}, priceRuleText(task, true), " · ", kindsText(task))),
     shown.length
       ? h("ul", { class: "kind-rows" }, shown.map((group) => kindRow(group)))
-      : h("p", { class: "kind-empty" }, insight.status === "paused" ? "Em pausa: não está a ser pesquisado." : insight.reports.length ? "Nenhuma loja tem este produto agora." : "À espera da primeira verificação."),
+      : h("p", { class: "kind-empty" }, insight.status === "paused" ? "Paused: not being searched." : insight.reports.length ? "No store has this product right now." : "Waiting for the first check."),
     h("footer", { class: "watch-foot" },
-      kinds.length > shown.length ? h("span", { class: "muted small" }, `+${kinds.length - shown.length} tipos`) : h("span", { class: "muted small" }, `${insight.stores.length} lojas · ${insight.lastChecked ? relative(insight.lastChecked) : "por verificar"}`),
-      h("a", { class: "text-link small", href: link }, "Ver tudo", icon("chevron"))));
+      kinds.length > shown.length ? h("span", { class: "muted small" }, `+${kinds.length - shown.length} types`) : h("span", { class: "muted small" }, `${insight.stores.length} stores · ${insight.lastChecked ? relative(insight.lastChecked) : "not checked yet"}`),
+      h("a", { class: "text-link small", href: link }, "See all", icon("chevron"))));
 }
 
 /** One product kind of a card: the best price within the rule (or the cheapest above it), and how many stores. */
@@ -114,7 +114,7 @@ function kindRow(group) {
   let price = null, tone = "dim", note;
   if (group.best) { price = group.best.price; tone = "accent"; note = group.best.storeName; }
   else if (group.above) { price = group.above.price; tone = "amber"; note = `acima · ${shortStoreName(group.above.storeName)}`; }
-  else note = group.soldOut ? `esgotado em ${group.storeCount} ${group.storeCount === 1 ? "loja" : "lojas"}` : "sem stock";
+  else note = group.soldOut ? `sold out at ${group.storeCount} ${group.storeCount === 1 ? "store" : "stores"}` : "no stock";
   return h("li", { class: `kind-row ${group.best ? "ok" : ""}` },
     h("span", { class: "kind-name" }, group.label),
     h("span", { class: "kind-note" }, note),
@@ -123,11 +123,11 @@ function kindRow(group) {
 
 /* ----- Produto ----- */
 
-RENDERERS.produto = function viewProduct() {
+RENDERERS.watched = function viewProduct() {
   const task = findTask(state.route.param);
-  const back = h("a", { class: "back-link", href: routeHash("a-vigiar") }, icon("back"), "A vigiar");
+  const back = h("a", { class: "back-link", href: routeHash("watching") }, icon("back"), "Watching");
   if (!task) {
-    return [back, h("div", { class: "card soft" }, emptyState("eye", "Este produto já não está a ser vigiado.", null, linkButton("Ver todos", routeHash("a-vigiar"))))];
+    return [back, h("div", { class: "card soft" }, emptyState("eye", "This product is no longer watched.", null, linkButton("See all", routeHash("watching"))))];
   }
 
   const insight = taskInsight(task);
@@ -135,7 +135,7 @@ RENDERERS.produto = function viewProduct() {
   const photoListing = [...insight.matches, ...insight.aboveMax, ...insight.tracked].find((listing) => safeHref(listing.imageUrl));
   const offerCount = new Set(insight.matches.map((listing) => listing.url)).size;
   const statusChip = insight.status === "stock"
-    ? h("span", { class: "status-chip-lg stock" }, `${offerCount} ${offerCount === 1 ? "oferta" : "ofertas"} ao teu preço`)
+    ? h("span", { class: "status-chip-lg stock" }, `${offerCount} ${offerCount === 1 ? "offer" : "offers"} at your price`)
     : h("span", { class: `status-chip-lg ${insight.status}` }, STATUS_LABELS[insight.status]);
 
   const keywordChips = (words, tone) => words.length
@@ -147,25 +147,25 @@ RENDERERS.produto = function viewProduct() {
     h("section", { class: "product-hero" },
       h("div", { class: "product-photo" },
         productArt({ imageUrl: photoListing?.imageUrl, game: task.game, title: task.name, query: task.searchQuery, size: "square" }),
-        photoListing ? h("span", { class: "photo-credit" }, `Imagem da ${photoListing.storeName}`) : null),
+        photoListing ? h("span", { class: "photo-credit" }, `Image from ${photoListing.storeName}`) : null),
       h("div", { class: "product-info" },
-        h("div", { class: "tag-row" }, statusChip, gamePill(task.game), h("span", { class: "tag" }, TASK_LANGUAGES[task.language]?.[1] || "Inglês")),
+        h("div", { class: "tag-row" }, statusChip, gamePill(task.game), h("span", { class: "tag" }, TASK_LANGUAGES[task.language]?.[1] || "English")),
         h("h1", { class: "product-title" }, task.name || task.id),
-        h("p", { class: "rule-sentence" }, "Avisa quando aparecer ", h("strong", {}, "em stock"), ", em ", h("strong", {}, (TASK_LANGUAGES[task.language]?.[1] || "Inglês").toLowerCase()),
-          " e ", h("strong", {}, priceRuleText(task).replace("Até", "até")), ". Tipos: ", h("strong", {}, kindsText(task)), "."),
+        h("p", { class: "rule-sentence" }, "Alerts when it shows up ", h("strong", {}, "in stock"), ", in ", h("strong", {}, TASK_LANGUAGES[task.language]?.[1] || "English"),
+          " and ", h("strong", {}, priceRuleText(task).replace("Up to", "up to")), ". Types: ", h("strong", {}, kindsText(task)), "."),
         task.priceRule === "Msrp" ? limitsTable(task, kinds) : null,
         h("dl", { class: "rules" },
-          h("dt", {}, "Pesquisa"), h("dd", {}, h("code", { class: "kw mono" }, task.searchQuery)),
-          h("dt", {}, "Tem de ter"), h("dd", {}, keywordChips(task.requiredKeywords || [], "accent")),
-          h("dt", {}, "Ignora se tiver"), h("dd", {}, keywordChips(task.excludedKeywords || [], "red"))),
+          h("dt", {}, "Search"), h("dd", {}, h("code", { class: "kw mono" }, task.searchQuery)),
+          h("dt", {}, "Must have"), h("dd", {}, keywordChips(task.requiredKeywords || [], "accent")),
+          h("dt", {}, "Ignore if it has"), h("dd", {}, keywordChips(task.excludedKeywords || [], "red"))),
         h("div", { class: "button-row" },
-          button("Verificar agora", { iconName: "bolt", onClick: runNow, kbd: "R" }),
-          button("Editar regras", { iconName: "edit", onClick: () => openTaskDrawer(task) }),
+          button("Check now", { iconName: "bolt", onClick: runNow, kbd: "R" }),
+          button("Edit rules", { iconName: "edit", onClick: () => openTaskDrawer(task) }),
           task.enabled
-            ? button("Pausar", { iconName: "pause", onClick: () => setTaskEnabled(task.id, false) })
-            : button("Retomar", { iconName: "play", kind: "primary", onClick: () => setTaskEnabled(task.id, true) }),
-          button("Duplicar", { iconName: "copy", onClick: () => openTaskDrawer({ ...task, id: "", name: `${task.name} (cópia)` }, true) }),
-          button("Apagar", { kind: "text-danger", onClick: () => deleteTask(task) })))),
+            ? button("Pause", { iconName: "pause", onClick: () => setTaskEnabled(task.id, false) })
+            : button("Resume", { iconName: "play", kind: "primary", onClick: () => setTaskEnabled(task.id, true) }),
+          button("Duplicate", { iconName: "copy", onClick: () => openTaskDrawer({ ...task, id: "", name: `${task.name} (copy)` }, true) }),
+          button("Delete", { kind: "text-danger", onClick: () => deleteTask(task) })))),
 
     h("div", { class: "split" },
       h("section", { class: "split-main section", "aria-labelledby": "found-h" }, productResults(insight, kinds)),
@@ -181,8 +181,8 @@ function limitsTable(task, kinds) {
   if (!rows.length) return null;
   return h("div", { class: "limits" }, rows.map((row) => h("div", { class: "limit" },
     h("span", {}, kindLabel(row.code)),
-    h("strong", { class: "mono" }, `até ${money(row.limit)}`),
-    row.msrp ? h("small", {}, `MSRP ${money(row.msrp)}`) : h("small", {}, "sem MSRP"))));
+    h("strong", { class: "mono" }, `up to ${money(row.limit)}`),
+    row.msrp ? h("small", {}, `MSRP ${money(row.msrp)}`) : h("small", {}, "no MSRP"))));
 }
 
 function productResults(insight, kinds) {
@@ -213,7 +213,7 @@ function productResults(insight, kinds) {
       : null;
   } else {
     const withResults = insight.reports.filter((report) => report.succeeded && report.listings.some(keep))
-      .sort((a, b) => (b.listings.some((listing) => isMatch(listing.outcome)) - a.listings.some((listing) => isMatch(listing.outcome))) || a.storeName.localeCompare(b.storeName, "pt"));
+      .sort((a, b) => (b.listings.some((listing) => isMatch(listing.outcome)) - a.listings.some((listing) => isMatch(listing.outcome))) || a.storeName.localeCompare(b.storeName, "en"));
     body = withResults.length ? h("div", { class: "store-blocks" }, withResults.map((report) => storeBlock(task, report, keep, insight))) : null;
   }
   const empty = insight.reports.filter((report) => report.succeeded && !report.listings.some(keep)).map((report) => report.storeName);
@@ -221,20 +221,20 @@ function productResults(insight, kinds) {
   return [
     h("div", { class: "section-head" },
       h("div", {},
-        h("h2", { id: "found-h" }, "O que as lojas têm"),
-        h("p", { class: "section-sub" }, last ? `Última pesquisa ${relative(last)}. Cada resultado diz porque é que avisou ou não.` : "Ainda não houve pesquisa para este produto.")),
+        h("h2", { id: "found-h" }, "What the stores have"),
+        h("p", { class: "section-sub" }, last ? `Last search ${relative(last)}. Each result says why it alerted or not.` : "This product hasn't been searched yet.")),
       total ? h("div", { class: "button-row" },
-        segmented([["kind", "Por tipo"], ["store", "Por loja"]], byKind ? "kind" : "store",
-          (value) => { state.productGroup = value; writePreference("productGroup", value); renderView(true); }, "Agrupar"),
-        segmented([["candidates", "Só candidatos", candidateCount], ["all", "Tudo", total]], only ? "candidates" : "all",
-          (value) => { state.productOnlyCandidates = value === "candidates"; writePreference("onlyProducts", state.productOnlyCandidates); renderView(true); }, "Resultados")) : null),
-    body || h("div", { class: "card soft" }, emptyState("search", insight.reports.length ? "Nenhuma loja encontrou este produto." : "À espera da primeira verificação.",
-      insight.reports.length ? "Experimenta outro texto de pesquisa em “Editar regras”." : "Carrega em “Verificar agora” para não esperar pelo próximo ciclo.")),
+        segmented([["kind", "By type"], ["store", "By store"]], byKind ? "kind" : "store",
+          (value) => { state.productGroup = value; writePreference("productGroup", value); renderView(true); }, "Group"),
+        segmented([["candidates", "Candidates only", candidateCount], ["all", "Everything", total]], only ? "candidates" : "all",
+          (value) => { state.productOnlyCandidates = value === "candidates"; writePreference("onlyProducts", state.productOnlyCandidates); renderView(true); }, "Results")) : null),
+    body || h("div", { class: "card soft" }, emptyState("search", insight.reports.length ? "No store found this product." : "Waiting for the first check.",
+      insight.reports.length ? "Try another search text in “Edit rules”." : "Press “Check now” to skip waiting for the next cycle.")),
     failed.length ? h("div", { class: "callout red" }, icon("alert"), h("div", {},
-      h("strong", {}, `${failed.length} ${failed.length === 1 ? "loja deu" : "lojas deram"} erro: `),
+      h("strong", {}, `${failed.length} ${failed.length === 1 ? "store" : "stores"} failed: `),
       failed.map((report, index) => [index ? " · " : "", h("span", { title: report.error || "" }, report.storeName)]))) : null,
-    empty.length ? h("p", { class: "muted small" }, `Sem resultados ${only ? "relevantes " : ""}em: ${empty.join(", ")}.`) : null,
-    waiting.length ? h("p", { class: "muted small" }, `À espera da primeira pesquisa: ${waiting.join(", ")}.`) : null,
+    empty.length ? h("p", { class: "muted small" }, `No ${only ? "relevant " : ""}results at: ${empty.join(", ")}.`) : null,
+    waiting.length ? h("p", { class: "muted small" }, `Waiting for the first search: ${waiting.join(", ")}.`) : null,
   ];
 }
 
@@ -248,15 +248,15 @@ function kindBlock(task, group, insight) {
   return h("article", { class: `store-block ${hasMatch ? "match" : ""}` },
     h("header", { class: "store-block-head" },
       h("strong", {}, kindLabel(group.kind)),
-      hasMatch ? h("span", { class: "tag accent small" }, "ao teu preço") : null,
+      hasMatch ? h("span", { class: "tag accent small" }, "at your price") : null,
       h("span", { class: "store-block-meta" },
-        msrp ? `MSRP ${money(msrp)}` : "sem MSRP",
-        limit ? ` · avisa até ${money(limit)}` : "",
-        ` · ${group.listings.length} ${group.listings.length === 1 ? "resultado" : "resultados"}`)),
+        msrp ? `MSRP ${money(msrp)}` : "no MSRP",
+        limit ? ` · alerts up to ${money(limit)}` : "",
+        ` · ${group.listings.length} ${group.listings.length === 1 ? "result" : "results"}`)),
     h("ul", { class: "result-rows" }, listings.map((listing) => resultRow(task, listing, insight, true))));
 }
 
-/** Results of one store (the "Por loja" view). */
+/** Results of one store (the "By store" view). */
 function storeBlock(task, report, keep, insight) {
   const store = findStore(report.storeName);
   const listings = report.listings.filter(keep).slice()
@@ -278,21 +278,21 @@ function resultRow(task, listing, insight, showStore) {
   const meta = [];
   if (showStore) meta.push(listing.storeName);
   else meta.push(listing.kindLabel || kindLabel(listing.kind));
-  meta.push(listing.inStock ? "em stock" : "esgotado", (LANGUAGES[listing.language] || listing.language).toLowerCase());
-  if (listing.seller) meta.push(`vendido por ${listing.seller}`);
+  meta.push(listing.inStock ? "in stock" : "sold out", LANGUAGES[listing.language] || listing.language);
+  if (listing.seller) meta.push(`sold by ${listing.seller}`);
   const showLowest = listing.lowestPrice !== null && listing.lowestPrice !== undefined && listing.price !== null && listing.lowestPrice < listing.price - 0.005;
 
   return h("li", { class: `result-row ${isMatch(listing.outcome) ? "match" : ""}` },
     productArt({ imageUrl: listing.imageUrl, game: task.game, title: listing.title, query: task.searchQuery, size: "thumb" }),
     h("div", { class: "result-text" },
       externalLink(listing.url, listing.title, "result-title"),
-      h("div", { class: "result-meta" }, meta.join(" · "), listing.preOrder ? h("span", { class: "tag accent small" }, "Pré-venda") : null)),
+      h("div", { class: "result-meta" }, meta.join(" · "), listing.preOrder ? h("span", { class: "tag accent small" }, "Pre-order") : null)),
     h("div", { class: "result-price" },
       h("span", { class: `mono price ${isMatch(listing.outcome) ? "accent" : listing.outcome === "AboveMaxPrice" ? "amber" : ""}` }, money(listing.price)),
       listing.priceHistoryKey && TRACKED_OUTCOMES.has(listing.outcome)
-        ? iconButton("chart", `Histórico de preço de ${listing.title}`, () => openPriceHistory(listing.priceHistoryKey), "tiny")
+        ? iconButton("chart", `Price history of ${listing.title}`, () => openPriceHistory(listing.priceHistoryKey), "tiny")
         : null,
-      h("span", { class: "lowest" }, msrpPill(listing.price, listing.msrp), showLowest ? ` mín. ${money(listing.lowestPrice)}` : null)),
+      h("span", { class: "lowest" }, msrpPill(listing.price, listing.msrp), showLowest ? ` low ${money(listing.lowestPrice)}` : null)),
     verdict(task, listing, insight));
 }
 
@@ -303,21 +303,21 @@ function verdict(task, listing, insight) {
   switch (listing.outcome) {
     case "Match": {
       const alerted = insight.alerts.some((alert) => alert.url === listing.url);
-      return h("span", { class: "verdict accent solid" }, alerted ? "Avisado · ao teu preço" : "Ao teu preço");
+      return h("span", { class: "verdict accent solid" }, alerted ? "Alerted · at your price" : "At your price");
     }
     case "MatchLanguageToConfirm":
-      return h("span", { class: "verdict amber" }, "Ao teu preço · confirma o idioma");
+      return h("span", { class: "verdict amber" }, "At your price · check the language");
     case "AboveMaxPrice": {
       const limit = listing.priceLimit ?? task.maxPrice;
-      return h("span", { class: "verdict amber" }, listing.price && limit ? `Acima · avisa até ${money(limit)}` : "Acima do teu preço");
+      return h("span", { class: "verdict amber" }, listing.price && limit ? `Above · alerts up to ${money(limit)}` : "Above your price");
     }
     case "ExcludedKeyword": {
       const found = words(task.excludedKeywords).find((word) => title.includes(normalizeText(word)));
-      return h("span", { class: "verdict" }, found ? `Tem “${found}”` : "Tem uma palavra excluída");
+      return h("span", { class: "verdict" }, found ? `Has “${found}”` : "Has an excluded word");
     }
     case "MissingKeyword": {
       const missing = (task.requiredKeywords || []).find((keyword) => !keyword.split("|").some((word) => title.includes(normalizeText(word.replace(/\*/g, "").trim()))));
-      return h("span", { class: "verdict" }, missing ? `Falta “${missing.split("|")[0].replace(/\*/g, "")}”` : "Não é o produto");
+      return h("span", { class: "verdict" }, missing ? `Missing “${missing.split("|")[0].replace(/\*/g, "")}”` : "Not this product");
     }
     default: {
       const [label, tone] = OUTCOMES[listing.outcome] || [listing.outcome, "plain"];
@@ -329,26 +329,26 @@ function verdict(task, listing, insight) {
 function productAlertsCard(insight) {
   const alerts = insight.alerts.slice(0, 6);
   return h("section", { class: "card side-card", "aria-labelledby": "product-alerts-h" },
-    h("div", { class: "side-card-head" }, h("h2", { id: "product-alerts-h" }, "Alertas deste produto"),
-      insight.alerts.length > 6 ? h("a", { class: "text-link small", href: routeHash("alertas") }, "Ver todos") : null),
+    h("div", { class: "side-card-head" }, h("h2", { id: "product-alerts-h" }, "Alerts for this product"),
+      insight.alerts.length > 6 ? h("a", { class: "text-link small", href: routeHash("alerts") }, "See all") : null),
     alerts.length === 0
-      ? h("p", { class: "muted small" }, "Ainda nenhum alerta. Quando uma loja o tiver ao teu preço, avisamos-te.")
+      ? h("p", { class: "muted small" }, "No alerts yet. When a store has it at your price, you'll be told.")
       : h("ol", { class: "timeline" }, alerts.map((alert) => h("li", {},
         h("time", { class: "mono", datetime: alert.at }, `${dayHeading(alert.at)}, ${clock(alert.at)}`),
         h("div", { class: "timeline-main" }, h("strong", {}, alert.storeName), ` · ${money(alert.price)}`),
         h("div", { class: "timeline-sub muted", title: alert.title }, alert.title),
-        alert.languageToConfirm ? h("div", { class: "timeline-sub amber" }, "Idioma por confirmar") : null,
-        safeHref(alert.url) ? h("a", { class: "text-link small", href: alert.url, target: "_blank", rel: "noopener noreferrer" }, "Abrir", icon("external")) : null))));
+        alert.languageToConfirm ? h("div", { class: "timeline-sub amber" }, "Language to check") : null,
+        safeHref(alert.url) ? h("a", { class: "text-link small", href: alert.url, target: "_blank", rel: "noopener noreferrer" }, "Open", icon("external")) : null))));
 }
 
 function productStoresCard(insight) {
   const names = insight.task.storeNames || [];
   return h("section", { class: "card side-card", "aria-labelledby": "product-stores-h" },
-    h("div", { class: "side-card-head" }, h("h2", { id: "product-stores-h" }, "Lojas vigiadas")),
+    h("div", { class: "side-card-head" }, h("h2", { id: "product-stores-h" }, "Stores watched")),
     insight.stores.length
       ? h("div", { class: "kw-row" }, insight.stores.map((store) => h("span", { class: "kw small" }, store.name)))
-      : h("p", { class: "muted small" }, "Nenhuma loja ativa para este produto."),
-    h("p", { class: "muted small" }, names.length ? "Só as lojas escolhidas nas regras." : "Todas as lojas ativas (nenhuma escolhida nas regras)."));
+      : h("p", { class: "muted small" }, "No active store for this product."),
+    h("p", { class: "muted small" }, names.length ? "Only the stores picked in the rules." : "Every active store (none picked in the rules)."));
 }
 
 /* ----- Price history of one listing ----- */
@@ -371,22 +371,22 @@ async function openPriceHistory(key) {
     subtitle: `${summary.storeName} · a seguir desde ${dateTime(summary.firstSeen)}`,
     body: [
       h("div", { class: "stat-boxes four" },
-        stat("Atual", money(summary.currentPrice), summary.currentInStock ? "em stock" : "esgotado"),
-        stat("Mínimo", money(summary.lowestPrice), dateTime(summary.lowestPriceAt)),
-        stat("Máximo", money(summary.highestPrice)),
-        stat("Alterações", String(summary.pointCount))),
-      drawerSection("Preço ao longo do tempo", priceHistoryChart(history)),
-      drawerSection("Alterações",
+        stat("Now", money(summary.currentPrice), summary.currentInStock ? "in stock" : "sold out"),
+        stat("Low", money(summary.lowestPrice), dateTime(summary.lowestPriceAt)),
+        stat("High", money(summary.highestPrice)),
+        stat("Changes", String(summary.pointCount))),
+      drawerSection("Price over time", priceHistoryChart(history)),
+      drawerSection("Changes",
         h("div", { class: "table-wrap" }, h("table", {},
-          h("thead", {}, h("tr", {}, h("th", {}, "Desde"), h("th", { class: "num" }, "Preço"), h("th", {}, "Stock"))),
+          h("thead", {}, h("tr", {}, h("th", {}, "Since"), h("th", { class: "num" }, "Price"), h("th", {}, "Stock"))),
           h("tbody", {}, points.map((point) => h("tr", {},
             h("td", { class: "nowrap" }, dateTime(point.at)),
             h("td", { class: "num mono" }, money(point.price)),
-            h("td", {}, point.inStock ? pill("Em stock", "accent") : pill("Esgotado")))))))),
+            h("td", {}, point.inStock ? pill("In stock", "accent") : pill("Sold out")))))))),
     ],
     footer: [
-      button("Fechar", { kind: "ghost", onClick: closeDrawer }),
-      safeHref(summary.url) ? linkButton("Abrir produto", summary.url, { kind: "primary", external: true, trailingIcon: "external" }) : null,
+      button("Close", { kind: "ghost", onClick: closeDrawer }),
+      safeHref(summary.url) ? linkButton("Open product", summary.url, { kind: "primary", external: true, trailingIcon: "external" }) : null,
     ],
   });
 }
@@ -405,7 +405,7 @@ function niceStep(range) {
  */
 function priceHistoryChart(history) {
   const points = history.points.map((point) => ({ ...point, time: new Date(point.at).getTime() }));
-  if (points.length === 0) return emptyState("chart", "Sem pontos.");
+  if (points.length === 0) return emptyState("chart", "No points.");
 
   const width = 516, height = 220, left = 56, right = 64, top = 14, bottom = 28;
   const lastSeen = Math.max(new Date(history.summary.lastSeen).getTime(), points[points.length - 1].time);
@@ -439,7 +439,7 @@ function priceHistoryChart(history) {
   const markers = points.map((point) => svg("circle", { class: point.inStock ? "history-dot" : "history-dot sold-out", cx: x(point.time), cy: y(point.price), r: 4 }));
   const labels = [svg("text", { class: "history-label", x: x(end) + 8, y: y(current.price) + 4 }, money(current.price))];
   if (lowest !== current && Math.abs(y(lowest.price) - y(current.price)) > 14) {
-    labels.push(svg("text", { class: "history-label", x: x(lowest.time), y: y(lowest.price) + 18, "text-anchor": "middle" }, `mín. ${money(lowest.price)}`));
+    labels.push(svg("text", { class: "history-label", x: x(lowest.time), y: y(lowest.price) + 18, "text-anchor": "middle" }, `low ${money(lowest.price)}`));
   }
 
   const axis = [
@@ -459,7 +459,7 @@ function priceHistoryChart(history) {
     const px = pointerX ?? x(point.time);
     crosshair.setAttribute("x1", px); crosshair.setAttribute("x2", px); crosshair.setAttribute("visibility", "visible");
     focusDot.setAttribute("cx", px); focusDot.setAttribute("cy", y(point.price)); focusDot.setAttribute("visibility", "visible");
-    tooltip.replaceChildren(h("strong", {}, money(point.price)), h("span", {}, point.inStock ? "em stock" : "esgotado"), h("span", { class: "muted" }, `desde ${dateTime(point.at)}`));
+    tooltip.replaceChildren(h("strong", {}, money(point.price)), h("span", {}, point.inStock ? "in stock" : "sold out"), h("span", { class: "muted" }, `since ${dateTime(point.at)}`));
     tooltip.hidden = false;
     tooltip.style.left = `${Math.min(Math.max((px / width) * 100, 12), 78)}%`;
   };
@@ -468,7 +468,7 @@ function priceHistoryChart(history) {
 
   const plot = svg("svg", {
     class: "history-chart", viewBox: `0 0 ${width} ${height}`, role: "img", tabindex: 0,
-    "aria-label": `Preço de ${history.summary.title}: atual ${money(current.price)}, mínimo ${money(lowest.price)}, máximo ${money(high)}. A tabela abaixo tem todos os valores.`,
+    "aria-label": `Price of ${history.summary.title}: now ${money(current.price)}, low ${money(lowest.price)}, high ${money(high)}. The table below has every value.`,
   }, grid, axis, segments, markers, labels, crosshair, focusDot,
   svg("rect", { class: "history-hit", x: left, y: top, width: width - left - right, height: height - top - bottom }));
 
@@ -493,8 +493,8 @@ function priceHistoryChart(history) {
   return h("div", {},
     h("div", { class: "history-box" }, plot, tooltip),
     h("div", { class: "history-key" },
-      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line", d: "M1,4 H23" })), "em stock"),
-      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line sold-out", d: "M1,4 H23" })), "esgotado")));
+      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line", d: "M1,4 H23" })), "in stock"),
+      h("span", {}, svg("svg", { viewBox: "0 0 24 8", class: "key-line" }, svg("path", { class: "history-line sold-out", d: "M1,4 H23" })), "sold out")));
 }
 
 /* ----- Vigiar produto (wizard) ----- */
@@ -522,7 +522,7 @@ function newWizard() {
   };
 }
 
-RENDERERS.vigiar = function viewNewWatch() {
+RENDERERS.watch = function viewNewWatch() {
   if (!state.wizard) state.wizard = newWizard();
   const wizard = state.wizard;
   const root = h("div", { class: "wizard" });
@@ -530,13 +530,13 @@ RENDERERS.vigiar = function viewNewWatch() {
   const render = () => keepFocus(root, () => {
     const step = wizard.selected.size > 0 ? 3 : wizard.searched ? 2 : 1;
     root.replaceChildren(
-      h("a", { class: "back-link", href: routeHash("a-vigiar") }, icon("back"), "Cancelar"),
-      h("header", { class: "page-head" }, h("div", { class: "page-title" }, h("h1", {}, "Vigiar um produto"),
-        h("ol", { class: "steps" }, [["Procurar", 1], ["Escolher o produto certo", 2], ["Preço e lojas", 3]].map(([label, number]) =>
+      h("a", { class: "back-link", href: routeHash("watching") }, icon("back"), "Cancel"),
+      h("header", { class: "page-head" }, h("div", { class: "page-title" }, h("h1", {}, "Watch a product"),
+        h("ol", { class: "steps" }, [["Search", 1], ["Pick the right product", 2], ["Price and stores", 3]].map(([label, number]) =>
           h("li", { class: number < step ? "done" : number === step ? "on" : "" },
             h("span", { class: "step-num" }, number < step ? icon("check") : number), label))))),
       h("div", { class: "wizard-layout" },
-        h("section", { class: "wizard-main", "aria-label": "Resultados" }, wizardSearch(wizard, render), wizardResults(wizard, render)),
+        h("section", { class: "wizard-main", "aria-label": "Results" }, wizardSearch(wizard, render), wizardResults(wizard, render)),
         h("aside", { class: "wizard-side" }, wizardRules(wizard, render))));
   });
   render();
@@ -545,27 +545,27 @@ RENDERERS.vigiar = function viewNewWatch() {
 
 function wizardSearch(wizard, render) {
   const input = h("input", {
-    type: "search", value: wizard.query, placeholder: "ex.: 30th booster bundle", "aria-label": "O que procuras", "data-keep-focus": "wizard-query",
+    type: "search", value: wizard.query, placeholder: "e.g. 30th booster bundle", "aria-label": "What are you looking for", "data-keep-focus": "wizard-query",
     oninput: (event) => { wizard.query = event.target.value; },
     onkeydown: (event) => { if (event.key === "Enter") runWizardSearch(wizard, render); },
   });
   setTimeout(() => { if (!wizard.searched && document.activeElement === document.body) input.focus(); }, 0);
-  const game = h("select", { "aria-label": "Jogo", onchange: (event) => { wizard.game = event.target.value; } },
+  const game = h("select", { "aria-label": "Game", onchange: (event) => { wizard.game = event.target.value; } },
     Object.entries(GAMES).map(([value, label]) => h("option", { value, selected: wizard.game === value }, label)));
 
   return h("div", { class: "wizard-search" },
     h("div", { class: "wizard-search-row" },
       h("label", { class: "search-field big" }, icon("search"), input),
-      h("label", { class: "select-pill big" }, h("span", { class: "select-label" }, "Jogo"), game, icon("down", "select-caret")),
-      button(wizard.running ? "A procurar…" : "Procurar", { kind: "primary", disabled: wizard.running, onClick: () => runWizardSearch(wizard, render) })),
-    h("p", { class: "muted small" }, "Procura em todas as lojas ativas ao mesmo tempo. Escreve como as lojas escrevem (evita “pokemon”: há lojas que não o põem nos títulos)."));
+      h("label", { class: "select-pill big" }, h("span", { class: "select-label" }, "Game"), game, icon("down", "select-caret")),
+      button(wizard.running ? "Searching…" : "Search", { kind: "primary", disabled: wizard.running, onClick: () => runWizardSearch(wizard, render) })),
+    h("p", { class: "muted small" }, "Searches every active store at once. Write it the way stores do (skip “pokemon”: some stores leave it out of titles)."));
 }
 
 async function runWizardSearch(wizard, render) {
   const query = wizard.query.trim();
   if (!query || wizard.running) return;
   const stores = enabledStores().filter((store) => store.platform !== "Manual");
-  if (stores.length === 0) { toast("Não há lojas ativas para procurar.", "error"); return; }
+  if (stores.length === 0) { toast("There are no active stores to search.", "error"); return; }
 
   Object.assign(wizard, { running: true, searched: true, done: 0, total: stores.length, results: [], hidden: 0, failures: [], selected: new Set(), errors: null });
   wizard.rules.stores = new Set();
@@ -667,24 +667,24 @@ function suggestName(titles) {
 
 function wizardResults(wizard, render) {
   if (!wizard.searched) {
-    return h("div", { class: "card soft" }, emptyState("search", "Começa por procurar o produto.",
-      "Vês o que cada loja tem, marcas os resultados certos e as regras são sugeridas a partir deles."));
+    return h("div", { class: "card soft" }, emptyState("search", "Start by searching for the product.",
+      "You see what each store has, tick the right results and the rules are suggested from them."));
   }
   const storesWithResults = new Set(wizard.results.map((item) => item.storeName));
   const sorted = wizard.results.slice().sort(byRelevance);
 
   return h("div", { class: "wizard-results" },
     h("div", { class: "section-head" },
-      h("h2", {}, wizard.running ? `A procurar… ${wizard.done} de ${wizard.total} lojas` : `Encontrado em ${storesWithResults.size} ${storesWithResults.size === 1 ? "loja" : "lojas"}`),
-      wizard.results.length ? h("span", { class: "section-note" }, "Marca os que são o produto que queres. ", h("strong", {}, `${wizard.selected.size} escolhidos`)) : null),
+      h("h2", {}, wizard.running ? `Searching… ${wizard.done} of ${wizard.total} stores` : `Found in ${storesWithResults.size} ${storesWithResults.size === 1 ? "store" : "stores"}`),
+      wizard.results.length ? h("span", { class: "section-note" }, "Tick the ones that are the product you want. ", h("strong", {}, `${wizard.selected.size} picked`)) : null),
     wizard.running ? h("div", { class: "bar wide" }, h("span", { style: `width:${Math.round((wizard.done / Math.max(1, wizard.total)) * 100)}%` })) : null,
     sorted.length
       ? h("div", { class: "pick-grid" }, sorted.map((item) => pickCard(wizard, item, render)))
-      : wizard.running ? null : h("div", { class: "card soft" }, emptyState("search", "Nenhuma loja tem algo parecido.", "Experimenta menos palavras ou outra forma de escrever.")),
+      : wizard.running ? null : h("div", { class: "card soft" }, emptyState("search", "No store has anything like it.", "Try fewer words or another spelling.")),
     !wizard.running && (wizard.hidden || wizard.failures.length)
       ? h("p", { class: "muted small" },
-        wizard.hidden ? `${wizard.hidden} resultado(s) escondido(s) por não terem as palavras da pesquisa. ` : null,
-        wizard.failures.length ? `Sem resposta: ${wizard.failures.map((failure) => failure.storeName).join(", ")}.` : null)
+        wizard.hidden ? `${wizard.hidden} result(s) hidden because they don't have the search words. ` : null,
+        wizard.failures.length ? `No answer: ${wizard.failures.map((failure) => failure.storeName).join(", ")}.` : null)
       : null);
 }
 
@@ -704,7 +704,7 @@ function pickCard(wizard, item, render) {
     h("div", { class: "pick-title", title: listing.title }, listing.title),
     h("div", { class: "pick-foot" },
       h("span", { class: "mono price" }, money(listing.price), " ", msrpPill(listing.price, listing.msrp)),
-      h("span", { class: listing.inStock ? "accent small" : "muted small" }, listing.inStock ? "Em stock" : "Esgotado")));
+      h("span", { class: listing.inStock ? "accent small" : "muted small" }, listing.inStock ? "In stock" : "Sold out")));
 }
 
 /** Editable list of words: removable chips and a "+ palavra" input. */
@@ -712,7 +712,7 @@ function keywordEditor(words, tone, onChange, label) {
   const container = h("div", { class: "kw-row editable", role: "group", "aria-label": label });
   const render = () => {
     const input = h("input", {
-      type: "text", class: "kw-input", placeholder: "+ palavra", "aria-label": `Adicionar a “${label}”`, "data-keep-focus": `kw-${slugify(label)}`,
+      type: "text", class: "kw-input", placeholder: "+ word", "aria-label": `Add to “${label}”`, "data-keep-focus": `kw-${slugify(label)}`,
       onkeydown: (event) => {
         if ((event.key === "Enter" || event.key === ",") && input.value.trim()) {
           event.preventDefault();
@@ -759,19 +759,19 @@ function wizardRules(wizard, render) {
     const count = new Set(ok.map((item) => item.storeName)).size;
     info.replaceChildren();
     append(info, [prices.length
-      ? [`Nos escolhidos vês `, h("span", { class: "mono strong" }, low === high ? money(low) : `${money(low)} – ${money(high)}`), `. `,
-        `Com estas regras avisava já em `, h("strong", {}, `${count} ${count === 1 ? "loja" : "lojas"}`), "."]
-      : "Escolhe resultados para ver os preços."]);
+      ? [`The picked ones cost `, h("span", { class: "mono strong" }, low === high ? money(low) : `${money(low)} – ${money(high)}`), `. `,
+        `With these rules it would alert now at `, h("strong", {}, `${count} ${count === 1 ? "store" : "stores"}`), "."]
+      : "Pick results to see the prices."]);
   };
   renderInfo();
 
   // Price rule: MSRP + margin per kind, or one fixed maximum.
   const toleranceInput = h("input", {
-    type: "number", min: -50, max: 300, step: 1, value: rules.tolerance, class: "mono price-input", "aria-label": "Margem sobre o MSRP em percentagem", disabled, "data-keep-focus": "wizard-tolerance",
+    type: "number", min: -50, max: 300, step: 1, value: rules.tolerance, class: "mono price-input", "aria-label": "Margin over MSRP, in percent", disabled, "data-keep-focus": "wizard-tolerance",
     oninput: (event) => { rules.tolerance = event.target.value; touch("tolerance"); renderInfo(); renderLimits(); },
   });
   const priceInput = h("input", {
-    type: "number", min: 0, step: "0.01", value: rules.maxPrice, class: "mono price-input", "aria-label": msrpMode ? "Máximo para tipos sem MSRP, em euros" : "Preço máximo em euros",
+    type: "number", min: 0, step: "0.01", value: rules.maxPrice, class: "mono price-input", "aria-label": msrpMode ? "Max for types without MSRP, in euros" : "Max price in euros",
     disabled, "data-keep-focus": "wizard-price", placeholder: msrpMode ? "—" : "",
     oninput: (event) => { rules.maxPrice = event.target.value; touch("maxPrice"); renderInfo(); renderLimits(); },
   });
@@ -782,14 +782,14 @@ function wizardRules(wizard, render) {
       const item = chosen.find((candidate) => candidate.listing.kind === kind);
       const limit = limitOf(item);
       return h("div", { class: "limit" }, h("span", {}, item.listing.kindLabel || kindLabel(kind)),
-        h("strong", { class: "mono" }, limit ? `até ${money(limit)}` : "não avisa"),
-        h("small", {}, item.listing.msrp ? `MSRP ${money(item.listing.msrp)}` : "sem MSRP"));
+        h("strong", { class: "mono" }, limit ? `up to ${money(limit)}` : "doesn't alert"),
+        h("small", {}, item.listing.msrp ? `MSRP ${money(item.listing.msrp)}` : "no MSRP"));
     }));
   };
   renderLimits();
 
   const kindsFound = [...new Set(wizard.results.map((item) => item.listing.kind || "other"))].filter((kind) => kind !== "other").sort((a, b) => kindOrder(a) - kindOrder(b));
-  const kindChips = h("div", { class: "store-picks", role: "group", "aria-label": "Tipos de produto" },
+  const kindChips = h("div", { class: "store-picks", role: "group", "aria-label": "Product types" },
     kindsFound.map((kind) => {
       const on = rules.kinds.has(kind);
       return h("button", {
@@ -798,7 +798,7 @@ function wizardRules(wizard, render) {
       }, kindLabel(kind));
     }));
 
-  const storeChips = h("div", { class: "store-picks", role: "group", "aria-label": "Vigiar em" },
+  const storeChips = h("div", { class: "store-picks", role: "group", "aria-label": "Watch in" },
     enabledStores().filter((store) => store.platform !== "Manual").map((store) => {
       const on = rules.stores.has(store.name);
       return h("button", {
@@ -823,7 +823,7 @@ function wizardRules(wizard, render) {
   const save = async () => {
     wizard.errors = null;
     const name = rules.name.trim();
-    let id = slugify(name || wizard.query) || "produto";
+    let id = slugify(name || wizard.query) || "product";
     const taken = new Set(state.tasks.map((task) => task.id.toLowerCase()));
     for (let suffix = 2; taken.has(id.toLowerCase()); suffix++) id = `${slugify(name || wizard.query).slice(0, 36)}-${suffix}`;
     wizard.saving = true;
@@ -832,9 +832,9 @@ function wizardRules(wizard, render) {
       await post("/stocktask/save", { isNew: true, id, ...request() });
       await reloadConfiguration();
       state.wizard = null;
-      toast(`A vigiar “${name}”`, "success");
+      toast(`Watching “${name}”`, "success");
       post("/monitor/run").then(() => setTimeout(refresh, 700)).catch(() => { /* the next cycle will do */ });
-      go("produto", id);
+      go("watched", id);
     } catch (error) {
       wizard.saving = false;
       wizard.errors = error.errors || [error.message];
@@ -845,29 +845,29 @@ function wizardRules(wizard, render) {
   const openFullForm = () => openTaskDrawer({ id: "", ...request() }, true);
 
   return h("div", { class: `card rules-panel ${disabled ? "disabled" : ""}` },
-    h("h2", {}, "Regras sugeridas"),
-    h("p", { class: "muted small" }, disabled ? "Aparecem depois da pesquisa." : "Tiradas dos produtos que escolheste. Ajusta se for preciso."),
-    field("Nome", textInput(rules.name, (value) => { rules.name = value; touch("name"); }, { disabled, placeholder: "ex.: 30th Celebration Booster Bundle", "data-keep-focus": "wizard-name" })),
-    kindsFound.length ? field("Tipos de produto", kindChips, rules.kinds.size ? "Só avisa destes tipos." : "Nenhum marcado = todos os tipos.") : null,
+    h("h2", {}, "Suggested rules"),
+    h("p", { class: "muted small" }, disabled ? "They show up after the search." : "Taken from the products you picked. Adjust if needed."),
+    field("Name", textInput(rules.name, (value) => { rules.name = value; touch("name"); }, { disabled, placeholder: "e.g. 30th Celebration Booster Bundle", "data-keep-focus": "wizard-name" })),
+    kindsFound.length ? field("Product types", kindChips, rules.kinds.size ? "Only alerts for these types." : "None ticked = every type.") : null,
     h("div", { class: "field" },
-      h("span", { class: "field-label" }, "Preço"),
-      segmented([["Msrp", "MSRP + margem"], ["MaxPrice", "Preço fixo"]], rules.priceRule, (value) => { rules.priceRule = value; touch("priceRule"); render(); }, "Regra de preço"),
+      h("span", { class: "field-label" }, "Price"),
+      segmented([["Msrp", "MSRP + margin"], ["MaxPrice", "Fixed price"]], rules.priceRule, (value) => { rules.priceRule = value; touch("priceRule"); render(); }, "Price rule"),
       msrpMode
-        ? [h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Avisa até ao MSRP de cada tipo mais"),
+        ? [h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Alerts up to each type's MSRP plus"),
           h("label", { class: "price-box" }, toleranceInput, h("span", { "aria-hidden": "true" }, "%"))),
           limits,
-          h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Tipos sem MSRP: até (opcional)"),
+          h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Types without MSRP: up to (optional)"),
             h("label", { class: "price-box" }, priceInput, h("span", { "aria-hidden": "true" }, "€")))]
-        : h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Avisa até"),
+        : h("div", { class: "price-head" }, h("span", { class: "muted small" }, "Alerts up to"),
           h("label", { class: "price-box" }, priceInput, h("span", { "aria-hidden": "true" }, "€"))),
       info),
-    field("Tem de ter todas", keywordEditor(rules.required, "accent", () => touch("required"), "Tem de ter todas"),
-      "Alternativas com | (booster box|booster display) e * para o início de uma palavra (op* apanha OP-15)."),
-    field("Ignorar se tiver", keywordEditor(rules.excluded, "red", () => touch("excluded"), "Ignorar se tiver")),
-    field("Idioma", segmented([["English", "Inglês"], ["Japanese", "Japonês"]], rules.language, (value) => { rules.language = value; touch("language"); }, "Idioma")),
-    field("Vigiar em", storeChips, rules.stores.size ? "As lojas onde encontrámos o produto já vêm marcadas." : "Nenhuma marcada = todas as lojas ativas."),
+    field("Must have all", keywordEditor(rules.required, "accent", () => touch("required"), "Must have all"),
+      "Alternatives with | (booster box|booster display) and * for the start of a word (op* matches OP-15)."),
+    field("Ignore if it has", keywordEditor(rules.excluded, "red", () => touch("excluded"), "Ignore if it has")),
+    field("Language", segmented([["English", "English"], ["Japanese", "Japanese"]], rules.language, (value) => { rules.language = value; touch("language"); }, "Language")),
+    field("Watch in", storeChips, rules.stores.size ? "The stores where we found the product are already ticked." : "None ticked = every active store."),
     wizard.errors ? errorList(wizard.errors) : null,
     h("div", { class: "rules-actions" },
-      button(wizard.saving ? "A guardar…" : "Começar a vigiar", { kind: "primary big block", disabled: disabled || wizard.saving, onClick: save }),
-      button("Abrir no formulário completo", { kind: "block", disabled, onClick: openFullForm })));
+      button(wizard.saving ? "Saving…" : "Start watching", { kind: "primary big block", disabled: disabled || wizard.saving, onClick: save }),
+      button("Open in the full form", { kind: "block", disabled, onClick: openFullForm })));
 }

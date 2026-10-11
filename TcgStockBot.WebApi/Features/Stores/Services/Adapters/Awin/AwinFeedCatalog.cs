@@ -125,7 +125,7 @@ internal sealed class AwinFeedCatalog(
         var csv = new CsvRecordReader(text);
 
         var header = csv.ReadRecord(cancellationToken)
-            ?? throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError, "o feed Awin veio vazio.");
+            ?? throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError, "the Awin feed came back empty.");
 
         if (header.Count == 1 && (header[0].Contains('|') || header[0].Contains('\t')))
         {
@@ -146,7 +146,7 @@ internal sealed class AwinFeedCatalog(
         if (missing.Count > 0)
         {
             throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError,
-                $"o feed Awin não tem as colunas {string.Join(", ", missing)}. Gera-o no Create-a-Feed com product_name, search_price, currency, in_stock, stock_status, merchant_deep_link, aw_deep_link, merchant_product_id e merchant_name.");
+                $"the Awin feed is missing the columns {string.Join(", ", missing)}. Create it in Create-a-Feed with product_name, search_price, currency, in_stock, stock_status, merchant_deep_link, aw_deep_link, merchant_product_id and merchant_name.");
         }
 
         var keep = settings.KeepKeywords.Where(static word => !string.IsNullOrWhiteSpace(word)).Select(TextNormalizer.Normalize).ToList();
@@ -260,7 +260,7 @@ internal sealed class AwinFeedCatalog(
         if (!Uri.TryCreate(feedUrl.Trim(), UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
         {
             throw new StoreIntegrationException(provider, StoreIntegrationProblem.NotConfigured,
-                $"AwinFeeds__Feeds__{feedKey} não é um URL https válido (copia o URL de download do Create-a-Feed).");
+                $"AwinFeeds__Feeds__{feedKey} is not a valid https URL (copy the download URL from Create-a-Feed).");
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -274,16 +274,16 @@ internal sealed class AwinFeedCatalog(
         {
             case HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden:
                 throw new StoreIntegrationException(provider, StoreIntegrationProblem.Unauthorized,
-                    $"o Awin recusou o download do feed (HTTP {(int)response.StatusCode}). Confirma que o programa te aprovou e que o URL do Create-a-Feed está completo.");
+                    $"Awin refused the feed download (HTTP {(int)response.StatusCode}). Check that the programme approved you and that the Create-a-Feed URL is complete.");
             case HttpStatusCode.NotFound:
                 throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError,
-                    "o Awin não encontrou este feed (HTTP 404). Gera um URL novo no Create-a-Feed.");
+                    "Awin could not find this feed (HTTP 404). Create a new URL in Create-a-Feed.");
             case HttpStatusCode.TooManyRequests:
             case >= HttpStatusCode.InternalServerError:
                 response.EnsureSuccessStatusCode();   // → "pede para abrandar" / "erro do lado da loja"
                 break;
             case var status when (int)status >= 400:
-                throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError, $"o Awin respondeu HTTP {(int)status} ao download do feed.");
+                throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError, $"Awin answered HTTP {(int)status} to the feed download.");
         }
 
         await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);

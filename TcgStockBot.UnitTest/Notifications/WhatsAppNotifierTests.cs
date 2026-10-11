@@ -41,9 +41,9 @@ public class WhatsAppNotifierTests
     {
         var text = AlertMessageFormatter.WhatsApp([Alert("A", languageToConfirm: true), Alert("B"), Alert("C")], Settings.MaxAlertsPerMessage);
 
-        Assert.Contains("3 produtos em stock", text);
-        Assert.Contains("confirma na página", text);
-        Assert.Contains("+1 no dashboard", text);
+        Assert.Contains("3 products in stock", text);
+        Assert.Contains("check on the page", text);
+        Assert.Contains("+1 more in Card Forge", text);
         Assert.DoesNotContain("*C*", text);
     }
 

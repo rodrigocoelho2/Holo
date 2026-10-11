@@ -124,6 +124,41 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>A task that completes on success.</returns>
     public Task CompareAssignAsync(CompareAssignRequest item) => PostAsync("compare/assign", item);
 
+    // ----- User -----
+
+    /// <summary>How many accounts exist.</summary>
+    /// <returns>The status.</returns>
+    public Task<UserStatusDTO> UserStatusAsync() => GetAsync<UserStatusDTO>("user/status");
+
+    /// <summary>Lists every account.</summary>
+    /// <returns>The accounts.</returns>
+    public Task<List<UserDTO>> UserListAsync() => GetAsync<List<UserDTO>>("user/list");
+
+    /// <summary>Gets one account.</summary>
+    /// <param name="identifier">The account id.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserGetAsync(string identifier) => GetAsync<UserDTO>($"user?identifier={Uri.EscapeDataString(identifier)}");
+
+    /// <summary>Creates an account.</summary>
+    /// <param name="item">User name and password.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserCreateAsync(UserCreateRequest item) => PostAsync<UserDTO>("user", item);
+
+    /// <summary>Checks a user name and password.</summary>
+    /// <param name="item">User name and password.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserSignInAsync(UserSignInRequest item) => PostAsync<UserDTO>("user/signin", item);
+
+    /// <summary>Changes a password.</summary>
+    /// <param name="item">The account, current and new password.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserPasswordAsync(UserPasswordRequest item) => PostAsync<UserDTO>("user/password", item);
+
+    /// <summary>Deletes an account.</summary>
+    /// <param name="identifier">The account id.</param>
+    /// <returns>A task that completes on success.</returns>
+    public Task UserDeleteAsync(string identifier) => DeleteAsync($"user?identifier={Uri.EscapeDataString(identifier)}");
+
     // ----- Release -----
 
     /// <summary>Lists every release, soonest first.</summary>

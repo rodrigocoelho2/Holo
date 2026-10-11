@@ -73,8 +73,8 @@ internal sealed class NotificationService(
             return ServiceApiResponse<string>.ValidationProblems(message).AddError(FieldChannel, message);
         }
 
-        var sample = new StockAlert("test", "Teste", new StoreListing(
-            "Loja de teste", "Pokémon TCG Elite Trainer Box (EN) — mensagem de teste", new Uri("https://example.com/"), 54.99m, InStock: true),
+        var sample = new StockAlert("test", "Test", new StoreListing(
+            "Test store", "Pokémon TCG Elite Trainer Box (EN) — test message", new Uri("https://example.com/"), 54.99m, InStock: true),
             LanguageToConfirm: false);
 
         try

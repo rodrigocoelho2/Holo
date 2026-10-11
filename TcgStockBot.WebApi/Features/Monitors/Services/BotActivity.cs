@@ -31,7 +31,7 @@ internal sealed class BotActivity(TimeProvider timeProvider)
             _nextCheckAt = null;
         }
 
-        Log("info", "Verificação iniciada");
+        Log("info", "Check started");
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ internal sealed class BotActivity(TimeProvider timeProvider)
         }
 
         Log(failed > 0 ? "warn" : "info",
-            $"Verificação concluída: {searches - failed}/{searches} pesquisas ok, {matches} em stock, {newAlerts} alerta(s) novo(s)");
+            $"Check done: {searches - failed}/{searches} searches ok, {matches} in stock, {newAlerts} new alert(s)");
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ internal sealed class BotActivity(TimeProvider timeProvider)
 
         if (!report.Succeeded)
         {
-            Log("error", $"{report.StoreName}: falhou a pesquisa de '{report.StockTaskId}' — {report.Error}");
+            Log("error", $"{report.StoreName}: the search for '{report.StockTaskId}' failed — {report.Error}");
         }
     }
 

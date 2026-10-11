@@ -49,7 +49,7 @@ public sealed class Store
     /// <summary>Gets or sets what kind of shop it is (dashboard label).</summary>
     public StoreType Type { get; set; } = StoreType.Unknown;
 
-    /// <summary>Gets or sets free labels ("por testar", "envia para PT", "JP").</summary>
+    /// <summary>Gets or sets free labels ("untested", "ships to PT", "JP").</summary>
     public List<string> Tags { get; set; } = [];
 
     /// <summary>Gets or sets free notes (what is left to configure, why it is off).</summary>

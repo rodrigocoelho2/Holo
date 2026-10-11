@@ -27,7 +27,7 @@ internal sealed class DailySummaryWorker(
     ILogger<DailySummaryWorker> logger) : BackgroundService
 {
     private static readonly TimeSpan CheckEvery = TimeSpan.FromMinutes(5);
-    private static readonly CultureInfo Portuguese = CultureInfo.GetCultureInfo("pt-PT");
+    private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-IE");
     private DateOnly? _lastSent;
 
     /// <inheritdoc />
@@ -42,7 +42,7 @@ internal sealed class DailySummaryWorker(
             catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
             {
                 logger.LogError(exception, "Daily summary failed");
-                activity.Log("error", $"O resumo diário falhou: {exception.Message}");
+                activity.Log("error", $"The daily summary failed: {exception.Message}");
             }
 
             try
@@ -69,20 +69,36 @@ internal sealed class DailySummaryWorker(
             return false;
         }
 
-        var email = notifiers.FirstOrDefault(static notifier => notifier.Channel == NotificationChannel.Email && notifier.IsEnabled);
-        if (email is null)
+        var channels = notifiers.Where(static notifier => notifier.Channel is not null && notifier.IsEnabled).ToList();
+        _lastSent = today;
+        if (channels.Count == 0)
         {
-            _lastSent = today;
-            activity.Log("warn", "Resumo diário ligado, mas o e-mail está desligado no .env.");
+            activity.Log("warn", "The daily summary is on, but no alert channel (email, Telegram, WhatsApp) is turned on in .env.");
             return false;
         }
 
         var history = await alertRepository.ListHistoryAsync();
         var (subject, text) = Build(history, activity.Snapshot(settings.Paused), now);
-        await email.SendNoticeAsync(subject, text, cancellationToken);
-        _lastSent = today;
-        activity.Log("info", "Resumo diário enviado por e-mail.");
-        return true;
+        var sent = new List<string>();
+        foreach (var channel in channels)
+        {
+            try
+            {
+                await channel.SendNoticeAsync(subject, text, cancellationToken);
+                sent.Add(channel.Channel!.Value.ToString());
+            }
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
+            {
+                activity.Log("error", $"The daily summary by {channel.Channel} failed: {exception.Message}");
+            }
+        }
+
+        if (sent.Count > 0)
+        {
+            activity.Log("info", $"Daily summary sent by {string.Join(", ", sent)}.");
+        }
+
+        return sent.Count > 0;
     }
 
     /// <summary>The subject and text of the summary.</summary>
@@ -101,15 +117,15 @@ internal sealed class DailySummaryWorker(
         var failing = monitor.Searches.Where(static search => !search.Succeeded).Select(static search => search.StoreName).Distinct().Order().ToList();
 
         var text = new StringBuilder();
-        text.AppendLine($"Resumo de {now.ToString("dddd, d 'de' MMMM", Portuguese)}.").AppendLine();
+        text.AppendLine($"Summary for {now.ToString("dddd, d MMMM", English)}.").AppendLine();
 
-        text.AppendLine(lastDay.Count == 0 ? "Nenhum alerta nas últimas 24 horas." : $"Alertas nas últimas 24 horas: {lastDay.Count}");
+        text.AppendLine(lastDay.Count == 0 ? "No alerts in the last 24 hours." : $"Alerts in the last 24 hours: {lastDay.Count}");
         foreach (var alert in lastDay.Take(15))
         {
             text.AppendLine($"• {alert.At.ToLocalTime():HH:mm} · {alert.Title} — {alert.StoreName} · {Price(alert.Price)}");
         }
 
-        text.AppendLine().AppendLine(offers.Count == 0 ? "Nada em stock ao teu preço agora." : $"Em stock ao teu preço agora: {offers.Count}");
+        text.AppendLine().AppendLine(offers.Count == 0 ? "Nothing in stock at your price right now." : $"In stock at your price right now: {offers.Count}");
         foreach (var (storeName, listing) in offers.Take(15))
         {
             text.AppendLine($"• {listing.Title} — {storeName} · {Price(listing.Price)}").AppendLine($"  {listing.Url}");
@@ -117,12 +133,12 @@ internal sealed class DailySummaryWorker(
 
         if (failing.Count > 0)
         {
-            text.AppendLine().AppendLine($"Lojas com erro no último ciclo: {string.Join(", ", failing)}");
+            text.AppendLine().AppendLine($"Stores with errors in the last cycle: {string.Join(", ", failing)}");
         }
 
-        var subject = $"[Card Forge] Resumo do dia: {lastDay.Count} alerta(s), {offers.Count} em stock";
+        var subject = $"[Card Forge] Daily summary: {lastDay.Count} alert(s), {offers.Count} in stock";
         return (subject, text.ToString().TrimEnd());
     }
 
-    private static string Price(decimal? price) => price?.ToString("C", Portuguese) ?? "sem preço";
+    private static string Price(decimal? price) => price?.ToString("C", English) ?? "no price";
 }

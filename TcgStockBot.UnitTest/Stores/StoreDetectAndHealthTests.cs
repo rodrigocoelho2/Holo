@@ -120,7 +120,7 @@ public sealed class StoreDetectAndHealthTests : IDisposable
     [Fact]
     public async Task Test_KeepsTheResultOnTheStore_AndCountsWhatTasksRecognise()
     {
-        await _stores.SaveAsync(new Store { Name = "Loja", Platform = StorePlatform.Shopify, BaseUrl = "https://loja.example", UnmarkedLanguage = UnmarkedLanguagePolicy.English, Tags = ["por testar", "PT"] }, null);
+        await _stores.SaveAsync(new Store { Name = "Loja", Platform = StorePlatform.Shopify, BaseUrl = "https://loja.example", UnmarkedLanguage = UnmarkedLanguagePolicy.English, Tags = ["untested", "PT"] }, null);
         await _tasks.SaveAsync(new StockTask { Id = "etb", Name = "ETB", SearchQuery = "etb", RequiredKeywords = ["elite trainer box"], MaxPrice = 70 });
         var adapter = new CannedAdapter(StorePlatform.Shopify,
             new StoreListing("Loja", "Pitch Black Elite Trainer Box", new Uri("https://loja.example/a"), 59.99m, true),
@@ -133,7 +133,7 @@ public sealed class StoreDetectAndHealthTests : IDisposable
         Assert.Equal("pokemon", result.Query);
         var saved = (await _stores.GetAsync("Loja"))!;
         Assert.Equal(StoreTestStatus.Ok, saved.LastTest!.Status);
-        Assert.Equal(["PT"], saved.Tags);   // tested with products: no longer "por testar"
+        Assert.Equal(["PT"], saved.Tags);   // tested with products: no longer "untested"
     }
 
     [Theory]

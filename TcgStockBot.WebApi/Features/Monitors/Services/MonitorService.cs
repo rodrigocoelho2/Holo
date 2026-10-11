@@ -30,7 +30,7 @@ internal sealed class MonitorService(
     public Task<ServiceApiResponse<string>> RunAsync()
     {
         _scheduler.RequestRun();
-        _activity.Log("info", "Verificação pedida no dashboard");
+        _activity.Log("info", "Check requested from Card Forge");
         return Task.FromResult(ServiceApiResponse<string>.Success());
     }
 
@@ -38,7 +38,7 @@ internal sealed class MonitorService(
     public async Task<ServiceApiResponse<string>> PauseAsync()
     {
         await _settingRepository.SetPausedAsync(true);
-        _activity.Log("info", "Bot em pausa");
+        _activity.Log("info", "Bot paused");
         return ServiceApiResponse<string>.Success();
     }
 
@@ -46,7 +46,7 @@ internal sealed class MonitorService(
     public async Task<ServiceApiResponse<string>> ResumeAsync()
     {
         await _settingRepository.SetPausedAsync(false);
-        _activity.Log("info", "Bot retomado");
+        _activity.Log("info", "Bot resumed");
         _scheduler.RequestRun();
         return ServiceApiResponse<string>.Success();
     }

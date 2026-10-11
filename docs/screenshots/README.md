@@ -6,19 +6,19 @@ Esta pasta contém exemplos visuais do Card Forge (antes TcgStockBot).
 
 Tiradas com dados de exemplo (nada real):
 
-- `dashboard-radar.png` — Radar: separadores por jogo, novidades, ofertas, últimos movimentos e lojas
-- `dashboard-produtos.png` — Produtos: o catálogo
-- `dashboard-ficha.png` — ficha de um produto: lojas, gráfico por período e histórico
-- `dashboard-lancamentos.png` — Lançamentos
-- `dashboard-a-vigiar.png` — produtos vigiados, separadores por jogo e filtro por estado
-- `dashboard-produto.png` — página de um produto: regras e o que cada loja encontrou
-- `dashboard-vigiar.png` — vigiar um produto novo (pesquisa e regras sugeridas)
-- `dashboard-alertas.png` — alertas dos últimos 14 dias
-- `dashboard-lojas.png` — lojas por área e tier
-- `dashboard-definicoes.png` — tema, verificação, avisos, resumo diário e conta
-- `dashboard-sobre.png`, `dashboard-sobre-telemovel.png` — página de apresentação
-- `dashboard-entrar.png` — login
-- `dashboard-telemovel.png` — o Radar no telemóvel
+- `dashboard-radar.png` — Radar: game tabs, new offers, offers, latest moves and stores
+- `dashboard-products.png` — Products: the catalogue
+- `dashboard-product.png` — a product page: stores, chart by period and history
+- `dashboard-releases.png` — Releases
+- `dashboard-watching.png` — watched products, game tabs and status filter
+- `dashboard-watched.png` — a watched product: rules and what each store found
+- `dashboard-watch.png` — watch a new product (search and suggested rules)
+- `dashboard-alerts.png` — alerts of the last 14 days
+- `dashboard-stores.png` — stores by area and tier
+- `dashboard-settings.png` — theme, checks, alert channels, daily summary and account
+- `dashboard-about.png`, `dashboard-about-phone.png` — the public page
+- `dashboard-sign-in.png`, `dashboard-sign-in-phone.png`, `dashboard-create-account.png` — sign in and first account
+- `dashboard-phone.png` — Radar on the phone
 
 ## Como adicionar as imagens:
 

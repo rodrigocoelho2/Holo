@@ -36,12 +36,12 @@ public class TelegramAndSummaryTests
     {
         var text = AlertMessageFormatter.Telegram([Alert("<b>ETB</b>", previous: 69.90m), Alert("Bundle")], 1);
 
-        Assert.Contains("2 alertas", text);
-        Assert.Contains("1 descida(s)", text);
+        Assert.Contains("2 alerts", text);
+        Assert.Contains("1 price drop(s)", text);
         Assert.Contains("&lt;b&gt;ETB&lt;/b&gt;", text);
         Assert.Contains("Loja &lt;A&gt;", text);
         Assert.Contains("x=1&amp;y=2", text);
-        Assert.Contains("+1 no dashboard", text);
+        Assert.Contains("+1 more in Card Forge", text);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class TelegramAndSummaryTests
 
         var (subject, text) = DailySummaryWorker.Build(history, monitor, now);
 
-        Assert.Contains("1 alerta(s), 1 em stock", subject);
+        Assert.Contains("1 alert(s), 1 in stock", subject);
         Assert.Contains("Pitch Black ETB", text);
         Assert.DoesNotContain("Antigo", text);
         Assert.Contains("Chaos Rising Bundle", text);

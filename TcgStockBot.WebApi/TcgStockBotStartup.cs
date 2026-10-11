@@ -28,6 +28,8 @@ using TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 using TcgStockBot.WebApi.Features.Msrps.Repositories;
 using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Releases.Repositories;
+using TcgStockBot.WebApi.Features.Users.Repositories;
+using TcgStockBot.WebApi.Features.Users.Services;
 using TcgStockBot.WebApi.Features.Releases.Services;
 
 namespace TcgStockBot.WebApi;
@@ -150,6 +152,10 @@ internal static class TcgStockBotStartup
         // PriceHistories
         services.AddSingleton<IPriceHistoryRepository, PriceHistoryRepository>();
         services.AddSingleton<IPriceHistoryService, PriceHistoryService>();
+
+        // Users
+        services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<IUserService, UserService>();
 
         // Releases
         services.AddSingleton<IReleaseRepository, ReleaseRepository>();

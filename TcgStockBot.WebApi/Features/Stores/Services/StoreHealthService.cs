@@ -31,10 +31,19 @@ internal sealed class StoreHealthService(
     IMsrpService? msrpService = null) : IStoreHealthService
 {
     /// <summary>The tag added to a store the bot turned off; removed when it is turned on again.</summary>
-    internal const string FailingTag = "a falhar";
+    internal const string FailingTag = "failing";
 
     /// <summary>The tag of stores still to test; a test that finds products removes it.</summary>
-    internal const string UntestedTag = "por testar";
+    internal const string UntestedTag = "untested";
+
+    /// <summary>The same tags as earlier versions wrote them (Portuguese), still removed.</summary>
+    internal static readonly string[] LegacyFailingTags = [FailingTag, "a falhar"];
+
+    /// <summary>The untested tag in this and earlier versions.</summary>
+    internal static readonly string[] LegacyUntestedTags = [UntestedTag, "por testar"];
+
+    /// <summary>Whether a tag is one of the given ones (case-insensitive).</summary>
+    internal static bool IsTag(string tag, string[] tags) => tags.Any(other => other.Equals(tag, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>The search text of a test when none is given.</summary>
     internal const string DefaultQuery = "pokemon";
@@ -74,7 +83,7 @@ internal sealed class StoreHealthService(
                 saved.LastTest = record;
                 if (record.Status == StoreTestStatus.Ok)
                 {
-                    saved.Tags.RemoveAll(static tag => tag.Equals(UntestedTag, StringComparison.OrdinalIgnoreCase));
+                    saved.Tags.RemoveAll(static tag => IsTag(tag, LegacyUntestedTags));
                 }
             }
         });
@@ -114,7 +123,7 @@ internal sealed class StoreHealthService(
                 {
                     store.Enabled = false;
                     store.AutoDisabledAt = now;
-                    if (!store.Tags.Contains(FailingTag, StringComparer.OrdinalIgnoreCase))
+                    if (!store.Tags.Any(static tag => IsTag(tag, LegacyFailingTags)))
                     {
                         store.Tags.Add(FailingTag);
                     }

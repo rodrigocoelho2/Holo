@@ -21,28 +21,28 @@ async function mutate(action, successMessage) {
 
 function setTaskEnabled(id, enabled) {
   const message = id
-    ? (enabled ? "A vigiar outra vez" : "Produto em pausa")
-    : (enabled ? "Todos os produtos a vigiar" : "Todos os produtos em pausa");
+    ? (enabled ? "Watching again" : "Product paused")
+    : (enabled ? "Watching every product" : "Every product paused");
   return mutate(() => post("/stocktask/enable", { id, enabled }), message);
 }
 
 function setStoreEnabled(name, enabled) {
-  return mutate(() => post("/store/enable", { name, enabled }), `${name} ${enabled ? "ativada" : "desligada"}`);
+  return mutate(() => post("/store/enable", { name, enabled }), `${name} ${enabled ? "turned on" : "turned off"}`);
 }
 
 async function deleteTask(task) {
-  if (!await confirmDialog({ title: "Deixar de vigiar?", message: `“${task.name || task.id}” é apagado e deixa de ser pesquisado. Os alertas antigos ficam na lista.`, confirmLabel: "Apagar", danger: true })) return;
-  const ok = await mutate(() => post(`/stocktask/delete?identifier=${encodeURIComponent(task.id)}`), "Produto apagado");
-  if (ok && state.route.view === "produto") go("a-vigiar");
+  if (!await confirmDialog({ title: "Stop watching?", message: `“${task.name || task.id}” is deleted and no longer searched. Past alerts stay in the list.`, confirmLabel: "Delete", danger: true })) return;
+  const ok = await mutate(() => post(`/stocktask/delete?identifier=${encodeURIComponent(task.id)}`), "Product deleted");
+  if (ok && state.route.view === "watched") go("watching");
 }
 
 async function deleteAllTasks() {
   const tasks = state.tasks || [];
   if (tasks.length === 0) return;
   if (!await confirmDialog({
-    title: `Apagar os ${tasks.length} produtos?`,
-    message: "Deixam todos de ser vigiados. Antes de apagar é descarregada uma cópia (JSON) que podes voltar a importar.",
-    confirmLabel: "Apagar todos", danger: true,
+    title: `Delete all ${tasks.length} products?`,
+    message: "None of them will be watched any more. A copy (JSON) you can import again is downloaded first.",
+    confirmLabel: "Delete all", danger: true,
   })) return;
 
   exportTasks();
@@ -55,20 +55,20 @@ async function deleteAllTasks() {
     }
   }
   await reloadConfiguration();
-  if (failed.length === 0) toast(`${tasks.length} produto(s) apagado(s)`, "success");
-  else toast(`Não foi possível apagar: ${failed.join(", ")}`, "error");
+  if (failed.length === 0) toast(`${tasks.length} product(s) deleted`, "success");
+  else toast(`Could not delete: ${failed.join(", ")}`, "error");
 }
 
 async function deleteStore(store) {
-  if (!await confirmDialog({ title: "Apagar loja?", message: `“${store.name}” deixa de ser pesquisada e sai dos produtos que a usam.`, confirmLabel: "Apagar", danger: true })) return;
+  if (!await confirmDialog({ title: "Delete store?", message: `“${store.name}” is no longer searched and is removed from the products that use it.`, confirmLabel: "Delete", danger: true })) return;
   closeDrawer();
-  await mutate(() => post(`/store/delete?identifier=${encodeURIComponent(store.name)}`), "Loja apagada");
+  await mutate(() => post(`/store/delete?identifier=${encodeURIComponent(store.name)}`), "Store deleted");
 }
 
 async function setPaused(paused) {
   try {
     await post(paused ? "/monitor/pause" : "/monitor/resume");
-    toast(paused ? "Bot em pausa" : "Bot retomado — a verificar já", "success");
+    toast(paused ? "Bot paused" : "Bot resumed — checking now", "success");
     await refresh();
   } catch (error) {
     toast(error.message, "error");
@@ -78,7 +78,7 @@ async function setPaused(paused) {
 async function runNow() {
   try {
     await post("/monitor/run");
-    toast("Verificação pedida", "success");
+    toast("Check requested", "success");
     setTimeout(refresh, 700);
   } catch (error) {
     toast(error.message, "error");
@@ -86,10 +86,10 @@ async function runNow() {
 }
 
 async function clearAlertList() {
-  if (!await confirmDialog({ title: "Limpar a lista de alertas?", message: "Apaga o histórico de alertas. Os produtos que continuam em stock não voltam a ser avisados por causa disto.", confirmLabel: "Limpar" })) return;
+  if (!await confirmDialog({ title: "Clear the alert list?", message: "Deletes the alert history. Products still in stock are not alerted again because of this.", confirmLabel: "Clear" })) return;
   try {
     await post("/alert/clear");
-    toast("Lista de alertas limpa", "success");
+    toast("Alert list cleared", "success");
     state.alerts = await api("/alert/list");
     renderChrome();
     renderView(true);
@@ -99,10 +99,10 @@ async function clearAlertList() {
 }
 
 async function resetAlertMemory() {
-  if (!await confirmDialog({ title: "Limpar memória de alertas?", message: "Na próxima verificação voltas a receber aviso de tudo o que estiver em stock ao preço.", confirmLabel: "Limpar" })) return;
+  if (!await confirmDialog({ title: "Clear the alert memory?", message: "On the next check you get alerted again about everything in stock at your price.", confirmLabel: "Clear" })) return;
   try {
     await post("/alert/reset");
-    toast("Memória de alertas limpa", "success");
+    toast("Alert memory cleared", "success");
   } catch (error) {
     toast(error.message, "error");
   }
@@ -111,7 +111,7 @@ async function resetAlertMemory() {
 async function sendTest(channel) {
   try {
     await post("/notification/test", { channel });
-    toast(channel === "Email" ? "Email de teste enviado" : `Mensagem de teste enviada — vê o ${channel}`, "success");
+    toast(channel === "Email" ? "Test email sent" : `Test message sent — check ${channel}`, "success");
   } catch (error) {
     toast(errorText(error), "error");
   }
@@ -128,7 +128,7 @@ async function reloadConfiguration() {
 async function refreshNotification() {
   try {
     state.notification = await api("/notification/get");
-    if (state.route.view === "definicoes" || state.route.view === "alertas") renderView(true);
+    if (state.route.view === "settings" || state.route.view === "alerts") renderView(true);
   } catch {
     // The pages show "A carregar canais…" until it works.
   }
@@ -141,16 +141,16 @@ async function refresh() {
     if (cycleAt !== state.lastCycleAt) {
       state.lastCycleAt = cycleAt;
       state.alerts = await api("/alert/list");
-      if (state.route.view === "produtos") loadCatalog();
-      if (state.route.view === "ficha") loadFicha(state.route.param, { quiet: true });
+      if (state.route.view === "products") loadCatalog();
+      if (state.route.view === "product") loadFicha(state.route.param, { quiet: true });
     }
     renderChrome();
     renderView();
   } catch (error) {
-    document.getElementById("status-chip").replaceChildren(h("span", { class: "bot-dot error" }), error.message || "Sem ligação ao bot");
+    document.getElementById("status-chip").replaceChildren(h("span", { class: "bot-dot error" }), error.message || "Can't reach the bot");
     document.getElementById("bot-card").replaceChildren(
-      h("div", { class: "bot-state" }, h("span", { class: "bot-dot error" }), "Sem ligação ao bot"),
-      h("div", { class: "bot-meta" }, error.message || "A tentar outra vez…"));
+      h("div", { class: "bot-state" }, h("span", { class: "bot-dot error" }), "Can't reach the bot"),
+      h("div", { class: "bot-meta" }, error.message || "Trying again…"));
   }
 }
 
@@ -164,7 +164,7 @@ async function start() {
     state.msrp = await api("/msrp/list").catch(() => ({ kinds: [], entries: [] }));
     state.releases = await api("/release/list").catch(() => null);
   } catch (error) {
-    document.getElementById("view").replaceChildren(h("div", { class: "card soft" }, emptyState("alert", "Não foi possível ligar ao bot", `${error.message} — a tentar outra vez…`)));
+    document.getElementById("view").replaceChildren(h("div", { class: "card soft" }, emptyState("alert", "Could not connect to the bot", `${error.message} — trying again…`)));
     setTimeout(start, 3000);
     return;
   }
@@ -184,7 +184,7 @@ document.getElementById("drawer-backdrop").addEventListener("click", closeDrawer
 document.getElementById("menu-button").addEventListener("click", openSidebar);
 document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebar);
 
-// "Mais" menus close when clicking elsewhere.
+// "More" menus close when clicking elsewhere.
 document.addEventListener("click", (event) => {
   for (const menu of document.querySelectorAll("details.menu[open]")) if (!menu.contains(event.target)) menu.open = false;
 });
@@ -205,7 +205,7 @@ document.addEventListener("keydown", (event) => {
   if (view) { go(view.id); return; }
   const key = event.key.toLowerCase();
   if (key === "r") runNow();
-  else if (key === "n") go("vigiar");
+  else if (key === "n") go("watch");
   else if (key === "/") {
     const search = document.querySelector("#view input[type=search]");
     if (search) { event.preventDefault(); search.focus(); }

@@ -156,9 +156,9 @@ internal sealed class StockCheckService(
 
             foreach (var alert in newAlerts)
             {
-                var headline = alert.IsPriceDrop ? $"BAIXOU DE PREÇO ({alert.PreviousPrice:0.00} € →)" : alert.Listing.PreOrder ? "PRÉ-VENDA" : "EM STOCK";
-                activity.Log("alert", $"{headline}: {alert.Listing.Title} — {alert.Listing.StoreName} ({alert.Listing.Price:0.00} €)"
-                    + (alert.LanguageToConfirm ? " · confirmar idioma" : string.Empty));
+                var headline = alert.IsPriceDrop ? $"PRICE DROP (€{alert.PreviousPrice:0.00} →)" : alert.Listing.PreOrder ? "PRE-ORDER" : "IN STOCK";
+                activity.Log("alert", $"{headline}: {alert.Listing.Title} — {alert.Listing.StoreName} (€{alert.Listing.Price:0.00})"
+                    + (alert.LanguageToConfirm ? " · check the language" : string.Empty));
             }
         }
 
@@ -188,7 +188,7 @@ internal sealed class StockCheckService(
             {
                 var line = await globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoreAutoDisabledLine), name, failures, lastErrors.GetValueOrDefault(name, string.Empty));
                 lines.Add(line);
-                activity.Log("error", $"Loja desligada automaticamente — {line}");
+                activity.Log("error", $"Store turned off automatically — {line}");
             }
 
             var subject = await globalizationHelper.TranslateAsync(nameof(TranslationKeys.StoresAutoDisabledSubject), string.Join(", ", turnedOff.Select(static store => store.Name)));

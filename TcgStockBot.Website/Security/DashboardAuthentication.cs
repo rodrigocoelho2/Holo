@@ -2,27 +2,34 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Options;
+using TcgStockBot.Sdk;
+using TcgStockBot.Sdk.Models;
 
 namespace TcgStockBot.Website.Security;
 
 /// <summary>
-/// Sign-in with a login form and a cookie. With no password configured the dashboard is open: every request is
-/// treated as signed in.
+/// Sign-in with an account (user name + password, kept by the bot) and a cookie. Every few minutes the cookie is
+/// checked against the account, so a deleted account or a changed password ends the other sessions.
 /// </summary>
 internal static class DashboardAuthentication
 {
-    /// <summary>The login page.</summary>
-    public const string LoginPath = "/entrar";
+    /// <summary>The sign-in page.</summary>
+    public const string SignInPath = "/sign-in";
+
+    /// <summary>The create-account page.</summary>
+    public const string CreateAccountPath = "/create-account";
 
     /// <summary>The name of the session cookie.</summary>
     public const string CookieName = "cardforge.session";
 
-    /// <summary>The authentication type of the open (no password) mode.</summary>
-    public const string OpenAuthenticationType = "open";
+    /// <summary>The claim holding the account's security stamp.</summary>
+    public const string StampClaim = "cardforge:stamp";
+
+    private const string CheckedAtKey = "cardforge:checked";
+    private static readonly TimeSpan CheckEvery = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Registers cookie authentication, the login throttle and (optionally) persistent cookie keys.
+    /// Registers cookie authentication, the sign-in throttle and (optionally) persistent cookie keys.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
@@ -47,13 +54,13 @@ internal static class DashboardAuthentication
                 cookie.Cookie.HttpOnly = true;
                 cookie.Cookie.SameSite = SameSiteMode.Lax;
                 cookie.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;   // the NAS is usually plain HTTP on the LAN
-                cookie.LoginPath = LoginPath;
-                cookie.ReturnUrlParameter = "volta";
+                cookie.LoginPath = SignInPath;
+                cookie.ReturnUrlParameter = "returnUrl";
                 cookie.SlidingExpiration = true;
                 cookie.ExpireTimeSpan = TimeSpan.FromDays(Math.Clamp(options.RememberDays, 1, 365));
                 cookie.Events.OnRedirectToLogin = context =>
                 {
-                    // Pages go to the login form; the dashboard's JSON calls get a plain 401 (the script then opens the form).
+                    // Pages go to the sign-in form; the dashboard's JSON calls get a plain 401 (the script then opens the form).
                     if (HttpMethods.IsGet(context.Request.Method) && context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase))
                     {
                         context.Response.Redirect(context.RedirectUri);
@@ -65,6 +72,12 @@ internal static class DashboardAuthentication
 
                     return Task.CompletedTask;
                 };
+                cookie.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
+                cookie.Events.OnValidatePrincipal = ValidateAsync;
             });
 
         services.AddAuthorization();
@@ -72,43 +85,88 @@ internal static class DashboardAuthentication
     }
 
     /// <summary>
-    /// Adds authentication to the pipeline; in open mode every request is signed in.
+    /// The principal of an account.
     /// </summary>
-    /// <param name="app">The application.</param>
-    /// <returns>The application.</returns>
-    public static WebApplication UseDashboardAuthentication(this WebApplication app)
-    {
-        app.UseAuthentication();
-
-        if (!app.Services.GetRequiredService<IOptions<DashboardOptions>>().Value.RequiresPassword)
-        {
-            var open = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "Card Forge")], OpenAuthenticationType));
-            app.Use((context, next) =>
-            {
-                context.User = open;
-                return next(context);
-            });
-        }
-
-        app.UseAuthorization();
-        return app;
-    }
+    /// <param name="user">The account.</param>
+    /// <returns>The principal stored in the cookie.</returns>
+    public static ClaimsPrincipal Principal(UserDTO user) => new(new ClaimsIdentity(
+    [
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.Role, user.Role.ToString()),
+        new Claim(StampClaim, user.SecurityStamp),
+    ], CookieAuthenticationDefaults.AuthenticationScheme));
 
     /// <summary>
-    /// Signs the browser in.
+    /// Signs the browser in as an account.
     /// </summary>
     /// <param name="context">The request.</param>
+    /// <param name="user">The account.</param>
     /// <param name="remember">Keep the session after the browser closes.</param>
     /// <param name="rememberDays">For how long, when remembered.</param>
     /// <returns>A task that completes when the cookie is set.</returns>
-    public static Task SignInAsync(HttpContext context, bool remember, int rememberDays)
+    public static Task SignInAsync(HttpContext context, UserDTO user, bool remember, int rememberDays)
     {
-        var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "Card Forge")], CookieAuthenticationDefaults.AuthenticationScheme));
-        return context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
+        var properties = new AuthenticationProperties
         {
             IsPersistent = remember,
             ExpiresUtc = remember ? DateTimeOffset.UtcNow.AddDays(Math.Clamp(rememberDays, 1, 365)) : null,
             AllowRefresh = true,
-        });
+        };
+        properties.Items[CheckedAtKey] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, Principal(user), properties);
+    }
+
+    /// <summary>The account id of the signed-in user, or empty.</summary>
+    /// <param name="user">The principal.</param>
+    /// <returns>The id.</returns>
+    public static string UserId(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+    /// <summary>
+    /// Every <see cref="CheckEvery"/>, makes sure the account still exists and its password did not change.
+    /// When the bot cannot be reached, the session is kept (the pages show the connection problem instead).
+    /// </summary>
+    private static async Task ValidateAsync(CookieValidatePrincipalContext context)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (context.Properties.Items.TryGetValue(CheckedAtKey, out var checkedAt)
+            && long.TryParse(checkedAt, System.Globalization.CultureInfo.InvariantCulture, out var seconds)
+            && now - DateTimeOffset.FromUnixTimeSeconds(seconds) < CheckEvery)
+        {
+            return;
+        }
+
+        var id = context.Principal is null ? string.Empty : UserId(context.Principal);
+        var stamp = context.Principal?.FindFirstValue(StampClaim) ?? string.Empty;
+        var client = context.HttpContext.RequestServices.GetRequiredService<TcgStockBotClient>();
+        try
+        {
+            var user = await client.UserGetAsync(id);
+            if (user.SecurityStamp != stamp)
+            {
+                await RejectAsync(context);
+                return;
+            }
+
+            context.ReplacePrincipal(Principal(user));   // name or role may have changed
+        }
+        catch (TcgStockBotApiException exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            await RejectAsync(context);
+            return;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or TcgStockBotApiException)
+        {
+            return;   // the bot is down: keep the session, check again on the next request
+        }
+
+        context.Properties.Items[CheckedAtKey] = now.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
+        context.ShouldRenew = true;
+    }
+
+    private static async Task RejectAsync(CookieValidatePrincipalContext context)
+    {
+        context.RejectPrincipal();
+        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 }

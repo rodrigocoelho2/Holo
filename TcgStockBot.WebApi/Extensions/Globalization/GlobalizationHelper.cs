@@ -28,77 +28,86 @@ internal interface IGlobalizationHelper
 }
 
 /// <summary>
-/// Portuguese (pt-PT) translations. The dashboard is Portuguese-only, so the texts live in code
-/// rather than in a translation table.
+/// The user-facing messages (English). The app has one language, so the texts live in code rather than in a
+/// translation table.
 /// </summary>
 internal sealed class GlobalizationHelper : IGlobalizationHelper
 {
-    private static readonly CultureInfo Portuguese = CultureInfo.GetCultureInfo("pt-PT");
+    private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-IE");
 
     private static readonly Dictionary<string, string> Translations = new(StringComparer.OrdinalIgnoreCase)
     {
-        [nameof(TranslationKeys.ValidationProblems)] = "Há problemas nos dados enviados.",
-        [nameof(TranslationKeys.RequiredField)] = "é obrigatório.",
-        [nameof(TranslationKeys.GreaterThen0)] = "tem de ser maior que 0.",
-        [nameof(TranslationKeys.InvalidUrl)] = "tem de ser um endereço http(s) completo.",
-        [nameof(TranslationKeys.InvalidCharacter)] = "não pode conter o carácter '|'.",
-        [nameof(TranslationKeys.AlreadyExists)] = "já existe outro registo com '{0}'.",
-        [nameof(TranslationKeys.NoRecordsFound)] = "O registo '{0}' não existe.",
-        [nameof(TranslationKeys.PollIntervalTooShort)] = "tem de ser de pelo menos 1 minuto.",
-        [nameof(TranslationKeys.NegativeValue)] = "não pode ser negativo.",
-        [nameof(TranslationKeys.StoreHttpError)] = "A loja respondeu HTTP {0} ({1}).",
-        [nameof(TranslationKeys.StoreTimeout)] = "A loja não respondeu a tempo.",
-        [nameof(TranslationKeys.StoreBlocked)] = "A loja recusou o pedido (HTTP 403). Normalmente é a proteção anti-bot da loja; o bot não a contorna.",
-        [nameof(TranslationKeys.StoreRateLimited)] = "A loja pediu para abrandar (HTTP 429). Fica em pausa e volta a ser consultada depois.",
-        [nameof(TranslationKeys.StoreServerError)] = "Erro do lado da loja (HTTP {0}). Volta a tentar no próximo ciclo.",
-        [nameof(TranslationKeys.StoreThrottled)] = "Pedido adiado: {0} está em pausa por mais {1} s (limite de pedidos).",
-        [nameof(TranslationKeys.DnsFailed)] = "Não foi possível resolver o endereço (DNS).",
-        [nameof(TranslationKeys.ConnectionRefused)] = "A ligação foi recusada.",
-        [nameof(TranslationKeys.StoreIntegrationNotConfigured)] = "{0}: integração não configurada — {1}",
-        [nameof(TranslationKeys.StoreIntegrationUnauthorized)] = "{0}: as credenciais foram recusadas — {1}",
-        [nameof(TranslationKeys.StoreIntegrationApiError)] = "{0}: a API respondeu com erro — {1}",
-        [nameof(TranslationKeys.NotificationChannelDisabled)] = "O canal {0} está desligado na configuração.",
-        [nameof(TranslationKeys.StoreWithoutIntegration)] = "{0} não tem integração: está na lista só como referência. Escolhe uma plataforma (Shopify, WooCommerce, HTML, Awin…) para a pesquisar.",
-        [nameof(TranslationKeys.UnknownProductKind)] = "o tipo de produto '{0}' não existe.",
-        [nameof(TranslationKeys.MsrpToleranceRange)] = "tem de estar entre -50% e 300%.",
-        [nameof(TranslationKeys.HourRange)] = "tem de ser uma hora entre 0 e 23.",
-        [nameof(TranslationKeys.PreOrderAfterRelease)] = "não pode ser depois do lançamento.",
-        [nameof(TranslationKeys.InvalidKey)] = "só pode ter letras, números e '_'.",
-        [nameof(TranslationKeys.StoreDetected)] = "Detetado: {0}.",
-        [nameof(TranslationKeys.StoreDetectBlocked)] = "O site recusou o bot (403/429 ou proteção anti-bot). Não é contornado: fica \"Sem integração\", ou usa um feed Awin/API se existir.",
-        [nameof(TranslationKeys.StoreDetectUnreachable)] = "Não foi possível ligar ao site (DNS, ligação ou tempo esgotado).",
-        [nameof(TranslationKeys.StoreDetectUnknown)] = "O site respondeu, mas não tem API Shopify/WooCommerce nem pesquisa PrestaShop reconhecível. Configura HTML à mão (se os termos permitirem) ou deixa \"Sem integração\".",
-        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[Card Forge] Loja(s) desligada(s) por erros: {0}",
-        [nameof(TranslationKeys.StoreAutoDisabledLine)] = "{0}: {1} ciclos seguidos com erro — {2}",
-        [nameof(TranslationKeys.NotificationFailed)] = "Falhou o envio por {0}: {1}",
+        [nameof(TranslationKeys.ValidationProblems)] = "Some of the data sent is not valid.",
+        [nameof(TranslationKeys.RequiredField)] = "is required.",
+        [nameof(TranslationKeys.GreaterThen0)] = "must be greater than 0.",
+        [nameof(TranslationKeys.InvalidUrl)] = "must be a full http(s) address.",
+        [nameof(TranslationKeys.InvalidCharacter)] = "cannot contain the '|' character.",
+        [nameof(TranslationKeys.AlreadyExists)] = "'{0}' is already taken.",
+        [nameof(TranslationKeys.NoRecordsFound)] = "'{0}' does not exist.",
+        [nameof(TranslationKeys.PollIntervalTooShort)] = "must be at least 1 minute.",
+        [nameof(TranslationKeys.NegativeValue)] = "cannot be negative.",
+        [nameof(TranslationKeys.StoreHttpError)] = "The store answered HTTP {0} ({1}).",
+        [nameof(TranslationKeys.StoreTimeout)] = "The store did not answer in time.",
+        [nameof(TranslationKeys.StoreBlocked)] = "The store refused the request (HTTP 403). Usually its anti-bot protection; the bot does not get around it.",
+        [nameof(TranslationKeys.StoreRateLimited)] = "The store asked to slow down (HTTP 429). It is paused and will be checked again later.",
+        [nameof(TranslationKeys.StoreServerError)] = "Error on the store's side (HTTP {0}). Trying again next cycle.",
+        [nameof(TranslationKeys.StoreThrottled)] = "Request postponed: {0} is paused for {1} more s (request limit).",
+        [nameof(TranslationKeys.DnsFailed)] = "Could not resolve the address (DNS).",
+        [nameof(TranslationKeys.ConnectionRefused)] = "The connection was refused.",
+        [nameof(TranslationKeys.StoreIntegrationNotConfigured)] = "{0}: integration not configured — {1}",
+        [nameof(TranslationKeys.StoreIntegrationUnauthorized)] = "{0}: the credentials were refused — {1}",
+        [nameof(TranslationKeys.StoreIntegrationApiError)] = "{0}: the API answered with an error — {1}",
+        [nameof(TranslationKeys.NotificationChannelDisabled)] = "The {0} channel is turned off in the configuration.",
+        [nameof(TranslationKeys.StoreWithoutIntegration)] = "{0} has no integration: it is only listed for reference. Pick a platform (Shopify, WooCommerce, HTML, Awin…) to search it.",
+        [nameof(TranslationKeys.UnknownProductKind)] = "the product type '{0}' does not exist.",
+        [nameof(TranslationKeys.MsrpToleranceRange)] = "must be between -50% and 300%.",
+        [nameof(TranslationKeys.HourRange)] = "must be an hour between 0 and 23.",
+        [nameof(TranslationKeys.PreOrderAfterRelease)] = "cannot be after the release date.",
+        [nameof(TranslationKeys.InvalidKey)] = "can only have letters, digits and '_'.",
+        [nameof(TranslationKeys.StoreDetected)] = "Detected: {0}.",
+        [nameof(TranslationKeys.StoreDetectBlocked)] = "The site refused the bot (403/429 or anti-bot protection). It is not bypassed: leave it as \"No integration\", or use an Awin feed/API if there is one.",
+        [nameof(TranslationKeys.StoreDetectUnreachable)] = "Could not connect to the site (DNS, connection or timeout).",
+        [nameof(TranslationKeys.StoreDetectUnknown)] = "The site answered, but has no recognisable Shopify/WooCommerce API or PrestaShop search. Set up HTML by hand (if the terms allow it) or leave it as \"No integration\".",
+        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[Card Forge] Store(s) turned off after errors: {0}",
+        [nameof(TranslationKeys.StoreAutoDisabledLine)] = "{0}: {1} cycles in a row with errors — {2}",
+        [nameof(TranslationKeys.NotificationFailed)] = "Sending by {0} failed: {1}",
+        [nameof(TranslationKeys.UserNameInvalid)] = "must be 3 to 32 letters, digits, '.', '_' or '-'.",
+        [nameof(TranslationKeys.PasswordTooShort)] = "must have at least {0} characters.",
+        [nameof(TranslationKeys.WrongCredentials)] = "Wrong user name or password.",
+        [nameof(TranslationKeys.PasswordWrong)] = "is wrong.",
+        [nameof(TranslationKeys.LastAdmin)] = "The last admin account cannot be deleted.",
 
         // Field labels
         ["Identifier"] = "Id",
-        ["Name"] = "Nome",
-        ["SearchQuery"] = "Texto de pesquisa",
-        ["MaxPrice"] = "Preço máximo",
-        ["MsrpTolerancePercent"] = "Margem sobre o MSRP",
-        ["Kinds"] = "Tipos de produto",
-        ["DailySummaryHour"] = "Hora do resumo diário",
-        ["ReleaseDate"] = "Data de lançamento",
-        ["PreOrderDate"] = "Abertura das pré-vendas",
-        ["Url"] = "Página",
-        ["BaseUrl"] = "URL base",
-        ["SearchUrlTemplate"] = "URL de pesquisa",
-        ["ProductSelector"] = "Seletor do produto",
-        ["Query"] = "Pesquisa",
-        ["PollIntervalSeconds"] = "Intervalo entre verificações",
-        ["PollJitterSeconds"] = "Variação aleatória",
-        ["DelayBetweenRequestsSeconds"] = "Pausa entre pedidos",
+        ["Name"] = "Name",
+        ["SearchQuery"] = "Search text",
+        ["MaxPrice"] = "Max price",
+        ["MsrpTolerancePercent"] = "Margin over MSRP",
+        ["Kinds"] = "Product types",
+        ["DailySummaryHour"] = "Daily summary hour",
+        ["ReleaseDate"] = "Release date",
+        ["PreOrderDate"] = "Pre-orders open",
+        ["Url"] = "Page",
+        ["BaseUrl"] = "Base URL",
+        ["SearchUrlTemplate"] = "Search URL",
+        ["ProductSelector"] = "Product selector",
+        ["Query"] = "Search",
+        ["PollIntervalSeconds"] = "Interval between checks",
+        ["PollJitterSeconds"] = "Random variation",
+        ["DelayBetweenRequestsSeconds"] = "Pause between requests",
         ["UserAgent"] = "User-Agent",
-        ["Channel"] = "Canal",
+        ["Channel"] = "Channel",
+        ["UserName"] = "User name",
+        ["Password"] = "Password",
+        ["CurrentPassword"] = "Current password",
+        ["NewPassword"] = "New password",
     };
 
     /// <inheritdoc />
     public Task<string> TranslateAsync(string key, params object[] arguments)
     {
         var text = Translations.TryGetValue(key, out var translation) ? translation : key;
-        return Task.FromResult(arguments.Length == 0 ? text : string.Format(Portuguese, text, arguments));
+        return Task.FromResult(arguments.Length == 0 ? text : string.Format(English, text, arguments));
     }
 
     /// <inheritdoc />

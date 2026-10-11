@@ -143,6 +143,6 @@ public sealed class StoreServiceTests : IDisposable
         var response = await service.ProbeAsync(new StoreProbeRequest { Store = request, Query = "etb" });
 
         Assert.False(response.IsSuccess);
-        Assert.Contains("não tem integração", response.Problems!.Title);
+        Assert.Contains("has no integration", response.Problems!.Title);
     }
 }

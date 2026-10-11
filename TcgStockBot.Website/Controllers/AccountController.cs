@@ -5,95 +5,228 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using TcgStockBot.Sdk;
+using TcgStockBot.Sdk.Models;
 using TcgStockBot.Website.Model.Account;
 using TcgStockBot.Website.Security;
 
 namespace TcgStockBot.Website.Controllers;
 
 /// <summary>
-/// Login form and sign-out.
+/// Sign in, create an account and sign out. Accounts are kept by the bot (users.json); passwords never reach the logs.
 /// </summary>
-/// <param name="options">Dashboard settings (password).</param>
+/// <param name="apiClient">The API client.</param>
+/// <param name="options">Sign-in settings.</param>
 /// <param name="throttle">Slows down password guessing.</param>
-/// <param name="logger">Logger (never logs the password).</param>
+/// <param name="logger">Logger.</param>
 [AllowAnonymous]
-public sealed class AccountController(IOptions<DashboardOptions> options, LoginThrottle throttle, ILogger<AccountController> logger) : Controller
+public sealed class AccountController(
+    TcgStockBotClient apiClient,
+    IOptions<DashboardOptions> options,
+    LoginThrottle throttle,
+    ILogger<AccountController> logger) : Controller
 {
+    private const string Unreachable = "Can't reach the bot right now. Check that the tcgstockbot-webapi container is running, then try again.";
     private static readonly TimeSpan FailureDelay = TimeSpan.FromMilliseconds(600);
 
-    /// <summary>
-    /// Shows the login form (or goes straight to the dashboard when there is no password or already signed in).
-    /// </summary>
-    /// <param name="volta">Where to go after signing in.</param>
+    /// <summary>The sign-in form (the create-account form on the very first visit).</summary>
+    /// <param name="returnUrl">Where to go after signing in.</param>
     /// <returns>The view or a redirect.</returns>
-    [HttpGet("/entrar")]
-    public IActionResult Login(string? volta = null)
+    [HttpGet("/sign-in")]
+    public async Task<IActionResult> SignIn(string? returnUrl = null)
     {
-        if (!options.Value.RequiresPassword || User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated == true)
         {
-            return LocalRedirect(SafeReturnUrl(volta));
+            return LocalRedirect(SafeReturnUrl(returnUrl));
         }
 
-        return View(new LoginModel { ReturnUrl = SafeReturnUrl(volta), RememberDays = options.Value.RememberDays });
+        var model = await PageModelAsync(returnUrl);
+        if (model.IsFirstAccount)
+        {
+            return RedirectToAction(nameof(CreateAccount), new { returnUrl = model.ReturnUrl });
+        }
+
+        return View("SignIn", model);
     }
 
-    /// <summary>
-    /// Checks the password and signs the browser in.
-    /// </summary>
-    /// <param name="password">The password typed.</param>
+    /// <summary>Checks the user name and password and signs the browser in.</summary>
+    /// <param name="userName">The user name.</param>
+    /// <param name="password">The password.</param>
     /// <param name="remember">Keep the session on this device.</param>
-    /// <param name="volta">Where to go after signing in.</param>
+    /// <param name="returnUrl">Where to go after signing in.</param>
     /// <returns>A redirect, or the form again with the error.</returns>
-    [HttpPost("/entrar")]
+    [HttpPost("/sign-in")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LoginAsync([FromForm] string? password, [FromForm] bool remember, [FromForm] string? volta)
+    public async Task<IActionResult> SignInAsync([FromForm] string? userName, [FromForm] string? password, [FromForm] bool remember, [FromForm] string? returnUrl)
     {
-        var settings = options.Value;
-        var returnUrl = SafeReturnUrl(volta);
-        if (!settings.RequiresPassword)
+        var model = await PageModelAsync(returnUrl);
+        model.UserName = (userName ?? string.Empty).Trim();
+        model.Remember = remember;
+
+        if (Throttled(model))
         {
-            return LocalRedirect(returnUrl);
+            return View("SignIn", model);
         }
 
-        var address = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var model = new LoginModel { ReturnUrl = returnUrl, Remember = remember, RememberDays = settings.RememberDays };
-
-        var wait = throttle.RetryAfter(address);
-        if (wait > TimeSpan.Zero)
+        try
         {
-            model.Error = $"Demasiadas tentativas erradas. Tenta outra vez daqui a {Math.Max(1, (int)Math.Ceiling(wait.TotalMinutes))} min.";
-            Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            return View("Login", model);
+            var user = await apiClient.UserSignInAsync(new UserSignInRequest { UserName = model.UserName, Password = password });
+            throttle.Succeeded(Address);
+            await DashboardAuthentication.SignInAsync(HttpContext, user, remember, options.Value.RememberDays);
+            return LocalRedirect(model.ReturnUrl);
         }
-
-        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(password ?? string.Empty), Encoding.UTF8.GetBytes(settings.Password)))
+        catch (TcgStockBotApiException exception) when (exception.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
-            throttle.Failed(address);
+            throttle.Failed(Address);
             if (logger.IsEnabled(LogLevel.Warning))
-                logger.LogWarning("Wrong dashboard password from {Address}", address);
+                logger.LogWarning("Failed sign-in for {UserName} from {Address}", model.UserName, Address);
 
             await Task.Delay(FailureDelay);
-            model.Error = "Password errada.";
+            model.Errors = ["Wrong user name or password."];
             Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return View("Login", model);
+            return View("SignIn", model);
         }
-
-        throttle.Succeeded(address);
-        await DashboardAuthentication.SignInAsync(HttpContext, remember, settings.RememberDays);
-        return LocalRedirect(returnUrl);
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or TcgStockBotApiException)
+        {
+            model.Errors = [Unreachable];
+            Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            return View("SignIn", model);
+        }
     }
 
-    /// <summary>
-    /// Signs the browser out and shows the public page.
-    /// </summary>
-    /// <returns>A redirect to the start.</returns>
-    [HttpPost("/sair")]
+    /// <summary>The create-account form (always on the first visit; later only when registration is allowed).</summary>
+    /// <param name="returnUrl">Where to go after signing in.</param>
+    /// <returns>The view or a redirect.</returns>
+    [HttpGet("/create-account")]
+    public async Task<IActionResult> CreateAccount(string? returnUrl = null)
+    {
+        var model = await PageModelAsync(returnUrl);
+        if (!model.CanCreateAccount && model.Unavailable is null)
+        {
+            return RedirectToAction(nameof(SignIn), new { returnUrl = model.ReturnUrl });
+        }
+
+        return View("CreateAccount", model);
+    }
+
+    /// <summary>Creates the account and signs the browser in.</summary>
+    /// <param name="userName">The user name.</param>
+    /// <param name="password">The password.</param>
+    /// <param name="confirmPassword">The password again.</param>
+    /// <param name="setupKey">DASHBOARD_PASSWORD, for the first account.</param>
+    /// <param name="remember">Keep the session on this device.</param>
+    /// <param name="returnUrl">Where to go after signing in.</param>
+    /// <returns>A redirect, or the form again with the errors.</returns>
+    [HttpPost("/create-account")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LogoutAsync()
+    public async Task<IActionResult> CreateAccountAsync(
+        [FromForm] string? userName, [FromForm] string? password, [FromForm] string? confirmPassword, [FromForm] string? setupKey,
+        [FromForm] bool remember, [FromForm] string? returnUrl)
+    {
+        var model = await PageModelAsync(returnUrl);
+        model.UserName = (userName ?? string.Empty).Trim();
+        model.Remember = remember;
+        if (model.Unavailable is not null)
+        {
+            model.Errors = [model.Unavailable];
+            return View("CreateAccount", model);
+        }
+
+        if (!model.CanCreateAccount)
+        {
+            return RedirectToAction(nameof(SignIn), new { returnUrl = model.ReturnUrl });
+        }
+
+        if (Throttled(model))
+        {
+            return View("CreateAccount", model);
+        }
+
+        if (model.NeedsSetupKey && !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(setupKey ?? string.Empty), Encoding.UTF8.GetBytes(options.Value.Password)))
+        {
+            throttle.Failed(Address);
+            await Task.Delay(FailureDelay);
+            model.Errors = ["The setup key is wrong. It is DASHBOARD_PASSWORD, in the .env file next to docker-compose.yml."];
+            return View("CreateAccount", model);
+        }
+
+        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
+        {
+            model.Errors = ["The two passwords are different."];
+            return View("CreateAccount", model);
+        }
+
+        try
+        {
+            var user = await apiClient.UserCreateAsync(new UserCreateRequest { UserName = model.UserName, Password = password });
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Account {UserName} created ({Role})", user.UserName, user.Role);
+
+            await DashboardAuthentication.SignInAsync(HttpContext, user, remember, options.Value.RememberDays);
+            return LocalRedirect(model.ReturnUrl);
+        }
+        catch (TcgStockBotApiException exception) when (exception.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            model.Errors = [.. exception.ToValidationErrors().Select(static error => error.Message)];
+            return View("CreateAccount", model);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or TcgStockBotApiException)
+        {
+            model.Errors = [Unreachable];
+            return View("CreateAccount", model);
+        }
+    }
+
+    /// <summary>Signs the browser out and shows the public page.</summary>
+    /// <returns>A redirect to the start.</returns>
+    [HttpPost("/sign-out")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SignOutAsync()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return LocalRedirect("/");
     }
 
-    private string SafeReturnUrl(string? url) => !string.IsNullOrEmpty(url) && Url.IsLocalUrl(url) && !url.StartsWith("/entrar", StringComparison.OrdinalIgnoreCase) ? url : "/";
+    /// <summary>Old address of the sign-in page.</summary>
+    /// <returns>A redirect.</returns>
+    [HttpGet("/entrar")]
+    public IActionResult OldSignIn() => RedirectToAction(nameof(SignIn));
+
+    private string Address => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+    private bool Throttled(AccountPageModel model)
+    {
+        var wait = throttle.RetryAfter(Address);
+        if (wait <= TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        model.Errors = [$"Too many wrong attempts. Try again in {Math.Max(1, (int)Math.Ceiling(wait.TotalMinutes))} min."];
+        Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        return true;
+    }
+
+    private async Task<AccountPageModel> PageModelAsync(string? returnUrl)
+    {
+        var settings = options.Value;
+        var model = new AccountPageModel { ReturnUrl = SafeReturnUrl(returnUrl), RememberDays = settings.RememberDays };
+        try
+        {
+            var status = await apiClient.UserStatusAsync();
+            model.IsFirstAccount = status.UserCount == 0;
+            model.CanCreateAccount = model.IsFirstAccount || settings.AllowRegistration;
+            model.NeedsSetupKey = model.IsFirstAccount && settings.RequiresSetupKey;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or TcgStockBotApiException)
+        {
+            model.Unavailable = Unreachable;
+        }
+
+        return model;
+    }
+
+    private string SafeReturnUrl(string? url) =>
+        !string.IsNullOrEmpty(url) && Url.IsLocalUrl(url) && !url.StartsWith("/sign-", StringComparison.OrdinalIgnoreCase)
+            && !url.StartsWith("/create-account", StringComparison.OrdinalIgnoreCase) ? url : "/";
 }

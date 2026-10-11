@@ -3,25 +3,32 @@
     ViewData["Title"] = Model.ApplicationName;
 }
 
-<div class="app" id="app" data-poll-ms="@Model.PollMilliseconds" data-version="@Model.Version" data-sign-out="@(Model.CanSignOut ? "true" : "false")">
+<div class="app" id="app" data-poll-ms="@Model.PollMilliseconds" data-version="@Model.Version" data-user="@Model.UserName" data-admin="@(Model.IsAdmin ? "true" : "false")">
     <aside class="sidebar" id="sidebar" aria-label="Menu">
         <a class="brand" href="#/radar">
             <img class="brand-mark" src="~/img/card-forge.svg" width="38" height="38" alt="" />
             <span class="brand-text">
                 <span class="brand-name">@Model.ApplicationName</span>
-                <span class="brand-sub">TCG selado · @Model.Version</span>
+                <span class="brand-sub">Sealed TCG · @Model.Version</span>
             </span>
         </a>
 
-        <nav class="nav" id="nav" aria-label="Principal"></nav>
+        <nav class="nav" id="nav" aria-label="Main"></nav>
 
-        <div class="bot-card" id="bot-card"></div>
+        <div class="sidebar-bottom">
+            <div class="bot-card" id="bot-card"></div>
+            <div class="sidebar-user">
+                <span class="avatar-initial" aria-hidden="true">@(string.IsNullOrEmpty(Model.UserName) ? "?" : Model.UserName[..1].ToUpperInvariant())</span>
+                <strong>@Model.UserName</strong>
+                <a class="text-link small" href="#/settings">Account</a>
+            </div>
+        </div>
     </aside>
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <div class="main">
         <header class="mobile-bar">
-            <button class="icon-btn" id="menu-button" type="button" aria-label="Abrir menu">
+            <button class="icon-btn" id="menu-button" type="button" aria-label="Open menu">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
             <img class="mobile-logo" src="~/img/card-forge.svg" width="26" height="26" alt="" />
@@ -32,7 +39,7 @@
         <main class="view" id="view" tabindex="-1"></main>
     </div>
 
-    <nav class="tabbar" id="tabbar" aria-label="Atalhos"></nav>
+    <nav class="tabbar" id="tabbar" aria-label="Shortcuts"></nav>
 </div>
 
 <div class="drawer-backdrop" id="drawer-backdrop"></div>

@@ -91,8 +91,8 @@ internal sealed class FnacStoreAdapter(IOptionsMonitor<AwinFeedOptions> options,
 
     /// <inheritdoc />
     protected override string NotConfiguredHint =>
-        "a FNAC Portugal não tem API pública nem um feed de afiliados confirmado, e o site não autoriza recolha automática. "
-        + "Só funciona se obtiveres um feed Awin autorizado da FNAC PT: põe o URL do Create-a-Feed em AwinFeeds__Feeds__Fnac.";
+        "FNAC Portugal has no public API nor a confirmed affiliate feed, and its site does not allow automated collection. "
+        + "It only works with an authorised FNAC PT Awin feed: put the Create-a-Feed URL in AwinFeeds__Feeds__Fnac.";
 }
 
 /// <summary>
@@ -111,8 +111,8 @@ internal sealed class WortenStoreAdapter(IOptionsMonitor<AwinFeedOptions> option
 
     /// <inheritdoc />
     protected override string NotConfiguredHint =>
-        "a Worten não tem API pública de produtos. Adere ao programa Awin \"Worten PT\" (99897); se tiver feed de produtos, "
-        + "põe o URL do Create-a-Feed em AwinFeeds__Feeds__Worten.";
+        "Worten has no public product API. Join the Awin programme \"Worten PT\" (99897); if it has a product feed, "
+        + "put the Create-a-Feed URL in AwinFeeds__Feeds__Worten.";
 }
 
 /// <summary>
@@ -131,8 +131,8 @@ internal sealed class ElCorteInglesStoreAdapter(IOptionsMonitor<AwinFeedOptions>
 
     /// <inheritdoc />
     protected override string NotConfiguredHint =>
-        "o El Corte Inglés não tem API pública de produtos. Adere ao programa Awin \"El Corte Ingles ES\" (13075) e põe "
-        + "o URL do feed gerado no Create-a-Feed em AwinFeeds__Feeds__ElCorteIngles.";
+        "El Corte Inglés has no public product API. Join the Awin programme \"El Corte Ingles ES\" (13075) and put "
+        + "the feed URL from Create-a-Feed in AwinFeeds__Feeds__ElCorteIngles.";
 }
 
 /// <summary>
@@ -151,7 +151,7 @@ internal sealed class GenericAwinStoreAdapter(IOptionsMonitor<AwinFeedOptions> o
     protected override string ProviderName => "Awin";
 
     /// <inheritdoc />
-    protected override string NotConfiguredHint => "falta o URL do feed Awin desta loja.";
+    protected override string NotConfiguredHint => "this store's Awin feed URL is missing.";
 
     /// <inheritdoc />
     protected override string FeedKeyOf(Store store) => store.AwinFeedKey;
@@ -161,5 +161,5 @@ internal sealed class GenericAwinStoreAdapter(IOptionsMonitor<AwinFeedOptions> o
 
     /// <inheritdoc />
     protected override string NotConfiguredHintOf(Store store) =>
-        $"adere ao programa Awin da loja e, se tiver feed de produtos, põe o URL do Create-a-Feed em AwinFeeds__Feeds__{store.AwinFeedKey} no .env.";
+        $"join the store's Awin programme and, if it has a product feed, put the Create-a-Feed URL in AwinFeeds__Feeds__{store.AwinFeedKey} in .env.";
 }

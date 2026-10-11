@@ -54,7 +54,7 @@ internal sealed class TelegramNotifier(
         {
             // The Bot API explains the problem in "description" (wrong chat id, bot not started…); never echo the URL.
             var detail = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Telegram respondeu HTTP {(int)response.StatusCode}: {Trim(detail)}");
+            throw new HttpRequestException($"Telegram answered HTTP {(int)response.StatusCode}: {Trim(detail)}");
         }
     }
 

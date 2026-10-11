@@ -58,9 +58,9 @@ public sealed class MsrpTests : IDisposable
     }
 
     [Theory]
-    [InlineData(54.99, 59.99, " · MSRP 59,99 € (−8%)")]
-    [InlineData(69.99, 59.99, " · MSRP 59,99 € (+17%)")]
-    [InlineData(59.99, 59.99, " · MSRP 59,99 € (=)")]
+    [InlineData(54.99, 59.99, " · MSRP €59.99 (−8%)")]
+    [InlineData(69.99, 59.99, " · MSRP €59.99 (+17%)")]
+    [InlineData(59.99, 59.99, " · MSRP €59.99 (=)")]
     public void AlertText_ShowsTheDifferenceToMsrp(double price, double msrp, string expected)
     {
         var alert = new StockAlert("t", "Task", new StoreListing("Loja", "Pitch Black ETB", new Uri("https://loja.example/p"), (decimal)price, true), false, Msrp: (decimal)msrp);

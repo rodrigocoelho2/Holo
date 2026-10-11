@@ -61,9 +61,9 @@ const state = {
   storeTag: "",
   storeTest: "all",
   probe: { storeName: "", query: "elite trainer box", results: null, errors: null, loading: false },
-  wizard: null,                                         // "Vigiar produto" state while open
+  wizard: null,                                         // "Watch a product" state while open
   msrp: { kinds: [], entries: [] },                     // product kinds and MSRP table (from /msrp/list)
-  radarKind: "all",                                     // Radar: kind filter of "Disponíveis agora"
+  radarKind: "all",                                     // Radar: kind filter of "Still available"
   radarSort: readPreference("radarSort", "recent"),     // recent | cheap | msrp
   productGroup: readPreference("productGroup", "kind"), // product page: results by kind or by store
   lastCycleAt: null,
@@ -204,7 +204,7 @@ async function api(path, options = {}) {
       credentials: "same-origin",
     });
   } catch {
-    throw new ApiError(["Sem ligação ao dashboard."]);
+    throw new ApiError(["Can't reach Card Forge."]);
   }
 
   const text = await response.text();
@@ -212,11 +212,11 @@ async function api(path, options = {}) {
 
   if (response.status === 401) {
     // Signed out (session expired or another device signed out): back to the login form, then here again.
-    location.href = `/entrar?volta=${encodeURIComponent(`/${location.hash}`)}`;
-    throw new ApiError(["A sessão terminou. Entra outra vez."]);
+    location.href = `/sign-in?returnUrl=${encodeURIComponent(`/${location.hash}`)}`;
+    throw new ApiError(["Your session ended. Please sign in again."]);
   }
   if (!response.ok || !result) {
-    throw new ApiError([result?.title || `Erro ${response.status}`]);
+    throw new ApiError([result?.title || `Error ${response.status}`]);
   }
   if (!result.isValid) {
     throw new ApiError((result.validationErrors || []).map((error) => error.message).filter(Boolean));
@@ -230,31 +230,31 @@ function safeJson(text) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
-const errorText = (error) => (error?.errors || [error?.message || "Erro desconhecido."]).join(" ");
+const errorText = (error) => (error?.errors || [error?.message || "Unknown error."]).join(" ");
 
 /* ------------------------------------------------------------ formatting -- */
 
-const moneyFormat = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
-const timeFormat = new Intl.DateTimeFormat("pt-PT", { hour: "2-digit", minute: "2-digit" });
-const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-const dayMonthFormat = new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "short" });
-const weekdayFormat = new Intl.DateTimeFormat("pt-PT", { weekday: "long", day: "numeric", month: "short" });
+const moneyFormat = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" });
+const timeFormat = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
+const dateTimeFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const dayMonthFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+const weekdayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "short" });
 
 const money = (value) => (value === null || value === undefined ? "—" : moneyFormat.format(value));
 const clock = (iso) => (iso ? timeFormat.format(new Date(iso)) : "—");
 const dateTime = (iso) => (iso ? dateTimeFormat.format(new Date(iso)) : "—");
 
 function relative(iso) {
-  if (!iso) return "nunca";
+  if (!iso) return "never";
   const seconds = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 10) return "agora mesmo";
-  if (seconds < 60) return `há ${seconds} s`;
+  if (seconds < 10) return "just now";
+  if (seconds < 60) return `${seconds} s ago`;
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `há ${minutes} min`;
+  if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `há ${hours} h`;
+  if (hours < 24) return `${hours} h ago`;
   const days = Math.round(hours / 24);
-  return days === 1 ? "há 1 dia" : `há ${days} dias`;
+  return days === 1 ? "1 day ago" : `${days} days ago`;
 }
 
 function countdown(iso) {
@@ -263,16 +263,16 @@ function countdown(iso) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-/** "Hoje", "Ontem", or "terça, 6 out" — the day headings of the alert list. */
+/** "Today", "Yesterday", or "Tuesday 6 Oct" — the day headings of the alert list. */
 function dayHeading(date) {
   const day = new Date(date);
   day.setHours(0, 0, 0, 0);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = Math.round((today - day) / 864e5);
-  if (diff === 0) return "Hoje";
-  if (diff === 1) return "Ontem";
-  return weekdayFormat.format(day).replace("-feira", "");
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return weekdayFormat.format(day);
 }
 
 function slugify(text) {
@@ -291,33 +291,33 @@ const matchesWords = (query, ...texts) => {
 /* ---------------------------------------------------------- vocabulary -- */
 
 const OUTCOMES = {
-  Match: ["Dentro do preço", "accent"],
-  MatchLanguageToConfirm: ["Dentro do preço · confirmar idioma", "amber"],
-  MissingKeyword: ["Não é o produto", "plain"],
-  ExcludedKeyword: ["Tem uma palavra excluída", "plain"],
-  NotEnglish: ["Não é inglês", "plain"],
-  NotJapanese: ["Não é japonês", "plain"],
-  LanguageUnknown: ["Idioma desconhecido", "amber"],
-  OutOfStock: ["Esgotado", "plain"],
-  NoPrice: ["Sem preço", "amber"],
-  AboveMaxPrice: ["Acima do teu preço", "amber"],
-  OtherKind: ["Tipo que não vigias", "plain"],
-  NoMsrp: ["Sem MSRP para este tipo", "amber"],
+  Match: ["At your price", "accent"],
+  MatchLanguageToConfirm: ["At your price · check language", "amber"],
+  MissingKeyword: ["Not this product", "plain"],
+  ExcludedKeyword: ["Has an excluded word", "plain"],
+  NotEnglish: ["Not English", "plain"],
+  NotJapanese: ["Not Japanese", "plain"],
+  LanguageUnknown: ["Unknown language", "amber"],
+  OutOfStock: ["Sold out", "plain"],
+  NoPrice: ["No price", "amber"],
+  AboveMaxPrice: ["Above your price", "amber"],
+  OtherKind: ["Type you don't watch", "plain"],
+  NoMsrp: ["No MSRP for this type", "amber"],
 };
 
 const isMatch = (outcome) => outcome === "Match" || outcome === "MatchLanguageToConfirm";
 
-/** "Não é o produto": the store's search returned something unrelated. */
+/** "Not this product": the store's search returned something unrelated. */
 const isIrrelevant = (listing) => listing.outcome === "MissingKeyword";
 
 /** Outcomes of products a task recognises: only these have a price history. */
 const TRACKED_OUTCOMES = new Set(["Match", "MatchLanguageToConfirm", "LanguageUnknown", "OutOfStock", "NoPrice", "AboveMaxPrice", "NoMsrp"]);
 
-const LANGUAGES = { English: "Inglês", Japanese: "Japonês", NonEnglish: "Outro idioma", Unknown: "Idioma ?" };
-const TASK_LANGUAGES = { English: ["EN", "Inglês"], Japanese: ["JP", "Japonês"] };
+const LANGUAGES = { English: "English", Japanese: "Japanese", NonEnglish: "Other language", Unknown: "Language ?" };
+const TASK_LANGUAGES = { English: ["EN", "English"], Japanese: ["JP", "Japanese"] };
 
 /** The card games a task can belong to (TcgGame). The colour comes from CSS (.game-…). */
-const GAMES = { Pokemon: "Pokémon", OnePiece: "One Piece", Riftbound: "Riftbound", Cyberpunk: "Cyberpunk", Lorcana: "Lorcana", Magic: "Magic", Other: "Outro" };
+const GAMES = { Pokemon: "Pokémon", OnePiece: "One Piece", Riftbound: "Riftbound", Cyberpunk: "Cyberpunk", Lorcana: "Lorcana", Magic: "Magic", Other: "Other" };
 /** Games that always have a tab; the others get one only when something of theirs exists. */
 const MAIN_GAMES = ["Pokemon", "OnePiece", "Riftbound", "Cyberpunk"];
 const gameKey = (game) => (GAMES[game] ? game : "Pokemon");
@@ -340,50 +340,50 @@ function gameTabs(games, noun = "") {
     "aria-selected": state.game === key ? "true" : "false", title: noun ? `${count} ${noun}` : null,
     onclick: () => { state.game = key; writePreference("game", key); state.catalogShown = 48; renderView(true); },
   }, key === "all" ? null : h("span", { class: "game-dot", "aria-hidden": "true" }), label, h("span", { class: "game-count" }, count));
-  return h("div", { class: "game-tabs", role: "tablist", "aria-label": "Jogo" },
-    tab("all", "Todos", games.length), shown.map((game) => tab(game, GAMES[game], counts.get(game) || 0)));
+  return h("div", { class: "game-tabs", role: "tablist", "aria-label": "Game" },
+    tab("all", "All", games.length), shown.map((game) => tab(game, GAMES[game], counts.get(game) || 0)));
 }
 
 const UNMARKED_LANGUAGE = {
-  Unknown: ["Não avisar", "não avisar"],
-  English: ["Contar como inglês", "contar como inglês"],
-  Confirm: ["Avisar com idioma por confirmar", "avisar e pedir para confirmares"],
+  Unknown: ["Don't alert", "don't alert"],
+  English: ["Count as English", "count as English"],
+  Confirm: ["Alert, language to check", "alert and ask you to check"],
 };
 
 const PLATFORMS = {
-  Shopify: "Shopify — pesquisa pública em /search/suggest.json",
+  Shopify: "Shopify — public search at /search/suggest.json",
   WooCommerce: "WooCommerce — Store API /wp-json/wc/store/…",
-  Html: "HTML — lê a página de pesquisa/categoria com seletores CSS",
-  Amazon: "Amazon — API oficial Creators API (credenciais no .env)",
-  Fnac: "FNAC — só com feed de afiliados Awin autorizado",
-  Worten: "Worten — feed de afiliados Awin",
-  ElCorteIngles: "El Corte Inglés — feed de afiliados Awin",
-  Awin: "Awin (genérico) — feed de afiliados de qualquer outra loja",
-  Manual: "Sem integração — só na lista (link e etiquetas), nunca pesquisada",
+  Html: "HTML — reads the search/category page with CSS selectors",
+  Amazon: "Amazon — official Creators API (credentials in .env)",
+  Fnac: "FNAC — only with an authorised Awin affiliate feed",
+  Worten: "Worten — Awin affiliate feed",
+  ElCorteIngles: "El Corte Inglés — Awin affiliate feed",
+  Awin: "Awin (generic) — affiliate feed of any other store",
+  Manual: "No integration — only listed (link and tags), never searched",
 };
 const PLATFORM_LABELS = {
-  Shopify: "Shopify", WooCommerce: "WooCommerce", Html: "Site próprio (HTML)", Amazon: "Amazon Creators API", Fnac: "Feed Awin",
-  Worten: "Feed Awin", ElCorteIngles: "Feed Awin", Awin: "Feed Awin", Manual: "Sem integração",
+  Shopify: "Shopify", WooCommerce: "WooCommerce", Html: "Own site (HTML)", Amazon: "Amazon Creators API", Fnac: "Feed Awin",
+  Worten: "Feed Awin", ElCorteIngles: "Feed Awin", Awin: "Feed Awin", Manual: "No integration",
 };
-const COUNTRIES = { Portugal: ["Portugal", "🇵🇹"], Spain: ["Espanha", "🇪🇸"], Europe: ["Europa / online", "🇪🇺"] };
+const COUNTRIES = { Portugal: ["Portugal", "🇵🇹"], Spain: ["Spain", "🇪🇸"], Europe: ["Europe / online", "🇪🇺"] };
 const TIERS = {
-  S: ["Tier S", "amber", "MSRP / grande retalho"],
-  A: ["Tier A", "accent", "Especialistas TCG"],
-  B: ["Tier B", "blue", "Importadores e lojas online"],
-  C: ["Tier C", "plain", "Marketplaces — só referência"],
-  None: ["Sem tier", "plain", "Por classificar"],
+  S: ["Tier S", "amber", "MSRP / big retail"],
+  A: ["Tier A", "accent", "TCG specialists"],
+  B: ["Tier B", "blue", "Importers and online stores"],
+  C: ["Tier C", "plain", "Marketplaces — reference only"],
+  None: ["No tier", "plain", "Not classified"],
 };
 const STORE_TEST = {
-  Ok: ["OK", "accent"], Empty: ["0 produtos", "amber"], Blocked: ["Bloqueia o bot", "red"], RateLimited: ["Limite de pedidos", "amber"],
-  Unreachable: ["Sem ligação", "red"], NoIntegration: ["Sem integração", "plain"], NotConfigured: ["Por configurar", "plain"], Error: ["Erro", "red"],
+  Ok: ["OK", "accent"], Empty: ["0 products", "amber"], Blocked: ["Blocks the bot", "red"], RateLimited: ["Rate limited", "amber"],
+  Unreachable: ["Unreachable", "red"], NoIntegration: ["No integration", "plain"], NotConfigured: ["Not configured", "plain"], Error: ["Error", "red"],
 };
 /** Test outcomes that mean "this store does not work as configured". */
 const TEST_FAILED = new Set(["Blocked", "Unreachable", "Error", "RateLimited"]);
 const STORE_TYPES = {
-  Retail: "Retalho", Specialist: "Especialista TCG", Importer: "Importador", Marketplace: "Marketplace", Official: "Oficial", Unknown: "Sem tipo",
+  Retail: "Retail", Specialist: "TCG specialist", Importer: "Importer", Marketplace: "Marketplace", Official: "Official", Unknown: "No type",
 };
 const MSRP_BASIS = {
-  Official: ["Oficial", "accent"], LaunchPrice: ["Preço de lançamento", "blue"], Estimate: ["Estimativa", "amber"],
+  Official: ["Official", "accent"], LaunchPrice: ["Launch price", "blue"], Estimate: ["Estimate", "amber"],
 };
 const AWIN_FEED_KEYS = { Fnac: "Fnac", Worten: "Worten", ElCorteIngles: "ElCorteIngles" };
 
@@ -408,7 +408,7 @@ const KINDS = [
   [/booster bundle|\bbundle\b/, "bundle", "Booster Bundle"],
   [/booster box|booster display|\bdisplay\b|\bcase\b|\bcaixa de boosters?\b/, "display", "Booster Box"],
   [/\btin\b|\blata\b/, "tin", "Tin"],
-  [/premium|collection|colec|cole[cç][aã]o|\bupc\b|chest|\bbox\b/, "premium", "Coleção"],
+  [/premium|collection|colec|cole[cç][aã]o|\bupc\b|chest|\bbox\b/, "premium", "Collection"],
   [/blister|sleeved|booster pack|\bpack\b|checklane|\bbooster\b|starter|deck/, "pack", "Booster"],
 ];
 
@@ -489,21 +489,21 @@ function taskInsight(task) {
   const best = matches[0] || null;
 
   let status, summary, tone = "";
-  if (!task.enabled) { status = "paused"; summary = "Em pausa"; }
+  if (!task.enabled) { status = "paused"; summary = "Paused"; }
   else if (best) {
     status = "stock";
     const offers = new Set(matches.map((listing) => listing.url)).size;
-    summary = `${offers} ${offers === 1 ? "oferta" : "ofertas"} ao teu preço · desde ${money(best.price)}`;
+    summary = `${offers} ${offers === 1 ? "offer" : "offers"} at your price · from ${money(best.price)}`;
     tone = "accent";
-  } else if (stores.length === 0) { status = "paused"; summary = "Sem lojas ativas"; }
-  else if (reports.length === 0) { status = "waiting"; summary = "À espera da primeira verificação"; }
-  else if (failed.length === reports.length) { status = "error"; summary = "Todas as lojas deram erro"; tone = "red"; }
+  } else if (stores.length === 0) { status = "paused"; summary = "No active stores"; }
+  else if (reports.length === 0) { status = "waiting"; summary = "Waiting for the first check"; }
+  else if (failed.length === reports.length) { status = "error"; summary = "Every store failed"; tone = "red"; }
   else if (aboveMax.length) {
     status = "searching";
-    summary = `${money(aboveMax[0].price)} na ${shortStoreName(aboveMax[0].storeName)} · acima do teu preço`;
+    summary = `${money(aboveMax[0].price)} at ${shortStoreName(aboveMax[0].storeName)} · above your price`;
     tone = "amber";
-  } else if (soldOutStores.size) { status = "searching"; summary = `Esgotado em ${soldOutStores.size} ${soldOutStores.size === 1 ? "loja" : "lojas"}`; }
-  else { status = "searching"; summary = "Ainda sem resultados"; }
+  } else if (soldOutStores.size) { status = "searching"; summary = `Sold out at ${soldOutStores.size} ${soldOutStores.size === 1 ? "store" : "stores"}`; }
+  else { status = "searching"; summary = "No results yet"; }
 
   const dots = stores.map((store) => {
     const report = reports.find((item) => item.storeName === store.name);
@@ -523,7 +523,7 @@ function taskInsight(task) {
   return { task, stores, reports, all, matches, aboveMax, tracked, soldOutStores, failed, best, status, summary, tone, dots, photo, lastChecked, alerts, lastAlert };
 }
 
-const STATUS_LABELS = { stock: "Em stock", searching: "À procura", waiting: "À procura", error: "Com erro", paused: "Em pausa" };
+const STATUS_LABELS = { stock: "In stock", searching: "Searching", waiting: "Searching", error: "Error", paused: "Paused" };
 
 /** "Versus Gamecenter" → "Versus": for tight spots; lists and tooltips keep the full name. */
 function shortStoreName(name) {
@@ -612,7 +612,7 @@ function sectionHead(title, { count = null, note = null, action = null, id = nul
 }
 
 function errorList(errors) {
-  return h("div", { class: "errors", role: "alert" }, h("ul", {}, (errors.length ? errors : ["Erro desconhecido."]).map((message) => h("li", {}, message))));
+  return h("div", { class: "errors", role: "alert" }, h("ul", {}, (errors.length ? errors : ["Unknown error."]).map((message) => h("li", {}, message))));
 }
 
 /** "−8% vs MSRP" (accent below, amber up to +15%, red above), or nothing when either price is unknown. */
@@ -650,7 +650,7 @@ function confirmDialog({ title, message, confirmLabel, danger = false }) {
     const confirmButton = button(confirmLabel, { kind: danger ? "danger" : "primary", onClick: () => close(true) });
     backdrop.replaceChildren(h("div", { class: "modal", role: "alertdialog", "aria-modal": "true", "aria-label": title },
       h("h2", {}, title), h("p", {}, message),
-      h("div", { class: "modal-buttons" }, button("Cancelar", { kind: "ghost", onClick: () => close(false) }), confirmButton)));
+      h("div", { class: "modal-buttons" }, button("Cancel", { kind: "ghost", onClick: () => close(false) }), confirmButton)));
     backdrop.onclick = (event) => { if (event.target === backdrop) close(false); };
     backdrop.classList.add("open");
     confirmButton.focus();
@@ -666,7 +666,7 @@ function chooseDialog({ title, message, label, options, confirmLabel }) {
     backdrop.replaceChildren(h("div", { class: "modal wide", role: "dialog", "aria-modal": "true", "aria-label": title },
       h("h2", {}, title), h("p", {}, message), field(label, select),
       h("div", { class: "modal-buttons" },
-        button("Cancelar", { kind: "ghost", onClick: () => close(null) }),
+        button("Cancel", { kind: "ghost", onClick: () => close(null) }),
         button(confirmLabel, { kind: "primary", onClick: () => close(select.value) }))));
     backdrop.onclick = (event) => { if (event.target === backdrop) close(null); };
     backdrop.classList.add("open");
@@ -686,7 +686,7 @@ function openDrawer({ title, subtitle, body, footer, wide = false }) {
   drawer.replaceChildren(
     h("div", { class: "drawer-head" },
       h("div", {}, h("h2", {}, title), subtitle ? h("p", {}, subtitle) : null),
-      iconButton("close", "Fechar", closeDrawer)),
+      iconButton("close", "Close", closeDrawer)),
     h("div", { class: "drawer-body" }, body),
     footer ? h("div", { class: "drawer-foot" }, footer) : null);
   drawer.classList.add("open");
@@ -731,24 +731,24 @@ const SLOW_MS = 2500;
  * response time and the first error message.
  */
 function storeHealth(store) {
-  if (store.platform === "Manual") return { kind: "manual", label: "Sem integração", reports: [] };
-  if (store.autoDisabledAt && !store.enabled) return { kind: "off", label: "Desligada pelo bot", reports: [] };
-  if (!store.enabled) return { kind: "off", label: "Desligada", reports: [] };
+  if (store.platform === "Manual") return { kind: "manual", label: "No integration", reports: [] };
+  if (store.autoDisabledAt && !store.enabled) return { kind: "off", label: "Turned off by the bot", reports: [] };
+  if (!store.enabled) return { kind: "off", label: "Off", reports: [] };
   const reports = searches().filter((search) => search.storeName === store.name);
-  if (reports.length === 0) return { kind: "pending", label: "À espera da primeira verificação", reports };
+  if (reports.length === 0) return { kind: "pending", label: "Waiting for the first check", reports };
   const failed = reports.filter((report) => !report.succeeded);
   const ok = reports.filter((report) => report.succeeded);
   const averageMs = ok.length ? Math.round(ok.reduce((sum, report) => sum + report.durationMs, 0) / ok.length) : null;
   const lastChecked = reports.map((report) => report.checkedAt).sort().at(-1);
   const base = { reports, failed, averageMs, lastChecked, error: failed[0]?.error || null };
-  if (failed.length === reports.length) return { ...base, kind: "error", label: "Sem resposta no último ciclo" };
-  if (failed.length > 0) return { ...base, kind: "partial", label: `${failed.length} de ${reports.length} pesquisas com erro` };
-  if (averageMs > SLOW_MS) return { ...base, kind: "slow", label: "Lenta" };
+  if (failed.length === reports.length) return { ...base, kind: "error", label: "No answer in the last cycle" };
+  if (failed.length > 0) return { ...base, kind: "partial", label: `${failed.length} of ${reports.length} searches failed` };
+  if (averageMs > SLOW_MS) return { ...base, kind: "slow", label: "Slow" };
   return { ...base, kind: "ok", label: "A responder" };
 }
 
-/** "312 ms" / "1,8 s". */
-const durationText = (ms) => (ms === null || ms === undefined ? "—" : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toLocaleString("pt-PT", { maximumFractionDigits: 1 })} s`);
+/** "312 ms" / "1.8 s". */
+const durationText = (ms) => (ms === null || ms === undefined ? "—" : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toLocaleString("en-GB", { maximumFractionDigits: 1 })} s`);
 
 /**
  * Runs update() (which replaces children of container) and puts the focus and caret back on the element with the
@@ -771,7 +771,7 @@ function keepFocus(container, update) {
 
 /** The label of a product kind code ("etb" → "Elite Trainer Box"). */
 function kindLabel(code) {
-  return state.msrp.kinds.find((kind) => kind.code === code)?.label || (code === "other" || !code ? "Outro" : code);
+  return state.msrp.kinds.find((kind) => kind.code === code)?.label || (code === "other" || !code ? "Other" : code);
 }
 
 /** The MSRP of a kind (Pokémon table; other games have none yet). */
@@ -786,21 +786,21 @@ const kindOrder = (code) => {
   return index < 0 ? 999 : index;
 };
 
-/** One line that says when a task alerts on price: "Até ao MSRP + 10%" / "Até 60,00 €". */
+/** One line that says when a task alerts on price: "Up to MSRP + 10%" / "Up to €60.00". */
 function priceRuleText(task, short = false) {
   if (task.priceRule === "Msrp") {
     const tolerance = task.msrpTolerancePercent ?? 10;
     const margin = tolerance === 0 ? "" : tolerance > 0 ? ` + ${tolerance}%` : ` − ${Math.abs(tolerance)}%`;
-    const fallback = task.maxPrice > 0 && !short ? ` (sem MSRP: até ${money(task.maxPrice)})` : "";
-    return `Até ao MSRP${margin}${fallback}`;
+    const fallback = task.maxPrice > 0 && !short ? ` (no MSRP: up to ${money(task.maxPrice)})` : "";
+    return `Up to MSRP${margin}${fallback}`;
   }
-  return `Até ${money(task.maxPrice)}`;
+  return `Up to ${money(task.maxPrice)}`;
 }
 
-/** "ETB, Booster Bundle" or "todos os tipos". */
+/** "ETB, Booster Bundle" or "every type". */
 function kindsText(task) {
   const kinds = task.kinds || [];
-  return kinds.length ? kinds.map(kindLabel).join(", ") : "todos os tipos";
+  return kinds.length ? kinds.map(kindLabel).join(", ") : "every type";
 }
 
 /** The limit that applies to one kind of one task (mirror of the bot's rule, for display only). */

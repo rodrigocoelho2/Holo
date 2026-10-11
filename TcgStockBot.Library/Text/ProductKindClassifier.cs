@@ -17,7 +17,7 @@ public sealed record ProductKind(string Code, string Label);
 public static partial class ProductKindClassifier
 {
     /// <summary>Anything not recognised: identified by its distinctive words.</summary>
-    public static readonly ProductKind Other = new("other", "Outro");
+    public static readonly ProductKind Other = new("other", "Other");
 
     private static readonly (ProductKind Kind, Func<string, bool> Matches)[] Rules =
     [

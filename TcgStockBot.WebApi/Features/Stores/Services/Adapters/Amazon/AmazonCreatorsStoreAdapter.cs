@@ -156,7 +156,7 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
         if (!settings.IsConfigured)
         {
             throw new StoreIntegrationException(ProviderName, StoreIntegrationProblem.NotConfigured,
-                "define Amazon__CredentialId, Amazon__CredentialSecret e Amazon__PartnerTag (Associates Central → Creators API).");
+                "set Amazon__CredentialId, Amazon__CredentialSecret and Amazon__PartnerTag (Associates Central → Creators API).");
         }
 
         var token = await tokenProvider.GetTokenAsync(cancellationToken);

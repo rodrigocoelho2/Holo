@@ -10,10 +10,10 @@ namespace TcgStockBot.WebApi.Features.Notifications.Services;
 /// </summary>
 internal static class AlertMessageFormatter
 {
-    private const string LanguageWarning = "⚠️ Título sem idioma: confirma na página que é a versão inglesa.";
-    private const string PreOrderNote = "🕒 Pré-venda: confirma a data de envio na página.";
+    private const string LanguageWarning = "⚠️ The title does not say the language: check on the page that it is the English version.";
+    private const string PreOrderNote = "🕒 Pre-order: check the shipping date on the page.";
 
-    private static readonly CultureInfo Portuguese = CultureInfo.GetCultureInfo("pt-PT");
+    private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-IE");
 
     /// <summary>
     /// The email subject.
@@ -25,14 +25,14 @@ internal static class AlertMessageFormatter
         if (alerts.Count == 1)
         {
             var alert = alerts[0];
-            var kind = alert.IsPriceDrop ? "Baixou de preço" : alert.Listing.PreOrder ? "Pré-venda" : "Em stock";
+            var kind = alert.IsPriceDrop ? "Price drop" : alert.Listing.PreOrder ? "Pre-order" : "In stock";
             return $"[Card Forge] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
         }
 
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
-        return drops == alerts.Count ? $"[Card Forge] {alerts.Count} descidas de preço"
-            : drops > 0 ? $"[Card Forge] {alerts.Count} alertas ({drops} descida(s) de preço)"
-            : $"[Card Forge] {alerts.Count} produtos em stock";
+        return drops == alerts.Count ? $"[Card Forge] {alerts.Count} price drops"
+            : drops > 0 ? $"[Card Forge] {alerts.Count} alerts ({drops} price drop(s))"
+            : $"[Card Forge] {alerts.Count} products in stock";
     }
 
     /// <summary>
@@ -45,10 +45,10 @@ internal static class AlertMessageFormatter
     {
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
         var header = alerts.Count == 1
-            ? drops == 1 ? "🔻 *Card Forge: baixou de preço*" : "🟢 *Card Forge: em stock*"
-            : drops == alerts.Count ? $"🔻 *Card Forge: {alerts.Count} descidas de preço*"
-            : drops > 0 ? $"🟢 *Card Forge: {alerts.Count} alertas ({drops} descida(s) de preço)*"
-            : $"🟢 *Card Forge: {alerts.Count} produtos em stock*";
+            ? drops == 1 ? "🔻 *Card Forge: price drop*" : "🟢 *Card Forge: in stock*"
+            : drops == alerts.Count ? $"🔻 *Card Forge: {alerts.Count} price drops*"
+            : drops > 0 ? $"🟢 *Card Forge: {alerts.Count} alerts ({drops} price drop(s))*"
+            : $"🟢 *Card Forge: {alerts.Count} products in stock*";
         var text = new StringBuilder(header);
 
         foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))
@@ -70,7 +70,7 @@ internal static class AlertMessageFormatter
 
         if (alerts.Count > maxAlerts)
         {
-            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" no dashboard.");
+            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Card Forge.");
         }
 
         return text.ToString();
@@ -94,13 +94,13 @@ internal static class AlertMessageFormatter
     /// <returns>The HTML.</returns>
     public static string Html(IReadOnlyList<StockAlert> alerts)
     {
-        var html = new StringBuilder("<h2>Produtos em stock (versão inglesa, até ao preço máximo)</h2><ul>");
+        var html = new StringBuilder("<h2>In stock, in the right language and at your price</h2><ul>");
         foreach (var alert in alerts)
         {
             var listing = alert.Listing;
             html.Append("<li><p><b>").Append(WebUtility.HtmlEncode(listing.Title)).Append("</b><br/>")
                 .Append(WebUtility.HtmlEncode(listing.StoreName)).Append(" — ").Append(WebUtility.HtmlEncode(PriceLine(alert))).Append("<br/>")
-                .Append("Tarefa: ").Append(WebUtility.HtmlEncode(alert.StockTaskName)).Append("<br/>");
+                .Append("Watching: ").Append(WebUtility.HtmlEncode(alert.StockTaskName)).Append("<br/>");
 
             if (listing.PreOrder)
             {
@@ -112,14 +112,14 @@ internal static class AlertMessageFormatter
                 html.Append("<span style=\"color:#b45309\">").Append(WebUtility.HtmlEncode(LanguageWarning)).Append("</span><br/>");
             }
 
-            html.Append("<a href=\"").Append(WebUtility.HtmlEncode(listing.Url.AbsoluteUri)).Append("\">Abrir produto →</a></p></li>");
+            html.Append("<a href=\"").Append(WebUtility.HtmlEncode(listing.Url.AbsoluteUri)).Append("\">Open product →</a></p></li>");
         }
 
         return html.Append("</ul>").ToString();
     }
 
     /// <summary>
-    /// "115,00 €", or "🔻 115,00 € (antes 130,00 €)" for a price drop; followed by " · MSRP 59,99 € (−8%)" when the
+    /// "€115.00", or "🔻 €115.00 (was €130.00)" for a price drop; followed by " · MSRP 59,99 € (−8%)" when the
     /// reference price is known.
     /// </summary>
     /// <summary>
@@ -132,9 +132,9 @@ internal static class AlertMessageFormatter
     {
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
         var header = alerts.Count == 1
-            ? drops == 1 ? "🔻 <b>Baixou de preço</b>" : alerts[0].Listing.PreOrder ? "🕒 <b>Pré-venda</b>" : "🟢 <b>Em stock</b>"
-            : drops == alerts.Count ? $"🔻 <b>{alerts.Count} descidas de preço</b>"
-            : $"🟢 <b>{alerts.Count} alertas</b>" + (drops > 0 ? $" ({drops} descida(s) de preço)" : string.Empty);
+            ? drops == 1 ? "🔻 <b>Price drop</b>" : alerts[0].Listing.PreOrder ? "🕒 <b>Pre-order</b>" : "🟢 <b>In stock</b>"
+            : drops == alerts.Count ? $"🔻 <b>{alerts.Count} price drops</b>"
+            : $"🟢 <b>{alerts.Count} alerts</b>" + (drops > 0 ? $" ({drops} price drop(s))" : string.Empty);
         var text = new StringBuilder(header);
 
         foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))
@@ -142,7 +142,7 @@ internal static class AlertMessageFormatter
             var listing = alert.Listing;
             text.Append("\n\n<b>").Append(WebUtility.HtmlEncode(listing.Title)).Append("</b>")
                 .Append("\n").Append(WebUtility.HtmlEncode(listing.StoreName)).Append(" · ").Append(WebUtility.HtmlEncode(PriceLine(alert)))
-                .Append("\n<a href=\"").Append(WebUtility.HtmlEncode(listing.Url.AbsoluteUri)).Append("\">Abrir na loja →</a>");
+                .Append("\n<a href=\"").Append(WebUtility.HtmlEncode(listing.Url.AbsoluteUri)).Append("\">Open in the store →</a>");
 
             if (listing.PreOrder)
             {
@@ -157,7 +157,7 @@ internal static class AlertMessageFormatter
 
         if (alerts.Count > maxAlerts)
         {
-            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" no dashboard.");
+            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Card Forge.");
         }
 
         return text.ToString();
@@ -171,7 +171,7 @@ internal static class AlertMessageFormatter
         $"ℹ️ <b>{WebUtility.HtmlEncode(subject)}</b>\n\n{WebUtility.HtmlEncode(text)}";
 
     private static string PriceLine(StockAlert alert) => (alert.IsPriceDrop
-        ? $"🔻 {Price(alert.Listing.Price)} (antes {Price(alert.PreviousPrice)})"
+        ? $"🔻 {Price(alert.Listing.Price)} (was {Price(alert.PreviousPrice)})"
         : Price(alert.Listing.Price)) + MsrpPart(alert);
 
     /// <summary>" · MSRP 59,99 € (−8%)", " · MSRP 59,99 € (=)" or empty when the MSRP or the price is unknown.</summary>
@@ -192,5 +192,5 @@ internal static class AlertMessageFormatter
         return $" · MSRP {Price(alert.Msrp)} ({difference})";
     }
 
-    private static string Price(decimal? price) => price?.ToString("C", Portuguese) ?? "preço desconhecido";
+    private static string Price(decimal? price) => price?.ToString("C", English) ?? "unknown price";
 }
