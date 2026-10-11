@@ -13,6 +13,9 @@ public sealed class ReleaseDTO
     public string? Url { get; set; }
     public string? Notes { get; set; }
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets other ways stores write the set.</summary>
+    public List<string> Aliases { get; set; } = [];
 }
 
 /// <summary>Creates (empty id) or replaces a release.</summary>
@@ -26,4 +29,7 @@ public sealed class ReleaseSaveRequest
     public string? Url { get; set; }
     public string? Notes { get; set; }
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets other ways stores write the set.</summary>
+    public List<string> Aliases { get; set; } = [];
 }

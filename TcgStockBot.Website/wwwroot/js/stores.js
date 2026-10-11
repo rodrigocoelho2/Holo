@@ -57,6 +57,7 @@ RENDERERS.stores = function viewStores() {
   return [
     pageHead("Stores", "Portuguese and Spanish stores the bot searches, and how well each one is answering.", [
       storesMenu(),
+      linkButton("Test a store", routeHash("test-store"), { iconName: "flask" }),
       button("Add store", { iconName: "plus", kind: "primary", onClick: () => openStoreDrawer(null) }),
     ]),
     h("div", { class: "health-tiles", role: "group", "aria-label": "Filter by status" },
@@ -204,6 +205,7 @@ RENDERERS["test-store"] = function viewProbe() {
   }
 
   return [
+    h("a", { class: "back-link", href: routeHash("stores") }, icon("back"), "Stores"),
     pageHead("Test a store", "Runs a search in one store and shows, for every product you watch, why each result matches or not."),
     h("div", { class: "card form-card" },
       h("div", { class: "probe-form" },

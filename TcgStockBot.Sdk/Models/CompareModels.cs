@@ -16,6 +16,18 @@ public sealed class CompareGroupDTO
     public TcgGame Game { get; set; } = TcgGame.Pokemon;
     public string Kind { get; set; } = "other";
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets the id of the set (built-in or from a release), or null when the set is not known.</summary>
+    public string? SetId { get; set; }
+
+    /// <summary>Gets or sets the set code ("ME05", "OP-13"), when known.</summary>
+    public string? SetCode { get; set; }
+
+    /// <summary>Gets or sets the set's release date, when known (newest set first in the catalogue).</summary>
+    public DateOnly? ReleaseDate { get; set; }
+
+    /// <summary>Gets or sets what tells this product apart from others of the same set and kind ("Luxray"), or empty.</summary>
+    public string VariantLabel { get; set; } = string.Empty;
 }
 
 /// <summary>One store's listing of a compared product.</summary>

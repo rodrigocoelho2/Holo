@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="Card Forge: o Radar no PC e o catálogo no telemóvel" width="100%">
+  <img src="docs/images/hero.png" alt="Card Forge: Products (Pokémon, Elite Trainer Box) no PC e a página do produto no telemóvel" width="100%">
 </p>
 
 > O Card Forge chamava-se TcgStockBot. O código (projetos, namespaces, contentores e o volume `tcgstockbot-data`)
@@ -39,7 +39,7 @@
 
 **Separadores por jogo**
 
-- Todas as páginas principais (Radar, Products, Watching, Releases e Alerts) têm separadores **All · Pokémon ·
+- Todas as páginas principais (Products, Deals, Watching, Releases e Alerts) têm separadores **All · Pokémon ·
   One Piece · Riftbound · Cyberpunk**, mais Lorcana, Magic ou Outro quando os usas. A escolha fica guardada no browser.
 
 **Vigiar produtos**
@@ -52,13 +52,20 @@
 
 **Produtos (catálogo) e preços**
 
-- **Produtos:** tudo o que o bot encontra, um cartão por produto com a foto, "desde X €", "−8% vs MSRP", **Mov. 30 dias**
-  e "em stock 3/5 lojas". Filtros por formato, loja e "só em stock", e ordenação (mais lojas com stock, mais baratos,
-  maior descida, novos, nome).
-- **Ficha do produto:** o mais barato com stock, estado, mínimo de sempre, MSRP, desde quando está no catálogo e a
-  última leitura; a tabela das lojas (com "mais barato" e "Esconder esgotadas"); o **gráfico de preços** por período
-  (7 d, 30 d, 90 d, 180 d, 1 ano, tudo) com as lojas que escolheres, o preço habitual, mínimo, máximo e número de
-  alterações; o **histórico** (reposições, esgotou, baixou, subiu); e a pesquisa no **Cardmarket**.
+- **Products** (a página inicial): escolhes o **jogo**, depois o **formato** (Elite Trainer Box, Booster Display,
+  Booster Bundle, Boosters, Blisters, Collections, Tins, Decks) e aparecem os produtos de **todas as coleções**, da mais
+  recente para a mais antiga. Cada cartão tem a coleção, a foto, "desde X €", "−8% vs MSRP", a variação em 30 dias e
+  "em stock em 3 de 5 lojas". Filtros por loja e "só em stock"; ordenação por coleção mais recente, mais barato, mais
+  lojas com stock, maior descida ou nome.
+- **Um produto = jogo + coleção + formato**, seja qual for o produto vigiado que o encontrou. O bot reconhece a coleção
+  pelo título da loja: o nome ("Pitch Black"), o código ("ME05", "OP-13", "op13") ou outros nomes. Assim, "Pitch Black
+  ETB", "PKM ME05 Pitch Black Elite Trainer Box" e "Mega Evolution 5 - Pitch Black ETB" são o mesmo produto, mesmo
+  com um único produto vigiado para todas as ETBs.
+- **Página do produto:** em cima, o mais barato com stock e o botão para abrir a loja; logo a seguir, **os preços em
+  todas as lojas, do mais barato para o mais caro** (com PT/ES, "−8% vs MSRP" e quando foi verificado), com as
+  esgotadas recolhidas. Depois, os factos do preço (mínimo de sempre, variação em 30 dias, MSRP), os **outros formatos
+  da mesma coleção**, o **gráfico de preços** por período, o histórico de alterações e as correções (separar ou juntar
+  anúncios).
 - **MSRP** por tipo de produto (ETB, Booster Bundle, Display…), para veres quanto acima ou abaixo do preço de referência está cada oferta.
 
 **Releases (lançamentos)**
@@ -66,6 +73,10 @@
 - Calendário das próximas expansões, em **lista** (pré-vendas abertas, próximos, já saíram) ou **mês a mês**, com a
   data de lançamento e a abertura das pré-vendas. Cada lançamento pode ficar ligado ao produto que vigias, para veres
   ali as ofertas; se ainda não o vigias, **Vigiar** abre a pesquisa já preenchida.
+- **Coleções:** o bot já conhece as coleções inglesas de Pokémon (Scarlet & Violet e Mega Evolution), One Piece
+  (OP-01 a OP-18, EB e PRB), Riftbound e Cyberpunk (`Features/Sets/Data/set-defaults.json`). Uma coleção nova entra
+  quando a adicionas em Releases: o nome (sem o jogo à frente) e os **outros nomes nas lojas** (por exemplo `ME06`)
+  passam a agrupar os produtos dessa coleção em Products.
 
 **Avisos**
 
@@ -77,15 +88,16 @@
 
 **Dashboard**
 
-- **Radar:** as ofertas que podes comprar agora. As **novidades** das últimas 24 horas em cartões grandes (foto, loja, preço e "−8% vs MSRP"); as que continuam disponíveis numa lista que filtras por tipo e ordenas por data, preço ou MSRP. Ao lado, os **últimos movimentos** (reposições, descidas e pré-vendas, com o jogo), a saúde das lojas e a atividade.
+- **Deals** (antigo Radar): as ofertas que podes comprar agora. As **novidades** das últimas 24 horas em cartões grandes (foto, loja, preço e "−8% vs MSRP"); as que continuam disponíveis numa lista que filtras por tipo e ordenas por data, preço ou MSRP. Ao lado, os **últimos movimentos** (reposições, descidas e pré-vendas, com o jogo), a saúde das lojas e a atividade.
 - **Watching:** um cartão por produto/set com a regra de preço e, **por tipo** (ETB, Bundle, Display, Booster), o melhor preço agora. Cada um tem a sua página: os limites por tipo, o que as lojas têm (por tipo ou por loja) e porque é que avisou ou não, o histórico de preço e os alertas.
 - **Watch a product:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (nome, tipos, MSRP + margem, palavras, lojas) são sugeridas a partir deles.
-- **Stores:** lojas portuguesas e espanholas agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detect** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham.
+- **Stores:** lojas portuguesas e espanholas agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detect** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham. **Test a store** abre-se a partir daqui.
+- **Menu em dois grupos:** **Shop** (Products, Deals, Releases), para comprar, e **Bot** (Watching, Alerts, Stores, Settings), para configurar.
 - **Temas:** Azul, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
 - **Contas:** cada pessoa entra com o seu utilizador (Sign in / Create account), com "Keep me signed in"; o admin gere as contas. Uma **página de apresentação** para quem chega sem sessão.
 - **Em inglês**, com os preços em euros (€54.99) e as datas no formato europeu.
 - **App no telemóvel:** barra de navegação em baixo, e instala-se no ecrã principal com o ícone do Card Forge.
-- Atalhos: `1`–`8` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
+- Atalhos: `1`–`7` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
 
 **Feito para correr em casa**
 
@@ -99,13 +111,13 @@
 
 Com dados de exemplo. Quando a loja devolve a foto do produto, aparece no lugar do desenho.
 
-### Radar
-<img src="docs/screenshots/dashboard-radar.png" alt="Radar: game tabs, new offers, offers still available, latest moves, stores and activity">
+### Products
+<img src="docs/screenshots/dashboard-products.png" alt="Products: pick a game and a format; every set's product with its lowest price, newest set first">
 
 <table>
 <tr>
-<td width="50%"><b>Products</b><br><img src="docs/screenshots/dashboard-products.png" alt="Products: catalogue with from-price, stock per store, MSRP and 30-day move"></td>
-<td width="50%"><b>Product page</b><br><img src="docs/screenshots/dashboard-product.png" alt="Product page: cheapest in stock, stats, stores, chart by period and history"></td>
+<td width="50%"><b>Product page</b><br><img src="docs/screenshots/dashboard-product.png" alt="Product page: cheapest in stock, the price in every store from cheapest to dearest, the other formats of the set and the price chart"></td>
+<td width="50%"><b>Deals</b><br><img src="docs/screenshots/dashboard-radar.png" alt="Deals: new offers, offers still available, latest moves, stores and activity"></td>
 </tr>
 <tr>
 <td width="50%"><b>Releases</b><br><img src="docs/screenshots/dashboard-releases.png" alt="Releases: pre-orders open, coming up and already out"></td>
@@ -125,7 +137,7 @@ Com dados de exemplo. Quando a loja devolve a foto do produto, aparece no lugar 
 </tr>
 <tr>
 <td width="50%"><b>Sign in</b><br><img src="docs/screenshots/dashboard-sign-in.png" alt="Sign in, with the Create account tab"></td>
-<td width="50%"><b>No telemóvel</b><br><img src="docs/screenshots/dashboard-phone.png" alt="Radar on the phone, with the tab bar at the bottom" width="300"></td>
+<td width="50%"><b>No telemóvel</b><br><img src="docs/screenshots/dashboard-phone.png" alt="Products on the phone, with the tab bar at the bottom" width="300"></td>
 </tr>
 </table>
 
@@ -174,7 +186,7 @@ A configuração, as tarefas, o histórico e os lançamentos ficam no volume `tc
 
 ## Contas, login e app no telemóvel
 
-A app está em **inglês**. Os endereços são `#/radar`, `#/products`, `#/watching`, `#/releases`, `#/alerts`,
+A app está em **inglês**. Os endereços são `#/products` (a página inicial), `#/radar` (Deals), `#/watching`, `#/releases`, `#/alerts`,
 `#/stores` e `#/settings`; os links antigos em português continuam a funcionar.
 
 - **Contas:** cada pessoa entra com o seu utilizador e password. As contas ficam no bot (`data/users.json`), com a

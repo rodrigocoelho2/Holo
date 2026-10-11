@@ -4,23 +4,26 @@
    Shell: routes, sidebar, bot card, mobile bars, theme and the render loop.
    ========================================================================== */
 
+/** The menu: what to buy (Shop) first, then how the bot works (Bot). */
 const VIEWS = [
-  { id: "radar", label: "Radar", icon: "radar", key: "1" },
-  { id: "products", label: "Products", icon: "grid", key: "2" },
-  { id: "watching", label: "Watching", icon: "eye", key: "3" },
-  { id: "releases", label: "Releases", icon: "calendar", key: "4" },
+  { id: "products", label: "Products", icon: "grid", key: "1", section: "Shop" },
+  { id: "radar", label: "Deals", icon: "radar", key: "2" },
+  { id: "releases", label: "Releases", icon: "calendar", key: "3" },
+  { id: "watching", label: "Watching", icon: "eye", key: "4", section: "Bot" },
   { id: "alerts", label: "Alerts", icon: "bell", key: "5" },
   { id: "stores", label: "Stores", icon: "store", key: "6" },
   { id: "settings", label: "Settings", icon: "sliders", key: "7" },
-  { id: "test-store", label: "Test a store", icon: "flask", key: "8", section: "Tools" },
 ];
 
 /** Routes that are not in the menu: they light up their parent entry. */
-const SUB_ROUTES = { watched: "watching", watch: "watching", product: "products" };
+const SUB_ROUTES = { watched: "watching", watch: "watching", product: "products", "test-store": "stores" };
+
+/** The home page. */
+const HOME = "products";
 
 /** Hashes of earlier versions (v3 English names, v4 Portuguese names), so old bookmarks keep working. */
 const OLD_ROUTES = {
-  overview: "radar", tasks: "watching", compare: "products", probe: "test-store",
+  deals: "radar", overview: "radar", tasks: "watching", compare: "products", probe: "test-store",
   "a-vigiar": "watching", produto: "watched", vigiar: "watch", alertas: "alerts", lojas: "stores", definicoes: "settings",
   testar: "test-store", produtos: "products", ficha: "product", lancamentos: "releases", comparar: "products",
 };
@@ -30,11 +33,11 @@ const LIVE_VIEWS = new Set(["radar", "watching", "watched", "alerts", "stores"])
 
 function parseHash() {
   const match = location.hash.match(/^#\/([\w-]+)(?:\/(.*))?$/);
-  let view = match?.[1] || "radar";
+  let view = match?.[1] || HOME;
   view = OLD_ROUTES[view] || view;
   const param = match?.[2] ? decodeURIComponent(match[2]) : "";
   const known = VIEWS.some((item) => item.id === view) || SUB_ROUTES[view];
-  return known ? { view, param } : { view: "radar", param: "" };
+  return known ? { view, param } : { view: HOME, param: "" };
 }
 
 const routeHash = (view, param = "") => `#/${view}${param ? `/${encodeURIComponent(param)}` : ""}`;
@@ -54,7 +57,7 @@ function navigate() {
   if (changed && document.getElementById("drawer").classList.contains("open")) closeDrawer();
   if (route.view === "settings" || route.view === "alerts") refreshNotification();
   if (route.view === "products" || (route.view === "product" && changed)) loadCatalog();
-  if (route.view === "product" && changed) { state.fichaHidden = []; if (state.ficha?.key !== route.param) state.ficha = null; }
+  if (route.view === "product" && changed) { state.fichaHidden = []; state.fichaShowSoldOut = false; if (state.ficha?.key !== route.param) state.ficha = null; }
   if (route.view === "releases") loadReleases();
   if (route.view !== "watch") state.wizard = null;
   renderChrome();
@@ -73,12 +76,17 @@ function renderChrome() {
   renderTabbar();
   renderStatusChip();
   const view = VIEWS.find((item) => item.id === (SUB_ROUTES[state.route.view] || state.route.view));
-  document.getElementById("mobile-title").textContent = state.route.view === "watch" ? "Watch a product" : view?.label || "Card Forge";
+  document.getElementById("mobile-title").textContent = state.route.view === "watch" ? "Watch a product"
+    : state.route.view === "test-store" ? "Test a store" : view?.label || "Card Forge";
 }
 
 const activeMenu = () => SUB_ROUTES[state.route.view] || state.route.view;
 
 function navCount(id) {
+  if (id === "radar") {
+    const offers = currentOffers().filter((offer) => inGameTab(offer.task.game));
+    return offers.length ? [offers.length, offers.some((offer) => offer.isNew) ? "accent" : ""] : null;
+  }
   if (id === "watching") return state.tasks ? [state.tasks.length, ""] : null;
   if (id === "alerts") { const today = alertsToday(); return today > 0 ? [today, "accent"] : null; }
   if (id === "stores") return state.stores ? [enabledStores().length, ""] : null;
@@ -97,7 +105,7 @@ function renderNav() {
       item.section ? h("div", { class: "nav-section" }, item.section) : null,
       h("a", { href: routeHash(item.id), class: activeMenu() === item.id ? "on" : "", "aria-current": activeMenu() === item.id ? "page" : null },
         icon(item.icon), h("span", { class: "nav-label" }, item.label),
-        count ? h("span", { class: `nav-count ${count[1]}`, title: item.id === "alerts" ? "Alerts today" : item.id === "releases" ? "Pre-orders open" : null }, count[0]) : null,
+        count ? h("span", { class: `nav-count ${count[1]}`, title: item.id === "alerts" ? "Alerts today" : item.id === "releases" ? "Pre-orders open" : item.id === "radar" ? "Offers at your price" : null }, count[0]) : null,
         h("kbd", { class: "nav-key" }, item.key)),
     ];
   }).filter(Boolean));
@@ -168,7 +176,7 @@ function renderStatusChip() {
 
 function renderTabbar() {
   const tabs = [
-    ["radar", "Radar", "radar"], ["products", "Products", "grid"], ["watch", "Watch", "plus"], ["watching", "Watching", "eye"], ["alerts", "Alerts", "bell"],
+    ["products", "Products", "grid"], ["radar", "Deals", "radar"], ["watch", "Watch", "plus"], ["watching", "Watching", "eye"], ["alerts", "Alerts", "bell"],
   ];
   document.getElementById("tabbar").replaceChildren(...tabs.map(([id, label, iconName]) => {
     const on = id === "watch" ? state.route.view === "watch" : activeMenu() === id && state.route.view !== "watch";
@@ -233,7 +241,7 @@ function renderView(force = false) {
 
   const container = document.getElementById("view");
   const scrollers = [...container.querySelectorAll("[data-keep-scroll]")].map((element) => [element.dataset.keepScroll, element.scrollTop]);
-  const renderer = RENDERERS[view] || RENDERERS.radar;
+  const renderer = RENDERERS[view] || RENDERERS[HOME];
   container.dataset.view = view;
   keepFocus(container, () => container.replaceChildren(...[renderer()].flat(Infinity).filter(Boolean)));
 

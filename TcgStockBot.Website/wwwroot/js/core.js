@@ -32,7 +32,7 @@ const state = {
   settings: null,
   notification: null,
   alerts: [],
-  route: { view: "radar", param: "" },
+  route: { view: "products", param: "" },
   radarQuery: "",
   game: readPreference("game", "all"),                  // the game tabs on top of Radar, A vigiar, Produtos, Lançamentos, Alertas
   watchStatus: "all",                                   // all | stock | searching | paused
@@ -45,12 +45,12 @@ const state = {
   catalogKind: "all",
   catalogStore: "",
   catalogStock: readPreference("catalogStock", false),
-  catalogSort: readPreference("catalogSort", "stores"),  // stores | cheap | drop | name | new
+  catalogSort: readPreference("catalogSort", "newest"),  // newest | cheap | stores | drop | name
   catalogShown: 48,
   ficha: null,                                          // the open product page (from /compare/get)
   fichaPeriod: readPreference("fichaPeriod", "90"),     // 7 | 30 | 90 | 180 | 365 | all
   fichaHidden: [],                                      // stores switched off in the chart
-  fichaHideSoldOut: false,
+  fichaShowSoldOut: false,                              // product page: the sold-out stores unfolded
   releases: null,                                       // Lançamentos (from /release/list)
   releaseView: readPreference("releaseView", "list"),   // list | calendar
   releaseMonth: null,                                   // first day of the month shown in the calendar

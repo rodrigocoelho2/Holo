@@ -178,7 +178,8 @@ function watchRelease(release) {
 function openReleaseDrawer(release) {
   const draft = release
     ? { ...release }
-    : { id: "", name: "", game: state.game !== "all" ? state.game : "Pokemon", releaseDate: "", preOrderDate: "", url: "", notes: "", stockTaskId: "" };
+    : { id: "", name: "", game: state.game !== "all" ? state.game : "Pokemon", releaseDate: "", preOrderDate: "", url: "", notes: "", stockTaskId: "", aliases: [] };
+  draft.aliasText = (draft.aliases || []).join(", ");
   const errors = h("div", {});
   const tasks = (state.tasks || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || "", "en"));
 
@@ -188,6 +189,7 @@ function openReleaseDrawer(release) {
       await post("/release/save", {
         id: draft.id || null, name: draft.name.trim(), game: draft.game, releaseDate: draft.releaseDate || null,
         preOrderDate: draft.preOrderDate || null, url: draft.url?.trim() || null, notes: draft.notes?.trim() || null, stockTaskId: draft.stockTaskId || null,
+        aliases: draft.aliasText.split(",").map((alias) => alias.trim()).filter(Boolean),
       });
       toast(release ? "Release saved" : "Release added", "success");
       closeDrawer();
@@ -223,6 +225,8 @@ function openReleaseDrawer(release) {
           h("option", { value: "", selected: !draft.stockTaskId }, "— none —"),
           tasks.map((task) => h("option", { value: task.id, selected: draft.stockTaskId === task.id }, task.name || task.id))),
         "Link it to a watched product to see its offers here.", true),
+        field("Other names in the stores", textInput(draft.aliasText, (value) => { draft.aliasText = value; }, { placeholder: "e.g. ME06, Mega Evolution 6" }),
+          "Comma-separated. Store listings with the name or any of these in the title are grouped as this set in Products. Sets already out are known without this.", true),
         field("Official page", textInput(draft.url || "", (value) => { draft.url = value; }, { type: "url", placeholder: "https://…" }), null, true),
         field("Notes", h("textarea", { rows: 3, placeholder: "Products in the wave, MSRP, stores taking reservations…", oninput: (event) => { draft.notes = event.target.value; } }, draft.notes || ""), null, true)),
       errors,

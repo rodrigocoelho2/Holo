@@ -23,7 +23,7 @@ RENDERERS.radar = function viewRadar() {
   const searchBox = searchField(state.radarQuery, "Search offers, stores or products", (value) => { state.radarQuery = value; renderView(true); }, "radar-search");
 
   return [
-    pageHead("Radar", "Offers in stock, in the right language and within your price rule.", [
+    pageHead("Deals", "Offers in stock, in the right language and within your price rule.", [
       searchBox,
       button("Check now", { iconName: "bolt", onClick: runNow, kbd: "R", title: "Search every store now (shortcut R)" }),
       linkButton("Watch a product", routeHash("watch"), { iconName: "plus", kind: "primary" }),

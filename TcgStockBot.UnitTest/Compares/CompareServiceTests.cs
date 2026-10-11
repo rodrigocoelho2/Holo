@@ -8,13 +8,18 @@ using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.PriceHistories.Models.Entities;
 using TcgStockBot.WebApi.Features.PriceHistories.Repositories;
 using TcgStockBot.WebApi.Features.PriceHistories.Services;
+using TcgStockBot.WebApi.Features.Releases.Models.Entities;
+using TcgStockBot.WebApi.Features.Releases.Repositories;
+using TcgStockBot.WebApi.Features.Sets.Repositories;
+using TcgStockBot.WebApi.Features.Sets.Services;
+using TcgStockBot.Library.Enums;
 using TcgStockBot.WebApi.Features.StockTasks.Models.Entities;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 
 namespace TcgStockBot.UnitTest.Compares;
 
 /// <summary>
-/// Compare grouping: set (task) + kind of product, variants kept apart, manual corrections kept across calls.
+/// Compare grouping: game + set + kind of product, variants kept apart, manual corrections kept across calls.
 /// </summary>
 public sealed class CompareServiceTests : IDisposable
 {
@@ -22,13 +27,18 @@ public sealed class CompareServiceTests : IDisposable
     private readonly PriceHistoryService _history;
     private readonly FakeTaskRepository _tasks = new();
     private readonly CompareService _service;
+    private readonly ReleaseRepository _releases;
 
     public CompareServiceTests()
     {
         _history = new PriceHistoryService(new PriceHistoryRepository(_data.Context), new GlobalizationHelper(), TimeProvider.System);
-        _service = new CompareService(_history, _tasks, new CompareOverrideRepository(_data.Context), new MsrpService(new MsrpRepository(_data.Context)), new GlobalizationHelper());
+        _releases = new ReleaseRepository(_data.Context);
+        _service = new CompareService(_history, _tasks, new CompareOverrideRepository(_data.Context), new MsrpService(new MsrpRepository(_data.Context)),
+            new SetService(new SetRepository(), _releases), new GlobalizationHelper());
         _tasks.Items.Add(new StockTask { Id = "set-pitch-black", Name = "Pokémon Pitch Black (EN)", RequiredKeywords = ["pitch black"] });
         _tasks.Items.Add(new StockTask { Id = "set-chaos-rising", Name = "Pokémon Chaos Rising (EN)", RequiredKeywords = ["chaos rising"] });
+        _tasks.Items.Add(new StockTask { Id = "pkm-etb", Name = "Pokémon Elite Trainer Box", RequiredKeywords = ["elite trainer box|etb"] });
+        _tasks.Items.Add(new StockTask { Id = "op-box", Name = "One Piece Booster Box", Game = TcgGame.OnePiece, RequiredKeywords = ["one piece", "booster box|display"] });
     }
 
     public void Dispose() => _data.Dispose();
@@ -80,7 +90,7 @@ public sealed class CompareServiceTests : IDisposable
         await _history.RecordAsync([Seen("Loja B", "Pitch Black Elite Trainer Box", 89.90m)]);
         await _history.RecordAsync([Seen("Loja B", "Pitch Black Elite Trainer Box", 95m)]);
 
-        var group = (await _service.GetAsync("set-pitch-black|etb|")).Result!;
+        var group = (await _service.GetAsync("set:pkm-me05|etb|")).Result!;
 
         var listing = Assert.Single(group.Listings);
         Assert.Equal(3, listing.Points.Count);
@@ -100,7 +110,7 @@ public sealed class CompareServiceTests : IDisposable
         var pokemonCenter = (await ListAsync()).Single(static group => group.Title.Contains("Pokémon Center")).Listings.Single().HistoryKey;
 
         // Join it to the regular ETB…
-        Assert.Equal(ServiceApiResponseStatus.Success, (await _service.AssignAsync(new CompareAssignRequest { HistoryKey = pokemonCenter, GroupKey = "set-pitch-black|etb|" })).Status);
+        Assert.Equal(ServiceApiResponseStatus.Success, (await _service.AssignAsync(new CompareAssignRequest { HistoryKey = pokemonCenter, GroupKey = "set:pkm-me05|etb|" })).Status);
         var etb = (await ListAsync()).Single(static group => group.Title == "Pitch Black · Elite Trainer Box");
         Assert.Equal(2, etb.Listings.Count);
         Assert.True(etb.Listings.Single(listing => listing.HistoryKey == pokemonCenter).IsManual);
@@ -134,6 +144,7 @@ public sealed class CompareServiceTests : IDisposable
 
         Assert.Equal(ServiceApiResponseStatus.ValidationProblems, (await _service.AssignAsync(new CompareAssignRequest { HistoryKey = "loja|https://nope.example/x", GroupKey = "solo" })).Status);
         Assert.Equal(ServiceApiResponseStatus.ValidationProblems, (await _service.AssignAsync(new CompareAssignRequest { HistoryKey = key, GroupKey = "unknown-task|etb|" })).Status);
+        Assert.Equal(ServiceApiResponseStatus.ValidationProblems, (await _service.AssignAsync(new CompareAssignRequest { HistoryKey = key, GroupKey = "set:no-such-set|etb|" })).Status);
         Assert.Equal(ServiceApiResponseStatus.NotFound, (await _service.GetAsync("set-pitch-black|tin|nothing")).Status);
     }
 
@@ -149,6 +160,75 @@ public sealed class CompareServiceTests : IDisposable
 
         Assert.Equal(["set-pitch-black", "pkm-etb-en"], entry.StockTaskIds);
         Assert.Single(entry.Points);
+    }
+
+    [Fact]
+    public async Task OneTaskForEverySet_GroupsByTheSetInTheTitle()
+    {
+        await _history.RecordAsync([
+            Seen("Loja A", "Pitch Black ETB", 59.99m, task: "pkm-etb"),
+            Seen("Loja B", "Pokémon TCG: Mega Evolution 5 - Pitch Black Elite Trainer Box", 62m, task: "pkm-etb"),
+            Seen("Loja C", "PKM ME05 Pitch Black Elite Trainer Box [MAX 1 POR PESSOA] - Inglés", 64m, task: "pkm-etb"),
+            Seen("Loja A", "Chaos Rising Elite Trainer Box", 58m, task: "pkm-etb"),
+            Seen("Loja D", "Pitch Black Elite Trainer Box", 61m),   // the set task finds the same product
+        ]);
+
+        var groups = await ListAsync();
+
+        var pitchBlack = Assert.Single(groups, static group => group.SetName == "Pitch Black");
+        Assert.Equal("Pitch Black · Elite Trainer Box", pitchBlack.Title);
+        Assert.Equal(4, pitchBlack.Listings.Count);
+        Assert.Equal("pkm-me05", pitchBlack.SetId);
+        Assert.Equal("ME05", pitchBlack.SetCode);
+        Assert.Equal(new DateOnly(2026, 7, 17), pitchBlack.ReleaseDate);
+        Assert.Equal(TcgGame.Pokemon, pitchBlack.Game);
+        Assert.Single(Assert.Single(groups, static group => group.SetName == "Chaos Rising").Listings);
+    }
+
+    [Fact]
+    public async Task SetCodes_AndTheGameOfTheTask_FindTheSet()
+    {
+        await _history.RecordAsync([
+            Seen("Loja A", "One Piece Card Game OP-13 Booster Box (EN)", 99.90m, task: "op-box"),
+            Seen("Loja B", "OP13 Carrying on His Will Booster Display", 104m, task: "op-box"),
+        ]);
+
+        var group = Assert.Single(await ListAsync());
+
+        Assert.Equal("Carrying on His Will · Booster Display", group.Title);
+        Assert.Equal(TcgGame.OnePiece, group.Game);
+        Assert.Equal(2, group.Listings.Count);
+    }
+
+    [Fact]
+    public async Task UnknownSet_IsGroupedByItsTask()
+    {
+        await _history.RecordAsync([Seen("Loja A", "Delta Reign Elite Trainer Box", 59.99m, task: "pkm-etb")]);
+
+        var group = Assert.Single(await ListAsync());
+
+        Assert.StartsWith("pkm-etb|etb|", group.Key);
+        Assert.Null(group.SetId);
+    }
+
+    [Fact]
+    public async Task Releases_AddSets_AndAliasesToBuiltInSets()
+    {
+        await _releases.SaveAsync([
+            new Release { Id = "r1", Name = "Pokémon — Delta Reign", Game = TcgGame.Pokemon, ReleaseDate = new DateOnly(2026, 11, 13), Aliases = ["ME06"] },
+            new Release { Id = "r2", Name = "Pokémon — Pitch Black", Game = TcgGame.Pokemon, ReleaseDate = new DateOnly(2026, 7, 17), Aliases = ["Escuridao Total"] },
+        ]);
+        await _history.RecordAsync([
+            Seen("Loja A", "PKM ME06 Elite Trainer Box", 59.99m, task: "pkm-etb"),
+            Seen("Loja B", "Escuridão Total Elite Trainer Box", 61m, task: "pkm-etb"),
+        ]);
+
+        var groups = await ListAsync();
+
+        var delta = Assert.Single(groups, static group => group.SetName == "Delta Reign");
+        Assert.Equal("set:rel-r1|etb|", delta.Key);
+        Assert.Equal(new DateOnly(2026, 11, 13), delta.ReleaseDate);
+        Assert.Equal("set:pkm-me05|etb|", Assert.Single(groups, static group => group.SetName == "Pitch Black").Key);
     }
 
     /// <summary>An in-memory task list.</summary>

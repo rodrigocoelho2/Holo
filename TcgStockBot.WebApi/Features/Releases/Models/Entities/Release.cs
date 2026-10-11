@@ -31,4 +31,7 @@ public sealed class Release
 
     /// <summary>Gets or sets the stock task that watches this release, when there is one.</summary>
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets other ways stores write the set ("ME05", "mega evolution 5"), so its products are recognised.</summary>
+    public List<string> Aliases { get; set; } = [];
 }

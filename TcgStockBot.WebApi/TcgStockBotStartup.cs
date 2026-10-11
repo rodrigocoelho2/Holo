@@ -31,6 +31,8 @@ using TcgStockBot.WebApi.Features.Releases.Repositories;
 using TcgStockBot.WebApi.Features.Users.Repositories;
 using TcgStockBot.WebApi.Features.Users.Services;
 using TcgStockBot.WebApi.Features.Releases.Services;
+using TcgStockBot.WebApi.Features.Sets.Repositories;
+using TcgStockBot.WebApi.Features.Sets.Services;
 
 namespace TcgStockBot.WebApi;
 
@@ -160,6 +162,10 @@ internal static class TcgStockBotStartup
         // Releases
         services.AddSingleton<IReleaseRepository, ReleaseRepository>();
         services.AddSingleton<IReleaseService, ReleaseService>();
+
+        // Sets
+        services.AddSingleton<ISetRepository, SetRepository>();
+        services.AddSingleton<ISetService, SetService>();
 
         // Compares
         services.AddSingleton<ICompareOverrideRepository, CompareOverrideRepository>();

@@ -24,6 +24,7 @@
   <!-- Researched MSRP reference prices per kind of product (a data/msrp.json replaces them). -->
   <ItemGroup>
     <EmbeddedResource Include="Features\Msrps\Data\msrp-defaults.json" LogicalName="TcgStockBot.WebApi.Features.Msrps.Data.msrp-defaults.json" />
+    <EmbeddedResource Include="Features\Sets\Data\set-defaults.json" LogicalName="TcgStockBot.WebApi.Features.Sets.Data.set-defaults.json" />
   </ItemGroup>
 
 </Project>

@@ -28,6 +28,9 @@ public sealed class ReleaseDTO
 
     /// <summary>Gets or sets the stock task that watches this release.</summary>
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets other ways stores write the set.</summary>
+    public List<string> Aliases { get; set; } = [];
 }
 
 /// <summary>Creates (empty <see cref="Id"/>) or replaces a release.</summary>
@@ -56,4 +59,7 @@ public sealed class ReleaseSaveRequest
 
     /// <summary>Gets or sets the stock task that watches this release.</summary>
     public string? StockTaskId { get; set; }
+
+    /// <summary>Gets or sets other ways stores write the set.</summary>
+    public List<string> Aliases { get; set; } = [];
 }

@@ -62,6 +62,7 @@ internal sealed class ReleaseService(
         release.Url = Blank(item.Url);
         release.Notes = Blank(item.Notes);
         release.StockTaskId = Blank(item.StockTaskId);
+        release.Aliases = [.. (item.Aliases ?? []).Select(static alias => alias.Trim()).Where(static alias => alias.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase)];
 
         if (existing is null)
         {
@@ -142,5 +143,6 @@ internal sealed class ReleaseService(
         Url = release.Url,
         Notes = release.Notes,
         StockTaskId = release.StockTaskId,
+        Aliases = [.. release.Aliases],
     };
 }
