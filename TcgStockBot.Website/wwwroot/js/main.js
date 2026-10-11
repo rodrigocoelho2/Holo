@@ -111,7 +111,7 @@ async function resetAlertMemory() {
 async function sendTest(channel) {
   try {
     await post("/notification/test", { channel });
-    toast(channel === "WhatsApp" ? "Mensagem de teste enviada — vê o WhatsApp" : "Email de teste enviado", "success");
+    toast(channel === "Email" ? "Email de teste enviado" : `Mensagem de teste enviada — vê o ${channel}`, "success");
   } catch (error) {
     toast(errorText(error), "error");
   }
@@ -141,7 +141,8 @@ async function refresh() {
     if (cycleAt !== state.lastCycleAt) {
       state.lastCycleAt = cycleAt;
       state.alerts = await api("/alert/list");
-      if (state.route.view === "comparar") loadCompare();
+      if (state.route.view === "produtos") loadCatalog();
+      if (state.route.view === "ficha") loadFicha(state.route.param, { quiet: true });
     }
     renderChrome();
     renderView();
@@ -161,6 +162,7 @@ async function start() {
     ]);
     state.lastCycleAt = state.monitor.lastCycle?.finishedAt || null;
     state.msrp = await api("/msrp/list").catch(() => ({ kinds: [], entries: [] }));
+    state.releases = await api("/release/list").catch(() => null);
   } catch (error) {
     document.getElementById("view").replaceChildren(h("div", { class: "card soft" }, emptyState("alert", "Não foi possível ligar ao bot", `${error.message} — a tentar outra vez…`)));
     setTimeout(start, 3000);
@@ -169,6 +171,7 @@ async function start() {
 
   navigate();
   refreshNotification();
+  if ("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("/sw.js").catch(() => { /* optional */ });
   setInterval(refresh, POLL_MS);
   setInterval(tickCountdowns, 1000);
 }

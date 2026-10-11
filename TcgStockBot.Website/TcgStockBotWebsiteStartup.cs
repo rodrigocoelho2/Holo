@@ -10,7 +10,7 @@ namespace TcgStockBot.Website;
 internal static class TcgStockBotWebsiteStartup
 {
     /// <summary>
-    /// Registers MVC, anti-forgery, the dashboard password and the WebApi client.
+    /// Registers MVC, anti-forgery, the login (cookie) and the WebApi client.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
@@ -18,6 +18,7 @@ internal static class TcgStockBotWebsiteStartup
     public static IServiceCollection AddTcgStockBotWebsite(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<DashboardOptions>(configuration.GetSection(DashboardOptions.SectionName));
+        services.AddDashboardAuthentication(configuration);
 
         services.AddControllersWithViews()
             .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -37,15 +38,19 @@ internal static class TcgStockBotWebsiteStartup
     /// <returns>The application.</returns>
     public static WebApplication UseTcgStockBotWebsite(this WebApplication app)
     {
-        app.UseDashboardPassword();
+        var contentTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+        contentTypes.Mappings[".webmanifest"] = "application/manifest+json";
 
+        // Static files are public (the landing page, the login form and the app icons need them).
         app.UseStaticFiles(new StaticFileOptions
         {
+            ContentTypeProvider = contentTypes,
             // Revalidate on every load so a new version shows up right after a redeploy.
             OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache",
         });
 
         app.UseRouting();
+        app.UseDashboardAuthentication();
 
         app.MapControllerRoute(name: "default", pattern: "{controller=Dashboard}/{action=Index}");
 

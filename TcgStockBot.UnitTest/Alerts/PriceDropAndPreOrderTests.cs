@@ -99,8 +99,8 @@ public sealed class PriceDropAndPreOrderTests : IDisposable
         Assert.Contains("baixou de preço", whatsApp);
         Assert.Contains("115,00 € (antes 130,00 €)", whatsApp);
         Assert.Contains("Pré-venda", whatsApp);
-        Assert.StartsWith("[TCG] Baixou de preço:", AlertMessageFormatter.Subject([alert]));
-        Assert.StartsWith("[TCG] Pré-venda:", AlertMessageFormatter.Subject([Alert(115m, preOrder: true)]));
+        Assert.StartsWith("[Card Forge] Baixou de preço:", AlertMessageFormatter.Subject([alert]));
+        Assert.StartsWith("[Card Forge] Pré-venda:", AlertMessageFormatter.Subject([Alert(115m, preOrder: true)]));
     }
 
     [Theory]

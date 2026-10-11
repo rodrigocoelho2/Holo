@@ -9,14 +9,15 @@ const RADAR_SORTS = { recent: "Mais recentes", cheap: "Mais baratas", msrp: "Mel
 
 RENDERERS.radar = function viewRadar() {
   const query = state.radarQuery;
-  const all = currentOffers().filter((offer) => !query
-    || matchesWords(query, offer.listing.title, offer.task.name, offer.storeName, offer.kindLabel));
+  const everyOffer = currentOffers();
+  const all = everyOffer.filter((offer) => inGameTab(offer.task.game) && (!query
+    || matchesWords(query, offer.listing.title, offer.task.name, offer.storeName, offer.kindLabel)));
   const fresh = all.filter((offer) => offer.isNew).sort((a, b) => new Date(b.since) - new Date(a.since));
   const freshKeys = new Set(fresh.map((offer) => offer.key));
   const rest = all.filter((offer) => !freshKeys.has(offer.key));
 
   const last = state.monitor.lastCycle;
-  const watching = state.tasks.filter((task) => task.enabled).length;
+  const watching = state.tasks.filter((task) => task.enabled && inGameTab(task.game)).length;
   const storesUsed = enabledStores().filter((store) => store.platform !== "Manual").length;
 
   const searchBox = searchField(state.radarQuery, "Procurar oferta, loja ou produto", (value) => { state.radarQuery = value; renderView(true); }, "radar-search");
@@ -28,6 +29,7 @@ RENDERERS.radar = function viewRadar() {
       linkButton("Vigiar produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" }),
     ]),
 
+    gameTabs(everyOffer.map((offer) => offer.task.game), "ofertas"),
     h("div", { class: "kpis" },
       kpi("Novas nas últimas 24 h", fresh.length, fresh.length ? "accent" : ""),
       kpi("Disponíveis ao teu preço", all.length),
@@ -51,7 +53,7 @@ RENDERERS.radar = function viewRadar() {
           ? h("div", { class: "card soft" }, emptyState("eye", "Ainda não vigias nenhum produto.", null,
             linkButton("Vigiar o primeiro produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" })))
           : null),
-      h("aside", { class: "split-side" }, storesHealthCard(), activityCard())),
+      h("aside", { class: "split-side" }, movesCard(), storesHealthCard(), activityCard())),
   ];
 };
 
@@ -131,6 +133,39 @@ function offerTable(offers) {
         h("td", { class: "actions" }, safeHref(offer.listing.url)
           ? linkButton("Abrir", offer.listing.url, { kind: "small", external: true, trailingIcon: "external" }) : null))))))),
   ];
+}
+
+/**
+ * "Últimos movimentos": the latest restocks, price drops and pre-orders the bot alerted, with the game — like a feed
+ * of what changed in the stores.
+ */
+function movesCard() {
+  const moves = state.alerts.filter((alert) => inGameTab(alertTask(alert)?.game)).slice(0, 6);
+  const since = Date.now() - 30 * 864e5;
+  const month = state.alerts.filter((alert) => new Date(alert.at).getTime() >= since);
+  const drops = month.filter((alert) => alert.previousPrice !== null && alert.previousPrice !== undefined).length;
+  return h("section", { class: "card side-card", "aria-labelledby": "moves-h" },
+    h("div", { class: "side-card-head" }, h("h2", { id: "moves-h" }, "Últimos movimentos"),
+      h("a", { class: "text-link small", href: routeHash("alertas") }, "Ver todos")),
+    h("div", { class: "move-stats" },
+      h("div", {}, h("strong", { class: "mono" }, month.length - drops), h("span", {}, "alertas de stock")),
+      h("div", {}, h("strong", { class: "mono" }, drops), h("span", {}, "descidas de preço"))),
+    h("p", { class: "dim small move-note" }, "Últimos 30 dias"),
+    moves.length === 0
+      ? h("p", { class: "muted small" }, "Sem movimentos ainda.")
+      : h("ul", { class: "moves" }, moves.map((alert) => {
+        const task = alertTask(alert);
+        const dropped = alert.previousPrice !== null && alert.previousPrice !== undefined;
+        const [label, tone] = dropped ? ["Baixou", "drop"] : alert.preOrder ? ["Pré-venda", "pre"] : ["Reposição", "restock"];
+        return h("li", {},
+          h("div", { class: "move-top" },
+            h("span", { class: `move-kind ${tone}` }, label),
+            task ? h("span", { class: `move-game ${gameClass(task.game)}` }, h("span", { class: "game-dot", "aria-hidden": "true" }), GAMES[gameKey(task.game)]) : null,
+            h("time", { class: "muted small", datetime: alert.at, title: dateTime(alert.at) }, relative(alert.at))),
+          h("a", { class: "move-title", href: safeHref(alert.url) || routeHash("alertas"), target: "_blank", rel: "noopener noreferrer", title: alert.title }, alert.title),
+          h("span", { class: "move-meta" }, alert.storeName, " · ", h("strong", { class: "mono" }, money(alert.price)),
+            dropped ? h("s", { class: "dim mono" }, money(alert.previousPrice)) : null));
+      })));
 }
 
 function activityCard() {

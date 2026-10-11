@@ -6,19 +6,20 @@
 
 const VIEWS = [
   { id: "radar", label: "Radar", icon: "radar", key: "1" },
-  { id: "a-vigiar", label: "A vigiar", icon: "eye", key: "2" },
-  { id: "alertas", label: "Alertas", icon: "bell", key: "3" },
-  { id: "lojas", label: "Lojas", icon: "store", key: "4" },
-  { id: "comparar", label: "Comparar", icon: "compare", key: "5" },
-  { id: "definicoes", label: "Definições", icon: "sliders", key: "6" },
-  { id: "testar", label: "Testar loja", icon: "flask", key: "7", section: "Ferramentas" },
+  { id: "produtos", label: "Produtos", icon: "grid", key: "2" },
+  { id: "a-vigiar", label: "A vigiar", icon: "eye", key: "3" },
+  { id: "lancamentos", label: "Lançamentos", icon: "calendar", key: "4" },
+  { id: "alertas", label: "Alertas", icon: "bell", key: "5" },
+  { id: "lojas", label: "Lojas", icon: "store", key: "6" },
+  { id: "definicoes", label: "Definições", icon: "sliders", key: "7" },
+  { id: "testar", label: "Testar loja", icon: "flask", key: "8", section: "Ferramentas" },
 ];
 
 /** Routes that are not in the menu: they light up their parent entry. */
-const SUB_ROUTES = { produto: "a-vigiar", vigiar: "a-vigiar" };
+const SUB_ROUTES = { produto: "a-vigiar", vigiar: "a-vigiar", ficha: "produtos" };
 
-/** Hashes of the previous dashboard, so old bookmarks keep working. */
-const OLD_ROUTES = { overview: "radar", tasks: "a-vigiar", stores: "lojas", alerts: "alertas", compare: "comparar", probe: "testar", settings: "definicoes" };
+/** Hashes of earlier versions, so old bookmarks keep working. */
+const OLD_ROUTES = { overview: "radar", tasks: "a-vigiar", stores: "lojas", alerts: "alertas", compare: "produtos", comparar: "produtos", probe: "testar", settings: "definicoes" };
 
 /** Routes re-rendered by the poll; the others hold forms and only render on navigation. */
 const LIVE_VIEWS = new Set(["radar", "a-vigiar", "produto", "alertas", "lojas"]);
@@ -46,8 +47,11 @@ function navigate() {
   state.route = route;
   if (location.hash !== routeHash(route.view, route.param)) history.replaceState(null, "", routeHash(route.view, route.param));
   closeSidebar();
+  if (changed && document.getElementById("drawer").classList.contains("open")) closeDrawer();
   if (route.view === "definicoes" || route.view === "alertas") refreshNotification();
-  if (route.view === "comparar") loadCompare();
+  if (route.view === "produtos" || (route.view === "ficha" && changed)) loadCatalog();
+  if (route.view === "ficha" && changed) { state.fichaHidden = []; if (state.ficha?.key !== route.param) state.ficha = null; }
+  if (route.view === "lancamentos") loadReleases();
   if (route.view !== "vigiar") state.wizard = null;
   renderChrome();
   renderView(true);
@@ -65,7 +69,7 @@ function renderChrome() {
   renderTabbar();
   renderStatusChip();
   const view = VIEWS.find((item) => item.id === (SUB_ROUTES[state.route.view] || state.route.view));
-  document.getElementById("mobile-title").textContent = state.route.view === "vigiar" ? "Vigiar produto" : view?.label || "TcgStock Bot";
+  document.getElementById("mobile-title").textContent = state.route.view === "vigiar" ? "Vigiar produto" : view?.label || "Card Forge";
 }
 
 const activeMenu = () => SUB_ROUTES[state.route.view] || state.route.view;
@@ -74,6 +78,10 @@ function navCount(id) {
   if (id === "a-vigiar") return state.tasks ? [state.tasks.length, ""] : null;
   if (id === "alertas") { const today = alertsToday(); return today > 0 ? [today, "accent"] : null; }
   if (id === "lojas") return state.stores ? [enabledStores().length, ""] : null;
+  if (id === "lancamentos") {
+    const open = (state.releases || []).filter((release) => releasePhase(release) === "preorder").length;
+    return open ? [open, "accent"] : null;
+  }
   return null;
 }
 
@@ -85,7 +93,7 @@ function renderNav() {
       item.section ? h("div", { class: "nav-section" }, item.section) : null,
       h("a", { href: routeHash(item.id), class: activeMenu() === item.id ? "on" : "", "aria-current": activeMenu() === item.id ? "page" : null },
         icon(item.icon), h("span", { class: "nav-label" }, item.label),
-        count ? h("span", { class: `nav-count ${count[1]}`, title: item.id === "alertas" ? "Alertas hoje" : null }, count[0]) : null,
+        count ? h("span", { class: `nav-count ${count[1]}`, title: item.id === "alertas" ? "Alertas hoje" : item.id === "lancamentos" ? "Pré-vendas abertas" : null }, count[0]) : null,
         h("kbd", { class: "nav-key" }, item.key)),
     ];
   }).filter(Boolean));
@@ -156,7 +164,7 @@ function renderStatusChip() {
 
 function renderTabbar() {
   const tabs = [
-    ["radar", "Radar", "radar"], ["a-vigiar", "A vigiar", "eye"], ["vigiar", "Vigiar", "plus"], ["alertas", "Alertas", "bell"], ["lojas", "Lojas", "store"],
+    ["radar", "Radar", "radar"], ["produtos", "Produtos", "grid"], ["vigiar", "Vigiar", "plus"], ["a-vigiar", "A vigiar", "eye"], ["alertas", "Alertas", "bell"],
   ];
   document.getElementById("tabbar").replaceChildren(...tabs.map(([id, label, iconName]) => {
     const on = id === "vigiar" ? state.route.view === "vigiar" : activeMenu() === id && state.route.view !== "vigiar";
@@ -214,7 +222,7 @@ function renderView(force = false) {
   if (!force && !LIVE_VIEWS.has(view)) return;
 
   const signature = JSON.stringify([state.route, state.monitor, state.alerts.length, state.alerts[0]?.at, state.tasks, state.stores,
-    state.watchGame, state.watchStatus, state.productOnlyCandidates, state.alertFilter, state.alertStore,
+    state.game, state.watchStatus, state.productOnlyCandidates, state.alertFilter, state.alertStore,
     state.storeCountry, state.storeTier, state.storeType, state.storeTag, state.storeTest]);
   if (!force && signature === state.renderedSignature) return;
   state.renderedSignature = signature;

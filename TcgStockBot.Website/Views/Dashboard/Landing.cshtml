@@ -1,0 +1,125 @@
+@model LandingModel
+@{
+    ViewData["Title"] = "Card Forge";
+    var cta = Model.SignedIn ? "/" : "/entrar";
+    var ctaLabel = Model.SignedIn ? "Abrir o painel" : "Entrar";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="landing">
+    <header class="landing-bar">
+        <a class="landing-brand" href="/sobre">
+            <img src="~/img/card-forge.svg" width="36" height="36" alt="" />
+            <span>Card Forge</span>
+        </a>
+        <a class="landing-cta small" href="@cta">@ctaLabel</a>
+    </header>
+
+    <main>
+        <section class="lp-hero">
+            <div class="lp-hero-text">
+                <p class="eyebrow">Monitor de TCG selado · Portugal</p>
+                <h1>Apanha o selado <span class="ember">ao preço certo.</span></h1>
+                <p class="lead">O Card Forge vigia as lojas portuguesas por ti — stock, preço e pré-vendas — e avisa-te no telemóvel
+                    no minuto em que o produto que queres aparece ao teu preço.</p>
+                <div class="lp-hero-actions">
+                    <a class="landing-cta" href="@cta">@ctaLabel</a>
+                    <a class="landing-link" href="#como-funciona">Como funciona ↓</a>
+                </div>
+                <ul class="game-row" aria-label="Jogos">
+                    <li class="g-pokemon">Pokémon</li>
+                    <li class="g-onepiece">One Piece</li>
+                    <li class="g-riftbound">Riftbound</li>
+                    <li class="g-cyberpunk">Cyberpunk</li>
+                    <li class="g-more">Lorcana, Magic…</li>
+                </ul>
+            </div>
+
+            <figure class="phone" aria-label="Exemplo de um alerta">
+                <div class="phone-screen">
+                    <div class="phone-top"><span>09:41</span><span class="phone-pill"></span><span>5G</span></div>
+                    <div class="notif">
+                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>agora</span></div>
+                        <strong>🟢 Em stock ao teu preço</strong>
+                        <p>Elite Trainer Box · Loja exemplo</p>
+                        <p class="notif-price">54,90 € <span class="good">−8% vs MSRP</span></p>
+                    </div>
+                    <div class="notif dim">
+                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>há 2 h</span></div>
+                        <strong>🔻 Baixou de preço</strong>
+                        <p>Booster Bundle · Outra loja</p>
+                        <p class="notif-price">27,50 € <s>32,90 €</s></p>
+                    </div>
+                    <div class="notif dim">
+                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>ontem</span></div>
+                        <strong>🕒 Pré-venda aberta</strong>
+                        <p>Booster Display · lançamento a 14 nov.</p>
+                    </div>
+                </div>
+                <figcaption>Exemplo de alertas (WhatsApp, Telegram ou email).</figcaption>
+            </figure>
+        </section>
+
+        <section class="features" aria-labelledby="features-h">
+            <h2 id="features-h">Tudo o que precisas para não perder um lançamento</h2>
+            <div class="feature-grid">
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5" /></svg></span>
+                    <h3>Radar de ofertas</h3>
+                    <p>O que está em stock agora, ao teu preço e no idioma certo. As novidades das últimas 24 horas aparecem primeiro.</p>
+                </article>
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.9 5 3.4 5 1.6 5 3.6-2.2 3-5 3-5-1.1-5-3" /></svg></span>
+                    <h3>Preço justo (MSRP)</h3>
+                    <p>Diz “até ao MSRP + 10%” e cada tipo de produto — ETB, bundle, display — tem o seu limite. Sem contas.</p>
+                </article>
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-5 4 3 6-7" /></svg></span>
+                    <h3>Catálogo e histórico</h3>
+                    <p>Cada produto em todas as lojas: o mais barato, quem tem stock, e o gráfico de preços de 7 dias a 1 ano.</p>
+                </article>
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" /></svg></span>
+                    <h3>Lançamentos</h3>
+                    <p>Calendário das próximas expansões, com a abertura das pré-vendas e o estado de cada uma.</p>
+                </article>
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0" /></svg></span>
+                    <h3>Alertas onde quiseres</h3>
+                    <p>WhatsApp, Telegram ou email: reposições, descidas de preço e pré-vendas. E um resumo diário, se quiseres.</p>
+                </article>
+                <article>
+                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4" /></svg></span>
+                    <h3>Respeita as lojas</h3>
+                    <p>Só usa o que as lojas disponibilizam (pesquisas públicas, APIs e feeds oficiais), com pausas entre pedidos. Nunca contorna proteções.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="how" id="como-funciona" aria-labelledby="steps-h">
+            <h2 id="steps-h">Como funciona</h2>
+            <ol>
+                <li><span>1</span><div><h3>Escolhe o produto</h3><p>Pesquisa um set ou produto. O Card Forge procura-o em todas as lojas e mostra-te o que encontrou.</p></div></li>
+                <li><span>2</span><div><h3>Define o preço</h3><p>MSRP + margem, ou um preço máximo. Escolhe o idioma e os tipos de produto que te interessam.</p></div></li>
+                <li><span>3</span><div><h3>Recebe o aviso</h3><p>De poucos em poucos minutos o bot verifica as lojas. Quando aparece ao teu preço, o telemóvel toca.</p></div></li>
+            </ol>
+        </section>
+
+        <section class="install" aria-labelledby="install-h">
+            <img src="~/img/icon-192.png" width="64" height="64" alt="" />
+            <div>
+                <h2 id="install-h">Instala no telemóvel</h2>
+                <p><strong>iPhone:</strong> no Safari, toca em Partilhar → <em>Adicionar ao ecrã principal</em>.
+                    <strong>Android:</strong> no Chrome, ⋮ → <em>Adicionar ao ecrã principal</em> ou <em>Instalar app</em>.</p>
+            </div>
+            <a class="landing-cta" href="@cta">@ctaLabel</a>
+        </section>
+    </main>
+
+    <footer class="landing-foot">
+        <span><img src="~/img/card-forge.svg" width="18" height="18" alt="" /> Card Forge @Model.Version</span>
+        <span>Bot privado: os dados ficam no teu NAS.</span>
+    </footer>
+</div>

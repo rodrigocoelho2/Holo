@@ -1,0 +1,26 @@
+@HostAddress = http://127.0.0.1:5081
+@apiKey = devkey
+
+### List Release
+GET {{HostAddress}}/release/list
+x-api-key: {{apiKey}}
+
+### Save Release (empty id = new)
+POST {{HostAddress}}/release
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "id": "",
+    "name": "Nova expansão",
+    "game": "Pokemon",
+    "releaseDate": "2026-11-14",
+    "preOrderDate": "2026-10-20",
+    "url": null,
+    "notes": "ETB, Booster Bundle, Display",
+    "stockTaskId": null
+}
+
+### Delete Release
+DELETE {{HostAddress}}/release?identifier=
+x-api-key: {{apiKey}}

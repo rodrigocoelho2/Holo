@@ -20,8 +20,14 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
 
+# /keys keeps the login cookie keys, so "manter sessão" survives updates. Owned by the non-root "app" user so a
+# named volume inherits that ownership.
+RUN mkdir -p /keys && chown "$APP_UID" /keys
+VOLUME /keys
+
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_HTTP_PORTS=8080 \
+    Dashboard__KeysDirectory=/keys \
     TZ=Europe/Lisbon
 
 EXPOSE 8080

@@ -491,3 +491,8 @@ $RECYCLE.BIN/
 /TcgStockBot.WebApi/data/
 **/appsettings.Development.json
 
+
+# Folders named "Releases" that hold source code (the launch calendar feature), not build output.
+!TcgStockBot.WebApi/Features/Releases/
+!TcgStockBot.Website/Model/Releases/
+!TcgStockBot.UnitTest/Releases/

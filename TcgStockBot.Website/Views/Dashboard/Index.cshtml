@@ -3,15 +3,13 @@
     ViewData["Title"] = Model.ApplicationName;
 }
 
-<div class="app" id="app" data-poll-ms="@Model.PollMilliseconds" data-version="@Model.Version">
+<div class="app" id="app" data-poll-ms="@Model.PollMilliseconds" data-version="@Model.Version" data-sign-out="@(Model.CanSignOut ? "true" : "false")">
     <aside class="sidebar" id="sidebar" aria-label="Menu">
         <a class="brand" href="#/radar">
-            <span class="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5" /></svg>
-            </span>
+            <img class="brand-mark" src="~/img/card-forge.svg" width="38" height="38" alt="" />
             <span class="brand-text">
-                <span class="brand-name">TcgStock Bot</span>
-                <span class="brand-sub">monitor de stock · @Model.Version</span>
+                <span class="brand-name">@Model.ApplicationName</span>
+                <span class="brand-sub">TCG selado · @Model.Version</span>
             </span>
         </a>
 
@@ -26,7 +24,8 @@
             <button class="icon-btn" id="menu-button" type="button" aria-label="Abrir menu">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
-            <span class="mobile-title" id="mobile-title">TcgStock Bot</span>
+            <img class="mobile-logo" src="~/img/card-forge.svg" width="26" height="26" alt="" />
+            <span class="mobile-title" id="mobile-title">Card Forge</span>
             <span class="status-chip" id="status-chip"></span>
         </header>
 
@@ -48,7 +47,8 @@
     <script src="~/js/watch.js" asp-append-version="true"></script>
     <script src="~/js/alerts.js" asp-append-version="true"></script>
     <script src="~/js/stores.js" asp-append-version="true"></script>
-    <script src="~/js/compare.js" asp-append-version="true"></script>
+    <script src="~/js/catalog.js" asp-append-version="true"></script>
+    <script src="~/js/releases.js" asp-append-version="true"></script>
     <script src="~/js/settings.js" asp-append-version="true"></script>
     <script src="~/js/editors.js" asp-append-version="true"></script>
     <script src="~/js/main.js" asp-append-version="true"></script>

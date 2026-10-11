@@ -1,70 +1,94 @@
 <p align="center">
-  <img src="docs/images/hero.png" alt="TcgStockBot: o Radar no PC e no telemóvel" width="100%">
+  <img src="docs/card-forge-banner.png" alt="Card Forge" width="100%">
 </p>
 
-<h1 align="center">TcgStockBot</h1>
-
 <p align="center">
-  Um bot <b>self-hosted</b> que vigia lojas portuguesas de cartas colecionáveis (Pokémon, One Piece, Lorcana, Magic)<br>
-  e te avisa por <b>WhatsApp</b> e <b>email</b> quando um produto aparece <b>em stock, no idioma certo e ao teu preço</b>.
+  Um bot <b>self-hosted</b> que vigia lojas portuguesas de TCG selado (Pokémon, One Piece, Riftbound, Cyberpunk, Lorcana, Magic)<br>
+  e te avisa por <b>WhatsApp</b>, <b>Telegram</b> e <b>email</b> quando um produto aparece <b>em stock, no idioma certo e ao teu preço</b>.
 </p>
 
 <p align="center">
   <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white">
   <img alt="ASP.NET Core" src="https://img.shields.io/badge/ASP.NET%20Core-WebApi%20%2B%20MVC-5C2D91">
-  <img alt="Lojas" src="https://img.shields.io/badge/lojas-Shopify%20%C2%B7%20WooCommerce%20%C2%B7%20Amazon%20%C2%B7%20Awin-8C96F0">
-  <img alt="Avisos" src="https://img.shields.io/badge/avisos-WhatsApp%20%2B%20email-25D366?logo=whatsapp&logoColor=white">
+  <img alt="Lojas" src="https://img.shields.io/badge/lojas-Shopify%20%C2%B7%20WooCommerce%20%C2%B7%20Amazon%20%C2%B7%20Awin-FF6A33">
+  <img alt="Avisos" src="https://img.shields.io/badge/avisos-WhatsApp%20%C2%B7%20Telegram%20%C2%B7%20email-25D366?logo=whatsapp&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-UGREEN%20NAS-2496ED?logo=docker&logoColor=white">
 </p>
 
 <p align="center">
   <a href="#funcionalidades">Funcionalidades</a> ·
   <a href="#screenshots">Screenshots</a> ·
-  <a href="#temas">Temas</a> ·
   <a href="#arranque-rápido-docker-no-nas">Arranque rápido</a> ·
+  <a href="#entrar-e-app-no-telemóvel">Entrar e app no telemóvel</a> ·
   <a href="#lojas">Lojas</a> ·
-  <a href="#comparar-o-mesmo-produto-em-várias-lojas">Comparar</a> ·
+  <a href="#produtos-o-catálogo">Produtos</a> ·
+  <a href="#lançamentos">Lançamentos</a> ·
   <a href="#desenvolvimento">Desenvolvimento</a>
 </p>
+
+<p align="center">
+  <img src="docs/images/hero.png" alt="Card Forge: o Radar no PC e o catálogo no telemóvel" width="100%">
+</p>
+
+> O Card Forge chamava-se TcgStockBot. O código (projetos, namespaces, contentores e o volume `tcgstockbot-data`)
+> mantém o nome antigo, para as atualizações não perderem nada.
 
 ---
 
 ## Funcionalidades
 
+**Separadores por jogo**
+
+- Todas as páginas principais (Radar, Produtos, A vigiar, Lançamentos e Alertas) têm separadores **Todos · Pokémon ·
+  One Piece · Riftbound · Cyberpunk**, mais Lorcana, Magic ou Outro quando os usas. A escolha fica guardada no browser.
+
 **Vigiar produtos**
 
-- Cada **produto vigiado** (tarefa) pode ser um produto (30th ETB) ou um **set inteiro** (Chaos Rising): o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), os **tipos de produto** que queres (ETB, Booster Bundle, Display…; nenhum = todos), o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Lorcana, Magic ou outro).
+- Cada **produto vigiado** (tarefa) pode ser um produto (30th ETB) ou um **set inteiro** (Chaos Rising): o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), os **tipos de produto** que queres (ETB, Booster Bundle, Display…; nenhum = todos), o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Riftbound, Cyberpunk, Lorcana, Magic ou outro).
 - **Regra de preço:** **MSRP + margem** (cada tipo comparado com o seu MSRP: um booster com o MSRP de um booster, uma display com o de uma display) ou um **preço máximo fixo**.
 - Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *ao teu preço*, *acima · avisa até 65,99 €*, *esgotado*, *não é inglês*, *tipo que não vigias*, *falta a palavra…*.
 - Os resultados e os alertas trazem a **imagem do produto** que a loja devolve.
 - Importar e exportar os produtos vigiados (tarefas) em JSON, no menu **Mais** de *A vigiar*.
 
-**Preços**
+**Produtos (catálogo) e preços**
 
-- **Comparar:** o mesmo produto em todas as lojas, numa linha, com o mais barato com stock, o mínimo de sempre e a última descida de preço.
-- **Histórico de preços** de cada produto, com gráfico, e o preço mais baixo já visto.
+- **Produtos:** tudo o que o bot encontra, um cartão por produto com a foto, "desde X €", "−8% vs MSRP", **Mov. 30 dias**
+  e "em stock 3/5 lojas". Filtros por formato, loja e "só em stock", e ordenação (mais lojas com stock, mais baratos,
+  maior descida, novos, nome).
+- **Ficha do produto:** o mais barato com stock, estado, mínimo de sempre, MSRP, desde quando está no catálogo e a
+  última leitura; a tabela das lojas (com "mais barato" e "Esconder esgotadas"); o **gráfico de preços** por período
+  (7 d, 30 d, 90 d, 180 d, 1 ano, tudo) com as lojas que escolheres, o preço habitual, mínimo, máximo e número de
+  alterações; o **histórico** (reposições, esgotou, baixou, subiu); e a pesquisa no **Cardmarket**.
 - **MSRP** por tipo de produto (ETB, Booster Bundle, Display…), para veres quanto acima ou abaixo do preço de referência está cada oferta.
+
+**Lançamentos**
+
+- Calendário das próximas expansões, em **lista** (pré-vendas abertas, próximos, já saíram) ou **mês a mês**, com a
+  data de lançamento e a abertura das pré-vendas. Cada lançamento pode ficar ligado ao produto que vigias, para veres
+  ali as ofertas; se ainda não o vigias, **Vigiar** abre a pesquisa já preenchida.
 
 **Avisos**
 
-- **WhatsApp** (CallMeBot) e **email** (SMTP), com o link direto para a página do produto.
+- **WhatsApp** (CallMeBot), **Telegram** (um bot teu) e **email** (SMTP), com o link direto para a página do produto.
+- **Resumo diário** opcional, à hora que escolheres: os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas com erro.
 - Um produto só é avisado uma vez enquanto continuar em stock, a não ser que **baixe de preço**.
 - **Pré-vendas** marcadas no aviso e no dashboard.
 - Lojas que não dizem o idioma no título podem **avisar na mesma, com "confirma o idioma"**.
 
 **Dashboard**
 
-- **Radar:** as ofertas que podes comprar agora. As **novidades** das últimas 24 horas em cartões grandes (foto, loja, preço e "−8% vs MSRP"); as que continuam disponíveis numa lista que filtras por tipo e ordenas por data, preço ou MSRP.
+- **Radar:** as ofertas que podes comprar agora. As **novidades** das últimas 24 horas em cartões grandes (foto, loja, preço e "−8% vs MSRP"); as que continuam disponíveis numa lista que filtras por tipo e ordenas por data, preço ou MSRP. Ao lado, os **últimos movimentos** (reposições, descidas e pré-vendas, com o jogo), a saúde das lojas e a atividade.
 - **A vigiar:** um cartão por produto/set com a regra de preço e, **por tipo** (ETB, Bundle, Display, Booster), o melhor preço agora. Cada um tem a sua página: os limites por tipo, o que as lojas têm (por tipo ou por loja) e porque é que avisou ou não, o histórico de preço e os alertas.
 - **Vigiar produto:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (nome, tipos, MSRP + margem, palavras, lojas) são sugeridas a partir deles.
 - **Lojas** agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detetar** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham.
 - **Temas:** Azul, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
-- Funciona no telemóvel, com uma barra de navegação em baixo.
-- Atalhos: `1`–`7` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
+- **Login** com password (e "manter sessão"), e uma **página de apresentação** para quem chega sem sessão.
+- **App no telemóvel:** barra de navegação em baixo, e instala-se no ecrã principal com o ícone do Card Forge.
+- Atalhos: `1`–`8` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
 
 **Feito para correr em casa**
 
-- Dois contentores num só `docker-compose.yml`, pensado para um NAS UGREEN: o **bot** e o **dashboard** com password.
+- Dois contentores num só `docker-compose.yml`, pensado para um NAS UGREEN: o **bot** e o **dashboard** com login.
 - Cada loja usa só o mecanismo que ela própria autoriza: pesquisa pública da loja, API oficial ou feed de afiliados. Não contorna CAPTCHAs nem proteções anti-bot.
 - Limites de pedidos por domínio, respeita o `Retry-After` das lojas e nunca escreve segredos nos logs.
 
@@ -75,28 +99,38 @@
 Com dados de exemplo. Quando a loja devolve a foto do produto, aparece no lugar do desenho.
 
 ### Radar
-<img src="docs/screenshots/dashboard-radar.png" alt="Radar: produtos em stock ao teu preço em cartões, os que ainda estão à procura com o estado em cada loja, atividade e saúde das lojas">
+<img src="docs/screenshots/dashboard-radar.png" alt="Radar: separadores por jogo, novidades, ofertas disponíveis, últimos movimentos, lojas e atividade">
 
 <table>
 <tr>
-<td width="50%"><b>A vigiar</b><br><img src="docs/screenshots/dashboard-a-vigiar.png" alt="A vigiar: os produtos em cartões, com filtros por jogo e por estado"></td>
-<td width="50%"><b>Produto</b><br><img src="docs/screenshots/dashboard-produto.png" alt="Página do produto: regras e o que cada loja encontrou, com o motivo de cada resultado"></td>
+<td width="50%"><b>Produtos</b><br><img src="docs/screenshots/dashboard-produtos.png" alt="Produtos: catálogo com preço desde, stock por loja, MSRP e movimento a 30 dias"></td>
+<td width="50%"><b>Ficha do produto</b><br><img src="docs/screenshots/dashboard-ficha.png" alt="Ficha: mais barato com stock, estatísticas, lojas, gráfico por período e histórico"></td>
 </tr>
 <tr>
+<td width="50%"><b>Lançamentos</b><br><img src="docs/screenshots/dashboard-lancamentos.png" alt="Lançamentos: pré-vendas abertas, próximos e já saíram"></td>
+<td width="50%"><b>A vigiar</b><br><img src="docs/screenshots/dashboard-a-vigiar.png" alt="A vigiar: os produtos em cartões, com separadores por jogo e filtro por estado"></td>
+</tr>
+<tr>
+<td width="50%"><b>Produto vigiado</b><br><img src="docs/screenshots/dashboard-produto.png" alt="Página do produto vigiado: regras e o que cada loja encontrou, com o motivo de cada resultado"></td>
 <td width="50%"><b>Vigiar produto</b><br><img src="docs/screenshots/dashboard-vigiar.png" alt="Vigiar produto: pesquisa em todas as lojas, escolha dos resultados certos e regras sugeridas"></td>
+</tr>
+<tr>
 <td width="50%"><b>Alertas</b><br><img src="docs/screenshots/dashboard-alertas.png" alt="Alertas: os últimos 14 dias e a lista por dia"></td>
-</tr>
-<tr>
 <td width="50%"><b>Lojas</b><br><img src="docs/screenshots/dashboard-lojas.png" alt="Lojas por área e tier, com o estado de cada pesquisa do último ciclo"></td>
-<td width="50%"><b>Comparar</b><br><img src="docs/screenshots/dashboard-comparar.png" alt="Comparar: o mesmo produto em várias lojas, mais barato, mínimo de sempre e última descida"></td>
 </tr>
 <tr>
-<td width="50%"><b>Definições</b><br><img src="docs/screenshots/dashboard-definicoes.png" alt="Definições: tema, verificação e avisos"></td>
-<td width="50%"><b>No telemóvel</b><br><img src="docs/screenshots/dashboard-telemovel.png" alt="O Radar no telemóvel, com a barra de navegação em baixo" width="300"></td>
+<td width="50%"><b>Definições</b><br><img src="docs/screenshots/dashboard-definicoes.png" alt="Definições: tema, verificação, avisos (WhatsApp, email, Telegram), resumo diário e conta"></td>
+<td width="50%"><b>Apresentação</b><br><img src="docs/screenshots/dashboard-sobre.png" alt="Página de apresentação, antes de entrar"></td>
 </tr>
 </table>
 
-O visual foi desenhado primeiro como mocks HTML clicáveis, que continuam em [`docs/mocks`](docs/mocks).
+<table>
+<tr>
+<td width="33%"><b>Apresentação no telemóvel</b><br><img src="docs/screenshots/dashboard-sobre-telemovel.png" alt="A página de apresentação no telemóvel"></td>
+<td width="33%"><b>Entrar</b><br><img src="docs/screenshots/dashboard-entrar.png" alt="O ecrã de login"></td>
+<td width="33%"><b>Radar no telemóvel</b><br><img src="docs/screenshots/dashboard-telemovel.png" alt="O Radar no telemóvel, com a barra de navegação em baixo"></td>
+</tr>
+</table>
 
 ### Temas
 
@@ -107,7 +141,7 @@ Quatro cores (Azul, Coral, Lavanda e Oceano), cada uma em modo escuro (por omiss
 ## Arranque rápido (Docker no NAS)
 
 ```bash
-cp .env.example .env          # preenche DASHBOARD_PASSWORD, TCG_API_KEY e o WhatsApp e/ou o email
+cp .env.example .env          # preenche DASHBOARD_PASSWORD, TCG_API_KEY e o WhatsApp, o Telegram e/ou o email
 docker compose up -d --build --remove-orphans
 # abre http://<IP-do-NAS>:5080
 ```
@@ -117,19 +151,33 @@ São dois contentores:
 | Contentor | Porta | O que faz |
 | --- | --- | --- |
 | `tcgstockbot-webapi` | nenhuma | o bot: monitor em segundo plano e API JSON (`x-api-key`) |
-| `tcgstockbot-website` | `5080` | o dashboard, com password |
+| `tcgstockbot-website` | `5080` | o Card Forge (dashboard), com login |
 
 1. Copia a pasta da solução para o NAS (por exemplo `docker/tcgstockbot`).
-2. Copia `.env.example` para `.env` e preenche `DASHBOARD_PASSWORD`, `TCG_API_KEY` (uma chave longa e aleatória) e o WhatsApp e/ou o email.
+2. Copia `.env.example` para `.env` e preenche `DASHBOARD_PASSWORD`, `TCG_API_KEY` (uma chave longa e aleatória) e o WhatsApp, o Telegram e/ou o email.
 3. Arranca pela app Docker do UGOS (um *Projeto* a apontar para a pasta) ou por SSH, com o comando acima.
 4. Abre `http://<IP-do-NAS>:5080`.
 
 **Ao atualizar:** `git pull` na pasta e o mesmo `docker compose up -d --build --remove-orphans`. O `.env` não está no git, por isso nunca é tocado. Se vens de uma versão com o proxy (`price-proxy`), o `--remove-orphans` apaga esse contentor, e as linhas `OutboundHttp__Proxy__…` que ficarem no `.env` são ignoradas.
 
-A configuração, as tarefas e o histórico ficam no volume `tcgstockbot-data`. Nunca corras `docker compose down -v`, que o apaga.
+A configuração, as tarefas, o histórico e os lançamentos ficam no volume `tcgstockbot-data`; as chaves das sessões
+(para o "manter sessão" sobreviver às atualizações) ficam no volume `tcgstockbot-keys`. Nunca corras
+`docker compose down -v`, que os apaga.
 
 > [!WARNING]
 > Não abras a porta 5080 no router, porque a password passa sem HTTPS. Para aceder de fora de casa, usa uma VPN (por exemplo Tailscale).
+
+## Entrar e app no telemóvel
+
+- Sem sessão, `http://<IP-do-NAS>:5080` mostra a **página de apresentação** (o que o Card Forge faz e como funciona)
+  com o botão **Entrar**. Também está em `/sobre`, mesmo com sessão.
+- **Entrar** pede a `DASHBOARD_PASSWORD`. Com **Manter sessão neste dispositivo**, a sessão dura 30 dias
+  (`Dashboard__RememberDays`). Cinco passwords erradas seguidas, do mesmo endereço, bloqueiam as tentativas durante 5 minutos.
+- **Terminar sessão** está em *Definições → Conta*.
+- Sem `DASHBOARD_PASSWORD` (só para testes em `127.0.0.1`), o painel abre sem login.
+- **Instalar no telemóvel:** no iPhone, no Safari, Partilhar → *Adicionar ao ecrã principal*; no Android, no Chrome,
+  ⋮ → *Adicionar ao ecrã principal*. Fica com o ícone e o nome Card Forge e abre em ecrã inteiro. Com HTTPS (por
+  exemplo o proxy reverso do NAS ou o Tailscale), o Chrome também oferece *Instalar app*.
 
 <details>
 <summary><b>Vindo da v2 (um só contentor <code>tcgstockbot</code>)?</b></summary>
@@ -151,7 +199,23 @@ Usa o mesmo nome de pasta. O volume `tcgstockbot-data` é o mesmo e o formato do
 3. No `.env`: `WhatsApp__Enabled=true`, `WhatsApp__Phone=+351…` (o teu número) e `WhatsApp__ApiKey=…`.
 4. `docker compose up -d`, e depois, em **Definições → WhatsApp**, carrega em *Enviar mensagem de teste*.
 
-O CallMeBot é um serviço gratuito de terceiros, só para uso pessoal, e sem garantias. Mantém o email ligado como segundo canal.
+O CallMeBot é um serviço gratuito de terceiros, só para uso pessoal, e sem garantias. Mantém o email ou o Telegram ligado como segundo canal.
+
+### Telegram
+
+1. No Telegram, fala com **@BotFather** → `/newbot` e escolhe um nome. Recebes o **token** do bot.
+2. Abre o bot novo e envia-lhe `/start` (sem isto, o Telegram não deixa o bot escrever-te).
+3. Descobre o teu **chat id** (por exemplo com **@userinfobot**). Num grupo, o id começa por `-100`.
+4. No `.env`: `Telegram__Enabled=true`, `Telegram__BotToken=…` e `Telegram__ChatId=…`.
+5. `docker compose up -d`, e depois, em **Definições → Telegram**, carrega em *Enviar mensagem de teste*.
+
+O token só existe no `.env`: o dashboard mostra apenas se está definido, e os logs nunca o escrevem.
+
+### Resumo diário
+
+Em **Definições → Resumo diário**, liga o resumo e escolhe a hora (de Portugal). Uma vez por dia, vai pelos canais
+ligados (email, Telegram e WhatsApp) com os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas
+que falharam no último ciclo.
 
 ## Lojas
 
@@ -304,29 +368,39 @@ Como funciona:
   reconhece (palavras e idioma certos, esteja ou não em stock ou acima do preço), guarda um ponto sempre que o preço
   ou o stock mudam. São até 500 alterações por produto, e os produtos que não aparecem há 180 dias são apagados. O
   mesmo produto em várias tarefas conta como um só (loja + URL). Na página de cada produto, o ícone de gráfico ao lado do preço abre o
-  histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa o **Comparar** (com "Incluir os que só estão numa loja"
-  ligado vês também os produtos que só uma loja tem).
+  histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa os **Produtos**.
 - A `alert-state.json` da v3.0 continua a ser lida; a partir do primeiro ciclo passa a guardar também o preço.
 
-## Comparar (o mesmo produto em várias lojas)
+## Produtos (o catálogo)
 
-A página **Comparar** junta, numa linha, o mesmo produto em todas as lojas: quem tem o preço mais baixo com stock,
-a diferença para a segunda loja, o mínimo de sempre e a última descida de preço. O detalhe tem um gráfico com uma linha
-por loja. Quando a loja está esgotada, a linha fica tracejada e mais clara.
+A página **Produtos** mostra tudo o que o bot encontra para os produtos que vigias, um cartão por produto, com o
+mesmo produto de todas as lojas lá dentro: o preço mais baixo ("desde"), quantas lojas o têm em stock, a diferença
+para o MSRP e o **movimento a 30 dias** (o preço mais baixo agora contra o de há 30 dias). A **ficha** de cada
+produto tem a tabela das lojas, o gráfico por período e por loja (quando a loja está esgotada, a linha fica
+tracejada e mais clara), o histórico de alterações e a pesquisa no Cardmarket.
 
 - **É automático.** Cada produto que uma tarefa reconhece é agrupado por **set** (a tarefa que o encontrou) e
   **tipo de produto**, detetado no título: ETB, Booster Bundle, Booster Display, Half Display, Booster, Blister,
   Checklane, Tin, Mini Tin, Premium/Ultra/Super Premium Collection, e assim por diante. As palavras que sobram do título
   (um Pokémon num blister, o set numa tarefa que não é de um set) distinguem variantes.
-- Por omissão só aparecem os produtos em **duas ou mais lojas**. O interruptor "Só numa loja" mostra os restantes.
-- **Correção manual**, no detalhe:
-  - **Separar deste produto** tira um anúncio do grupo, para um produto à parte ou para outro grupo;
-  - **Juntar anúncio…** mete no grupo um anúncio de outra loja;
+- **Correção manual**, na ficha:
+  - **Separar** tira um anúncio do produto, para um produto à parte ou para outro;
+  - **Juntar anúncio…** mete no produto um anúncio de outra loja;
   - **Repor automático** desfaz a correção.
 
   As correções ficam em `data/compare-overrides.json` e valem para os ciclos seguintes.
-- Os produtos gravados no histórico antes desta versão não sabem de que tarefa vieram. Entram no Comparar depois do
-  primeiro ciclo com a versão nova.
+- Os links antigos `#/comparar` abrem os Produtos.
+
+## Lançamentos
+
+A página **Lançamentos** é o teu calendário de expansões. Cada lançamento tem o nome, o jogo, a data de lançamento,
+a data de abertura das pré-vendas (opcional), uma página e notas, e pode ficar ligado a um produto que vigias. Ficam
+em `data/releases.json`.
+
+- **Lista:** *Pré-vendas abertas* (já se pode reservar), *Próximos* e *Já saíram*, com "daqui a 12 dias" e, se
+  estiver ligado, as ofertas que o bot encontrou para ele.
+- **Calendário:** mês a mês, com o lançamento e a abertura das pré-vendas em cada dia.
+- O menu mostra quantos lançamentos têm as pré-vendas abertas.
 
 ## MSRP (preços de referência)
 
@@ -340,7 +414,7 @@ Onde aparece:
 - **Regra "MSRP + margem"** dos produtos vigiados: avisa até ao MSRP do tipo mais a margem (10% por omissão; pode ser negativa para só avisar abaixo do MSRP). Tipos sem MSRP usam o máximo fixo, se houver. No menu **Mais** de *A vigiar*, "Passar todos para MSRP + 10%" muda os produtos Pokémon que ainda usam um máximo fixo.
 - **Radar** e páginas dos produtos: "−8% vs MSRP" em cada oferta.
 - **Definições**: a tabela de MSRP que está em uso.
-- **Comparar**: coluna MSRP, "−8% vs MSRP" do mais barato com stock, e uma linha tracejada no gráfico.
+- **Produtos**: "−8% vs MSRP" do mais barato com stock, e uma linha tracejada no gráfico da ficha.
 - **Alertas**: "… · MSRP 59,99 € (−8%)" no WhatsApp/email e "vs MSRP" na lista de alertas.
 
 **Não existe um MSRP oficial em euros para Portugal/Espanha.** Os valores são estimativas do preço de lançamento
@@ -392,7 +466,8 @@ TcgStockBot.slnx
 │   └── Features/
 │       ├── TcgStockBotOptions.cs
 │       ├── StockTasks/  Stores/  Alerts/  Monitors/  Settings/  Notifications/
-│       ├── Compares/  PriceHistories/  Msrps/   # comparar lojas, histórico de preços, MSRP
+│       ├── Compares/  PriceHistories/  Msrps/   # catálogo (Produtos), histórico de preços, MSRP
+│       ├── Releases/                             # Lançamentos (data/releases.json)
 │       │   ├── Controllers/    # internal, [Route("stocktask")], {Feature}{Operation}Async, ToActionResult()
 │       │   ├── Services/       # validação (ValidateXxxAsync privados) + regras; devolvem ServiceApiResponse<T>
 │       │   ├── Repositories/   # só acesso a dados (ficheiros JSON em data/)
@@ -401,11 +476,13 @@ TcgStockBot.slnx
 │       │   └── Http/*.http     # pedidos de teste para cada endpoint
 │       │   (Stores/Services/Adapters: Shopify, WooCommerce, Html, Amazon/ (Creators API), Awin/ (FNAC, Worten, El Corte Inglés))
 ├── TcgStockBot.Sdk/            # cliente tipado da WebApi (TcgStockBotClient) + cópias dos DTOs
-├── TcgStockBot.Website/        # o dashboard (MVC)
-│   ├── Controllers/            # finos: criam o model, chamam-no, devolvem Json(AjaxDataResult)
+├── TcgStockBot.Website/        # o Card Forge (MVC)
+│   ├── Controllers/            # finos: criam o model, chamam-no, devolvem Json(AjaxDataResult); Account = entrar/sair
 │   ├── Model/{Feature}/        # "fat models": chamam a WebApi através do Sdk
-│   ├── Views/Dashboard/Index.cshtml, Views/Shared/_Layout.cshtml
-│   └── wwwroot/                # css/dashboard.css, js/ (core, shell, uma por página, editors, main), fonts/
+│   ├── Security/               # login por cookie, limite de tentativas, chaves das sessões
+│   ├── Views/Dashboard/{Index,Landing}.cshtml, Views/Account/Login.cshtml, Views/Shared/_Layout.cshtml
+│   └── wwwroot/                # css/{dashboard,public}.css, js/ (core, shell, uma por página, editors, main),
+│                               # img/ (logótipo e ícones da app), manifest.webmanifest, fonts/
 ├── TcgStockBot.UnitTest/       # xUnit, uma pasta por feature (+ teste de contrato Sdk ↔ WebApi)
 └── docs/                       # imagens do README, screenshots e os mocks HTML
 ```

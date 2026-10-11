@@ -68,7 +68,7 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.StoreDetectBlocked)] = "O site recusou o bot (403/429 ou proteção anti-bot). Não é contornado: fica \"Sem integração\", ou usa um feed Awin/API se existir.",
         [nameof(TranslationKeys.StoreDetectUnreachable)] = "Não foi possível ligar ao site (DNS, ligação ou tempo esgotado).",
         [nameof(TranslationKeys.StoreDetectUnknown)] = "O site respondeu, mas não tem API Shopify/WooCommerce nem pesquisa PrestaShop reconhecível. Configura HTML à mão (se os termos permitirem) ou deixa \"Sem integração\".",
-        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[TCG] Loja(s) desligada(s) por erros: {0}",
+        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[Card Forge] Loja(s) desligada(s) por erros: {0}",
         [nameof(TranslationKeys.StoreAutoDisabledLine)] = "{0}: {1} ciclos seguidos com erro — {2}",
         [nameof(TranslationKeys.NotificationFailed)] = "Falhou o envio por {0}: {1}",
 

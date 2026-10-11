@@ -26,13 +26,13 @@ internal static class AlertMessageFormatter
         {
             var alert = alerts[0];
             var kind = alert.IsPriceDrop ? "Baixou de preço" : alert.Listing.PreOrder ? "Pré-venda" : "Em stock";
-            return $"[TCG] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
+            return $"[Card Forge] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
         }
 
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
-        return drops == alerts.Count ? $"[TCG] {alerts.Count} descidas de preço"
-            : drops > 0 ? $"[TCG] {alerts.Count} alertas ({drops} descida(s) de preço)"
-            : $"[TCG] {alerts.Count} produtos em stock";
+        return drops == alerts.Count ? $"[Card Forge] {alerts.Count} descidas de preço"
+            : drops > 0 ? $"[Card Forge] {alerts.Count} alertas ({drops} descida(s) de preço)"
+            : $"[Card Forge] {alerts.Count} produtos em stock";
     }
 
     /// <summary>
@@ -45,10 +45,10 @@ internal static class AlertMessageFormatter
     {
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
         var header = alerts.Count == 1
-            ? drops == 1 ? "🔻 *TCG: baixou de preço*" : "🟢 *TCG em stock*"
-            : drops == alerts.Count ? $"🔻 *TCG: {alerts.Count} descidas de preço*"
-            : drops > 0 ? $"🟢 *TCG: {alerts.Count} alertas ({drops} descida(s) de preço)*"
-            : $"🟢 *TCG: {alerts.Count} produtos em stock*";
+            ? drops == 1 ? "🔻 *Card Forge: baixou de preço*" : "🟢 *Card Forge: em stock*"
+            : drops == alerts.Count ? $"🔻 *Card Forge: {alerts.Count} descidas de preço*"
+            : drops > 0 ? $"🟢 *Card Forge: {alerts.Count} alertas ({drops} descida(s) de preço)*"
+            : $"🟢 *Card Forge: {alerts.Count} produtos em stock*";
         var text = new StringBuilder(header);
 
         foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))

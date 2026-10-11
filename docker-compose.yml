@@ -8,7 +8,7 @@ services:
     container_name: tcgstockbot-webapi
     restart: unless-stopped
     env_file:
-      - .env                                # Email__*, WhatsApp__*, Amazon__*, AwinFeeds__* and OutboundHttp__* live here
+      - .env                                # Email__*, WhatsApp__*, Telegram__*, Amazon__*, AwinFeeds__* and OutboundHttp__* live here
     environment:
       TcgStockBot__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
     volumes:
@@ -19,7 +19,7 @@ services:
         max-size: "5m"
         max-file: "3"
 
-  # The dashboard: http://<IP-do-NAS>:5080
+  # Card Forge (o painel): http://<IP-do-NAS>:5080
   website:
     build:
       context: .
@@ -35,7 +35,10 @@ services:
       TcgStockBotApi__Url: http://webapi:8080/
       TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
       Dashboard__Password: ${DASHBOARD_PASSWORD:?Define DASHBOARD_PASSWORD no .env}
+    volumes:
+      - tcgstockbot-keys:/keys              # chaves das sessões: "manter sessão" sobrevive às atualizações
     logging: *logging
 
 volumes:
   tcgstockbot-data:
+  tcgstockbot-keys:

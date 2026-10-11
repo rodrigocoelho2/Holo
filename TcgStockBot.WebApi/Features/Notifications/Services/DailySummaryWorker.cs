@@ -120,7 +120,7 @@ internal sealed class DailySummaryWorker(
             text.AppendLine().AppendLine($"Lojas com erro no último ciclo: {string.Join(", ", failing)}");
         }
 
-        var subject = $"[TCG] Resumo do dia: {lastDay.Count} alerta(s), {offers.Count} em stock";
+        var subject = $"[Card Forge] Resumo do dia: {lastDay.Count} alerta(s), {offers.Count} em stock";
         return (subject, text.ToString().TrimEnd());
     }
 

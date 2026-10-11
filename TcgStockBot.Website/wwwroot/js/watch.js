@@ -11,10 +11,7 @@
 RENDERERS["a-vigiar"] = function viewWatchlist() {
   const insights = state.tasks.map(taskInsight);
   const storeCount = new Set(insights.flatMap((insight) => insight.stores.map((store) => store.name))).size;
-  const games = Object.keys(GAMES).filter((game) => insights.some((insight) => gameKey(insight.task.game) === game));
-  if (state.watchGame !== "all" && !games.includes(state.watchGame)) state.watchGame = "all";
-
-  const inGame = insights.filter((insight) => state.watchGame === "all" || gameKey(insight.task.game) === state.watchGame);
+  const inGame = insights.filter((insight) => inGameTab(insight.task.game));
   const statusOf = (insight) => (insight.status === "stock" ? "stock" : insight.status === "paused" ? "paused" : "searching");
   const counts = { all: inGame.length, stock: 0, searching: 0, paused: 0 };
   for (const insight of inGame) counts[statusOf(insight)]++;
@@ -37,13 +34,8 @@ RENDERERS["a-vigiar"] = function viewWatchlist() {
       watchMenu(),
       linkButton("Vigiar produto", routeHash("vigiar"), { iconName: "plus", kind: "primary" }),
     ]),
+    gameTabs(insights.map((insight) => insight.task.game), "produtos"),
     h("div", { class: "toolbar wrap" },
-      games.length > 1 ? h("div", { class: "chips", role: "group", "aria-label": "Jogo" },
-        [["all", "Todos os jogos", insights.length], ...games.map((game) => [game, GAMES[game], insights.filter((insight) => gameKey(insight.task.game) === game).length])]
-          .map(([key, label, count]) => h("button", {
-            type: "button", class: `chip ${key === "all" ? "" : gameClass(key)} ${state.watchGame === key ? "on" : ""}`, "aria-pressed": state.watchGame === key ? "true" : "false",
-            onclick: () => { state.watchGame = key; renderView(true); },
-          }, key === "all" ? null : h("span", { class: "chip-dot" }), label, h("span", { class: "chip-count" }, count)))) : null,
       segmented([["all", "Todos", null], ["stock", "Com ofertas", counts.stock], ["searching", "À procura", counts.searching], ["paused", "Em pausa", counts.paused]],
         state.watchStatus, (value) => { state.watchStatus = value; renderGrid(); }, "Estado"),
       h("div", { class: "toolbar-end" }, searchField(state.watchQuery, "Filtrar", (value) => { state.watchQuery = value; renderGrid(); }, "watch-search", "Filtrar produtos"))),

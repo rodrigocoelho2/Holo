@@ -12,6 +12,8 @@ RENDERERS.definicoes = function viewSettings() {
     delay: settings.delayBetweenRequestsSeconds,
     userAgent: settings.userAgent,
     autoDisable: settings.autoDisableAfterFailures,
+    summary: Boolean(settings.dailySummaryEnabled),
+    summaryHour: settings.dailySummaryHour ?? 9,
   };
   const errors = h("div", {});
 
@@ -24,6 +26,8 @@ RENDERERS.definicoes = function viewSettings() {
         delayBetweenRequestsSeconds: draft.delay,
         userAgent: draft.userAgent.trim(),
         autoDisableAfterFailures: draft.autoDisable,
+        dailySummaryEnabled: draft.summary,
+        dailySummaryHour: draft.summaryHour,
       });
       toast("Definições guardadas", "success");
     } catch (error) {
@@ -52,7 +56,18 @@ RENDERERS.definicoes = function viewSettings() {
       errors,
       h("div", { class: "card-actions" }, button("Guardar alterações", { kind: "primary", onClick: save }))),
     channelsCard(),
+    h("section", { class: "card settings-card", "aria-labelledby": "summary-h" },
+      h("h2", { id: "summary-h" }, "Resumo diário"),
+      h("p", { class: "muted small" }, "Uma mensagem por dia com os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas com erro. Vai pelos canais ligados (email, Telegram, WhatsApp)."),
+      h("div", { class: "setting-row" },
+        h("div", {}, h("strong", {}, "Enviar o resumo"), h("div", { class: "muted small" }, "Guarda com “Guardar alterações”.")),
+        switchInput(draft.summary, (checked) => { draft.summary = checked; }, "Enviar o resumo diário")),
+      h("div", { class: "setting-row" },
+        h("div", {}, h("strong", {}, "Hora de envio"), h("div", { class: "muted small" }, "Hora de Portugal (a do NAS).")),
+        selectPill("Hora", String(draft.summaryHour), Array.from({ length: 24 }, (_, hour) => [String(hour), `${String(hour).padStart(2, "0")}:00`]),
+          (value) => { draft.summaryHour = Number(value); }))),
     msrpCard(),
+    accountCard(),
     h("section", { class: "card settings-card", "aria-labelledby": "memory-h" },
       h("h2", { id: "memory-h" }, "Memória de alertas"),
       h("p", { class: "muted" }, "O bot não repete o aviso de um produto enquanto ele continuar em stock. Limpar a memória faz com que tudo o que está disponível seja avisado de novo."),
@@ -111,7 +126,32 @@ function channelsCard() {
           ["De", notification.email.from || "—"],
           ["Para", notification.email.to.length ? notification.email.to.join(", ") : "—"],
           ["Password", notification.email.hasPassword ? "definida" : missing("em falta")],
-        ], "Email__… no .env. A password nunca passa pelo dashboard.")));
+        ], "Email__… no .env. A password nunca passa pelo dashboard."),
+        tile("Telegram", "send", "Telegram", Boolean(notification.telegram?.enabled), [
+          ["Chat", notification.telegram?.maskedChatId || missing("em falta")],
+          ["Bot token", notification.telegram?.hasBotToken ? "definido" : missing("em falta")],
+        ], "Cria um bot no @BotFather e põe Telegram__Enabled, Telegram__BotToken e Telegram__ChatId no .env. O token nunca passa pelo dashboard.")));
+}
+
+/** Sign out and the public page. */
+function accountCard() {
+  const canSignOut = APP?.dataset.signOut === "true";
+  return h("section", { class: "card settings-card", "aria-labelledby": "account-h" },
+    h("h2", { id: "account-h" }, "Conta"),
+    h("p", { class: "muted small" }, canSignOut
+      ? "O painel pede a password definida em DASHBOARD_PASSWORD. “Manter sessão” dura 30 dias em cada dispositivo."
+      : "Sem password: o painel está aberto a quem chegar ao endereço. Define DASHBOARD_PASSWORD no .env."),
+    h("div", { class: "card-actions" },
+      linkButton("Página de apresentação", "/sobre", { iconName: "info" }),
+      canSignOut ? button("Terminar sessão", { iconName: "logout", onClick: signOut }) : null));
+}
+
+/** POSTs /sair with the anti-forgery token (a plain form, so the browser follows the redirect). */
+function signOut() {
+  const form = h("form", { method: "post", action: "/sair", hidden: true },
+    h("input", { type: "hidden", name: "__RequestVerificationToken", value: ANTIFORGERY_TOKEN }));
+  document.body.append(form);
+  form.submit();
 }
 
 /** The MSRP table the "MSRP + margem" rule uses (read-only here: it lives in data/msrp.json). */

@@ -7,7 +7,7 @@
 let alertsShown = 100;
 
 RENDERERS.alertas = function viewAlerts() {
-  const alerts = state.alerts;
+  const alerts = state.alerts.filter((alert) => inGameTab(alertTask(alert)?.game));
   const toConfirm = alerts.filter((alert) => alert.languageToConfirm);
   const storeNames = [...new Set(alerts.map((alert) => alert.storeName))].sort((a, b) => a.localeCompare(b, "pt"));
   if (state.alertStore && !storeNames.includes(state.alertStore)) state.alertStore = "";
@@ -20,6 +20,7 @@ RENDERERS.alertas = function viewAlerts() {
       alertsMenu(),
       button("Enviar alerta de teste", { iconName: "bell", onClick: sendTestToAll, disabled: !anyChannelEnabled() }),
     ]),
+    gameTabs(state.alerts.map((alert) => alertTask(alert)?.game), "alertas"),
     alertsChart(alerts),
     h("div", { class: "toolbar" },
       segmented([["all", "Todos", null], ["confirm", "Por confirmar idioma", toConfirm.length]], state.alertFilter,
@@ -39,22 +40,27 @@ RENDERERS.alertas = function viewAlerts() {
 
 function anyChannelEnabled() {
   const notification = state.notification;
-  return !notification || notification.whatsApp.enabled || notification.email.enabled;
+  return !notification || enabledChannels(notification).length > 0;
+}
+
+/** The channels turned on in .env, as the /notification/test channel names. */
+function enabledChannels(notification) {
+  return [notification.whatsApp.enabled ? "WhatsApp" : null, notification.telegram?.enabled ? "Telegram" : null, notification.email.enabled ? "Email" : null].filter(Boolean);
 }
 
 function channelsSentence() {
   const notification = state.notification;
   if (!notification) return "";
-  const on = [notification.whatsApp.enabled ? "WhatsApp" : null, notification.email.enabled ? "email" : null].filter(Boolean);
-  if (on.length === 2) return "WhatsApp e email ligados.";
-  if (on.length === 1) return `${on[0][0].toUpperCase()}${on[0].slice(1)} ligado.`;
-  return "Nenhum canal de aviso ligado — configura no .env.";
+  const on = enabledChannels(notification).map((channel) => (channel === "Email" ? "email" : channel));
+  if (on.length === 0) return "Nenhum canal de aviso ligado — configura no .env.";
+  const list = on.length === 1 ? on[0] : `${on.slice(0, -1).join(", ")} e ${on.at(-1)}`;
+  return `${list[0].toUpperCase()}${list.slice(1)} ${on.length === 1 ? "ligado" : "ligados"}.`;
 }
 
 async function sendTestToAll() {
   const notification = state.notification || await api("/notification/get").catch(() => null);
-  const channels = notification ? [notification.whatsApp.enabled ? "WhatsApp" : null, notification.email.enabled ? "Email" : null].filter(Boolean) : ["WhatsApp", "Email"];
-  if (channels.length === 0) { toast("Nenhum canal ligado. Configura WhatsApp ou email no .env.", "error"); return; }
+  const channels = notification ? enabledChannels(notification) : ["WhatsApp", "Telegram", "Email"];
+  if (channels.length === 0) { toast("Nenhum canal ligado. Configura WhatsApp, Telegram ou email no .env.", "error"); return; }
   for (const channel of channels) await sendTest(channel);
 }
 

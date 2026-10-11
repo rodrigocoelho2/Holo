@@ -1,7 +1,7 @@
 "use strict";
 
 /* ==========================================================================
-   TcgStockBot dashboard — vanilla JS, no build step. Scripts load in order (see Views/Dashboard/Index.cshtml)
+   Card Forge dashboard — vanilla JS, no build step. Scripts load in order (see Views/Dashboard/Index.cshtml)
    and share the global scope: core → shell → views → editors → main.
    Talks only to the Website controllers (which call the WebApi through the Sdk).
    Everything coming from stores (titles, URLs, images) is inserted as text or checked URLs, never HTML.
@@ -34,16 +34,26 @@ const state = {
   alerts: [],
   route: { view: "radar", param: "" },
   radarQuery: "",
-  watchGame: "all",                                     // A vigiar: game chips
+  game: readPreference("game", "all"),                  // the game tabs on top of Radar, A vigiar, Produtos, Lançamentos, Alertas
   watchStatus: "all",                                   // all | stock | searching | paused
   watchQuery: "",
   productOnlyCandidates: readPreference("onlyProducts", true),
   alertFilter: "all",                                   // all | confirm
   alertStore: "",
-  compare: null,
-  compareFilter: "",
-  compareMode: "all",
-  compareSingles: false,
+  compare: null,                                        // Produtos: the catalogue (from /compare/list)
+  catalogQuery: "",
+  catalogKind: "all",
+  catalogStore: "",
+  catalogStock: readPreference("catalogStock", false),
+  catalogSort: readPreference("catalogSort", "stores"),  // stores | cheap | drop | name | new
+  catalogShown: 48,
+  ficha: null,                                          // the open product page (from /compare/get)
+  fichaPeriod: readPreference("fichaPeriod", "90"),     // 7 | 30 | 90 | 180 | 365 | all
+  fichaHidden: [],                                      // stores switched off in the chart
+  fichaHideSoldOut: false,
+  releases: null,                                       // Lançamentos (from /release/list)
+  releaseView: readPreference("releaseView", "list"),   // list | calendar
+  releaseMonth: null,                                   // first day of the month shown in the calendar
   storeQuery: "",
   storeCountry: "all",
   storeTier: "all",
@@ -98,6 +108,11 @@ const ICONS = {
   more: "M5 12h.01M12 12h.01M19 12h.01",
   sun: "M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
   box: "M21 8l-9-5-9 5 9 5zM3 8v8l9 5 9-5V8M12 13v8",
+  grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  calendar: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5",
+  send: "M21 3L3 10.5l7 2.5 2.5 7zM10 13l11-10",
+  logout: "M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11",
+  forge: "M4 13h16v1.5a2 2 0 0 1-2 2h-3l-1 2.5h2.5V21h-9v-2h2.5l-1-2.5H7a3 3 0 0 1-3-3zM9 10l1-6h6l-1 6",
 };
 
 /** Static, trusted SVG markup only (paths from ICONS). */
@@ -195,6 +210,11 @@ async function api(path, options = {}) {
   const text = await response.text();
   const result = text ? safeJson(text) : null;
 
+  if (response.status === 401) {
+    // Signed out (session expired or another device signed out): back to the login form, then here again.
+    location.href = `/entrar?volta=${encodeURIComponent(`/${location.hash}`)}`;
+    throw new ApiError(["A sessão terminou. Entra outra vez."]);
+  }
   if (!response.ok || !result) {
     throw new ApiError([result?.title || `Erro ${response.status}`]);
   }
@@ -297,10 +317,32 @@ const LANGUAGES = { English: "Inglês", Japanese: "Japonês", NonEnglish: "Outro
 const TASK_LANGUAGES = { English: ["EN", "Inglês"], Japanese: ["JP", "Japonês"] };
 
 /** The card games a task can belong to (TcgGame). The colour comes from CSS (.game-…). */
-const GAMES = { Pokemon: "Pokémon", OnePiece: "One Piece", Lorcana: "Lorcana", Magic: "Magic", Other: "Outro" };
+const GAMES = { Pokemon: "Pokémon", OnePiece: "One Piece", Riftbound: "Riftbound", Cyberpunk: "Cyberpunk", Lorcana: "Lorcana", Magic: "Magic", Other: "Outro" };
+/** Games that always have a tab; the others get one only when something of theirs exists. */
+const MAIN_GAMES = ["Pokemon", "OnePiece", "Riftbound", "Cyberpunk"];
 const gameKey = (game) => (GAMES[game] ? game : "Pokemon");
 const gameClass = (game) => `game-${gameKey(game).toLowerCase()}`;
 const gamePill = (game) => h("span", { class: `game-pill ${gameClass(game)}` }, GAMES[gameKey(game)]);
+
+/** Whether something of this game passes the game tabs. */
+const inGameTab = (game) => state.game === "all" || gameKey(game) === state.game;
+
+/**
+ * The game tabs (Todos, Pokémon, One Piece, Riftbound, Cyberpunk, + others in use) with how many items of each.
+ * The choice is shared by every page and kept in this browser.
+ */
+function gameTabs(games, noun = "") {
+  const counts = new Map();
+  for (const game of games) counts.set(gameKey(game), (counts.get(gameKey(game)) || 0) + 1);
+  const shown = Object.keys(GAMES).filter((game) => MAIN_GAMES.includes(game) || counts.has(game) || state.game === game);
+  const tab = (key, label, count) => h("button", {
+    type: "button", role: "tab", class: `game-tab ${key === "all" ? "" : gameClass(key)} ${state.game === key ? "on" : ""}`,
+    "aria-selected": state.game === key ? "true" : "false", title: noun ? `${count} ${noun}` : null,
+    onclick: () => { state.game = key; writePreference("game", key); state.catalogShown = 48; renderView(true); },
+  }, key === "all" ? null : h("span", { class: "game-dot", "aria-hidden": "true" }), label, h("span", { class: "game-count" }, count));
+  return h("div", { class: "game-tabs", role: "tablist", "aria-label": "Jogo" },
+    tab("all", "Todos", games.length), shown.map((game) => tab(game, GAMES[game], counts.get(game) || 0)));
+}
 
 const UNMARKED_LANGUAGE = {
   Unknown: ["Não avisar", "não avisar"],
