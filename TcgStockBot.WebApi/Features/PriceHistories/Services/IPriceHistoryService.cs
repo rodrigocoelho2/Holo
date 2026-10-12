@@ -23,6 +23,12 @@ internal interface IPriceHistoryService
     Task<ServiceApiResponse<PriceHistoryDTO>> GetAsync(string identifier);
 
     /// <summary>
+    /// When each store restocks, learnt from the history.
+    /// </summary>
+    /// <returns>One pattern per store with at least one restock.</returns>
+    Task<ServiceApiResponse<List<StoreRestockDTO>>> RestocksAsync();
+
+    /// <summary>
     /// Adds what one check cycle saw: a point only when the price or the stock changed. Several observations of the
     /// same product (one per task) are merged.
     /// </summary>

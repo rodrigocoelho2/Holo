@@ -108,6 +108,10 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>The history.</returns>
     public Task<PriceHistoryDTO> PriceHistoryGetAsync(string identifier) => GetAsync<PriceHistoryDTO>($"pricehistory?identifier={Uri.EscapeDataString(identifier)}");
 
+    /// <summary>When each store restocks, learnt from the history.</summary>
+    /// <returns>One pattern per store.</returns>
+    public Task<List<StoreRestockDTO>> PriceHistoryRestocksAsync() => GetAsync<List<StoreRestockDTO>>("pricehistory/restocks");
+
     // ----- Compare -----
 
     /// <summary>Lists every compared product (without price points).</summary>

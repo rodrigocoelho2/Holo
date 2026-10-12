@@ -28,4 +28,13 @@ public partial class PriceHistoryController(TcgStockBotClient apiClient) : Websi
         var model = new PriceHistoryModel(ApiClient);
         return Json(await model.GetAsync(identifier));
     }
+
+    /// <summary>When each store restocks.</summary>
+    /// <returns>JSON <c>AjaxDataResult</c>.</returns>
+    [HttpGet]
+    public async Task<IActionResult> RestocksAsync()
+    {
+        var model = new PriceHistoryModel(ApiClient);
+        return Json(await model.RestocksAsync());
+    }
 }

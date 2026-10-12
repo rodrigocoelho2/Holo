@@ -48,6 +48,22 @@ internal sealed class PriceHistoryController(
     }
 
     /// <summary>
+    /// When each store restocks, learnt from the history (weekday and hour, local time).
+    /// </summary>
+    /// <returns>One pattern per store, most restocks first.</returns>
+    [HttpGet("restocks")]
+    [ProducesResponseType<List<StoreRestockDTO>>((int)HttpStatusCode.OK)]
+    [SwaggerOperation(Summary = "PriceHistoryRestocks", OperationId = "PriceHistoryRestocks")]
+    public async Task<ActionResult<List<StoreRestockDTO>>> PriceHistoryRestocksAsync()
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("PriceHistoryRestocks");
+
+        var apiResponse = await _priceHistoryService.RestocksAsync();
+        return apiResponse.ToActionResult();
+    }
+
+    /// <summary>
     /// Gets the price history of one product.
     /// </summary>
     /// <param name="identifier">The history key ("store|url").</param>

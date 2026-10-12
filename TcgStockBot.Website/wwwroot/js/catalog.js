@@ -72,8 +72,12 @@ function catalogItem(group) {
   const then = before.length ? Math.min(...before) : null;
   const firstSeen = Math.min(...group.listings.map((listing) => new Date(listing.firstSeen).getTime()).filter(Boolean));
   const lastSeen = Math.max(...group.listings.map((listing) => new Date(listing.lastSeen).getTime()).filter(Boolean));
+  // The best price now is the lowest the bot has ever seen in any store, for a product watched for at least a week.
+  const lowest = summary.lowestEver?.lowestPrice ?? null;
+  const lowestEver = Boolean(summary.best && lowest !== null && summary.best.currentPrice <= lowest
+    && Number.isFinite(firstSeen) && Date.now() - firstSeen > 7 * DAY);
   return {
-    group, summary, from: now, soldOut: !summary.best,
+    group, summary, from: now, soldOut: !summary.best, lowestEver,
     move: now && then ? ((now - then) / then) * 100 : null,
     image: group.listings.find((listing) => listing.currentInStock && listing.imageUrl)?.imageUrl || group.listings.find((listing) => listing.imageUrl)?.imageUrl || null,
     firstSeen: Number.isFinite(firstSeen) ? firstSeen : null,
@@ -282,7 +286,9 @@ function catalogCard(item) {
         h("span", { class: "catalog-from" },
           h("span", { class: "muted small" }, item.soldOut ? "last" : "from"),
           h("strong", { class: `price-l mono ${item.soldOut ? "struck" : ""}` }, money(item.from))),
-        item.soldOut ? h("span", { class: "dim small" }, "no stock") : msrpPill(summary.best?.currentPrice, group.msrp)),
+        item.soldOut ? h("span", { class: "dim small" }, "no stock")
+          : item.lowestEver ? h("span", { class: "low-badge small", title: "No store had it cheaper since the bot started watching" }, "Lowest ever")
+            : msrpPill(summary.best?.currentPrice, group.msrp)),
       h("div", { class: "catalog-foot" },
         stockMeter(summary.inStockCount, item.stores),
         h("span", { class: "catalog-stock" }, item.soldOut
@@ -364,6 +370,7 @@ RENDERERS.product = function viewFicha() {
               : "Not in stock in any store"),
             h("div", { class: "ficha-price-row" },
               h("span", { class: "price-xl" }, money(item.from)),
+              item.lowestEver ? h("span", { class: "low-badge", title: "No store had it cheaper since the bot started watching" }, "Lowest price ever") : null,
               best ? msrpPill(best.currentPrice, group.msrp) : h("span", { class: "ficha-best-label" }, "last price"),
               group.msrp ? h("span", { class: "ficha-best-label" }, `MSRP ${money(group.msrp)}`) : null),
             best && shippingFor(best.storeName, best.currentPrice) !== null ? h("span", { class: "ficha-best-label" },
@@ -378,6 +385,7 @@ RENDERERS.product = function viewFicha() {
             best && safeHref(best.url) ? linkButton(`Open in ${best.storeName}`, best.url, { kind: "invert", external: true, trailingIcon: "external" }) : null,
             cardmarket ? linkButton("Cardmarket", cardmarket, { kind: "on-ink", external: true, trailingIcon: "external" }) : null)),
         fichaStores(group, summary),
+        fichaRestocks(group),
         fichaSameSet(group))),
 
     fichaChart(group, colors),
@@ -395,7 +403,8 @@ function fichaStores(group, summary) {
   const inStock = group.listings.filter((listing) => listing.currentInStock && listing.currentPrice !== null).sort(byPrice);
   const soldOut = group.listings.filter((listing) => !inStock.includes(listing)).sort(byPrice);
   // One price scale for the bars: from a bit under the cheapest (or the MSRP) to the dearest.
-  const prices = group.listings.map((listing) => listing.currentPrice).filter((price) => price !== null);
+  // Bars show the price with shipping, so they follow the order of the rows.
+  const prices = group.listings.map((listing) => totalPrice(listing.storeName, listing.currentPrice)).filter((price) => price !== null);
   const low = Math.min(...prices, group.msrp ?? Infinity) * 0.9;
   const high = Math.max(...prices, group.msrp ?? 0) * 1.02;
   const scale = { at: (price) => (high > low ? Math.min(100, Math.max(3, ((price - low) / (high - low)) * 100)) : 50), msrp: group.msrp };
@@ -423,7 +432,7 @@ function fichaStores(group, summary) {
 function storeRow(group, listing, rank, isBest, scale) {
   const out = !listing.currentInStock;
   const bar = listing.currentPrice === null ? null : h("span", { class: "price-bar", "aria-hidden": "true" },
-    h("span", { class: "price-bar-fill", style: `width:${scale.at(listing.currentPrice)}%` }),
+    h("span", { class: "price-bar-fill", style: `width:${scale.at(totalPrice(listing.storeName, listing.currentPrice))}%` }),
     scale.msrp ? h("span", { class: "price-bar-msrp", style: `left:${scale.at(scale.msrp)}%` }) : null);
   return h("li", { class: `price-row ${isBest ? "best" : ""} ${out ? "out" : ""}` },
     h("span", { class: "price-rank mono" }, rank ?? "–"),
@@ -434,6 +443,7 @@ function storeRow(group, listing, rank, isBest, scale) {
       h("div", { class: "price-store-meta" },
         h("span", { class: "listing-title", title: listing.title }, listing.title),
         h("span", { class: "nowrap", title: dateTime(listing.lastSeen) }, out ? `sold out · seen ${relative(listing.lastSeen)}` : `checked ${relative(listing.lastSeen)}`),
+        out && restockText(restockOf(listing.storeName)) ? h("span", { class: "nowrap restock-hint" }, icon("clock"), `restocks: ${restockText(restockOf(listing.storeName)).replace("Usually ", "")}`) : null,
         h("button", { type: "button", class: "text-link small", onclick: () => separateListing(group, listing) }, "Split"),
         listing.isManual ? h("button", { type: "button", class: "text-link small", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Back to automatic") : null)),
     bar || h("span", { class: "price-bar", style: "visibility:hidden" }),

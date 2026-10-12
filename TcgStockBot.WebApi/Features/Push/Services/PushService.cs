@@ -285,12 +285,12 @@ internal sealed class PushService(
         var validationErrors = new List<ApiValidationError>();
         if (!IsPushServiceEndpoint(item.Endpoint))
         {
-            validationErrors.Add(await globalizationHelper.ValidationErrorAsync(FieldEndpoint, nameof(TranslationKeys.InvalidUrl)));
+            validationErrors.Add(await globalizationHelper.ValidationErrorAsync(FieldEndpoint, nameof(TranslationKeys.PushEndpointNotAllowed)));
         }
 
         if (!IsKey(item.P256dh, 65) || !IsKey(item.Auth, 16))
         {
-            validationErrors.Add(await globalizationHelper.ValidationErrorAsync(FieldKeys, nameof(TranslationKeys.InvalidKey)));
+            validationErrors.Add(await globalizationHelper.ValidationErrorAsync(FieldKeys, nameof(TranslationKeys.PushKeysInvalid)));
         }
 
         return validationErrors;

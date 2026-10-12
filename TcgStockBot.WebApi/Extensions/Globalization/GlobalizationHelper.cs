@@ -77,6 +77,8 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.PasswordWrong)] = "is wrong.",
         [nameof(TranslationKeys.LastAdmin)] = "The last admin account cannot be deleted.",
         [nameof(TranslationKeys.ShippingRange)] = "must be between 0 and 500 €.",
+        [nameof(TranslationKeys.PushEndpointNotAllowed)] = "must be the address of a browser push service (Google, Mozilla, Apple or Microsoft).",
+        [nameof(TranslationKeys.PushKeysInvalid)] = "are not the keys of a browser push subscription.",
 
         // Field labels
         ["Identifier"] = "Id",
@@ -104,6 +106,8 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         ["NewPassword"] = "New password",
         ["ShippingCost"] = "Shipping",
         ["FreeShippingFrom"] = "Free shipping from",
+        ["Endpoint"] = "Push address",
+        ["Keys"] = "Push keys",
     };
 
     /// <inheritdoc />

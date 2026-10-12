@@ -34,3 +34,20 @@ public sealed class PricePointDTO
     public decimal Price { get; set; }
     public bool InStock { get; set; }
 }
+
+/// <summary>When one store restocks (mirror of the WebApi StoreRestockDTO).</summary>
+public sealed class StoreRestockDTO
+{
+    public string StoreName { get; set; } = string.Empty;
+    public int Restocks { get; set; }
+    public int Products { get; set; }
+    public int Days { get; set; }
+    public DateTimeOffset? LastRestockAt { get; set; }
+    public List<int> ByWeekday { get; set; } = [];
+    public List<int> ByHour { get; set; } = [];
+    public List<List<int>> ByWeekdayHour { get; set; } = [];
+    public List<int> UsualWeekdays { get; set; } = [];
+    public int? UsualHour { get; set; }
+    public bool Confident { get; set; }
+    public string TimeZone { get; set; } = string.Empty;
+}

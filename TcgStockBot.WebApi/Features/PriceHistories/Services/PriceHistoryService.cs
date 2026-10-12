@@ -66,6 +66,14 @@ internal sealed class PriceHistoryService(
     }
 
     /// <inheritdoc />
+    public async Task<ServiceApiResponse<List<StoreRestockDTO>>> RestocksAsync()
+    {
+        var now = _timeProvider.GetUtcNow();
+        var patterns = await ReadAsync(entries => RestockPatterns.Find(entries.Values, _timeProvider.LocalTimeZone, now));
+        return ServiceApiResponse<List<StoreRestockDTO>>.Success(patterns);
+    }
+
+    /// <inheritdoc />
     public async Task RecordAsync(IReadOnlyCollection<PriceObservation> observations)
     {
         await _lock.WaitAsync();

@@ -100,7 +100,11 @@ async function enablePush({ quiet = false } = {}) {
     await post("/push/subscribe", { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth, device: deviceLabel() });
     if (!quiet) toast("Notifications are on for this device", "success");
   } catch (error) {
-    if (!quiet) toast(errorText(error), "error");
+    if (!quiet) {
+      toast(error?.name === "NotAllowedError" || error?.name === "AbortError"
+        ? "The browser refused push here. Private windows can't get it; in a normal window, allow notifications for Holo and try again."
+        : errorText(error), "error");
+    }
   }
   await loadPush();
   refreshNotification();

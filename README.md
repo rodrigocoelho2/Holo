@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  Um bot <b>self-hosted</b> que vigia lojas portuguesas e espanholas de TCG selado (Pokémon, One Piece, Riftbound, Cyberpunk, Lorcana, Magic)<br>
+  Um bot <b>self-hosted</b> que vigia lojas portuguesas e espanholas de TCG selado (Pokémon, One Piece, Riftbound, Cyberpunk, Magic, Lorcana)<br>
   e te avisa por <b>WhatsApp</b>, <b>Telegram</b> e <b>email</b> quando um produto aparece <b>em stock, no idioma certo e ao teu preço</b>.
 </p>
 
@@ -40,7 +40,7 @@
 **Separadores por jogo**
 
 - Todas as páginas principais (Products, Deals, Watching, Releases e Alerts) têm separadores **All · Pokémon ·
-  One Piece · Riftbound · Cyberpunk**, mais Lorcana, Magic ou Outro quando os usas. A escolha fica guardada no browser.
+  One Piece · Riftbound · Cyberpunk · Magic**, mais Lorcana ou Outro quando os usas. A escolha fica guardada no browser.
 
 **Vigiar produtos**
 
@@ -50,6 +50,11 @@
   "PKM", "One Piece"…) ou uma coleção conhecida dele; assim uma display de Flesh & Blood ou Naruto não aparece como
   Pokémon. Os formatos que só a Pokémon tem (ETB, Booster Bundle, UPC…) não precisam.
 - Os **starter decks** de One Piece são reconhecidos pelo código (ST-01, ST01, ST 1), seja qual for o resto do título.
+- **Magic: The Gathering:** Play Booster Box/Display, **Collector Booster** (caixa e avulso), **Bundle** e Gift Bundle,
+  **Commander Deck** (cada deck é um produto, mesmo com o "Collector Booster Sample Pack" no título) e Prerelease Pack.
+  As coleções de Bloomburrow em diante (incluindo Final Fantasy, Spider-Man, Avatar, Lorwyn Eclipsed, TMNT, Secrets of
+  Strixhaven, Marvel Super Heroes, The Hobbit, Reality Fracture e Star Trek) já são conhecidas. O Magic não tem MSRP
+  de referência: usa um **preço máximo** nas tarefas.
 - Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *ao teu preço*, *acima · avisa até 65,99 €*, *esgotado*, *não é inglês*, *tipo que não vigias*, *falta a palavra…*.
 - Os resultados e os alertas trazem a **imagem do produto** que a loja devolve.
 - Importar e exportar os produtos vigiados (tarefas) em JSON, no menu **More** de *Watching*.
@@ -57,7 +62,7 @@
 **Produtos (catálogo) e preços**
 
 - **Products** (a página inicial): escolhes o **jogo**, depois o **formato** (Elite Trainer Box, Booster Display,
-  Booster Bundle, Boosters, Blisters, Collections, Tins, Decks) e aparecem os produtos de **todas as coleções**, da mais
+  Collector, Bundles, Boosters, Blisters, Collections, Tins, Decks, Prerelease) e aparecem os produtos de **todas as coleções**, da mais
   recente para a mais antiga. Cada cartão tem a coleção, a foto, "desde X €", "−8% vs MSRP", a variação em 30 dias e
   "em stock em 3 de 5 lojas". Filtros por loja e "só em stock"; ordenação por coleção mais recente, mais barato, mais
   lojas com stock, maior descida ou nome.
@@ -70,6 +75,14 @@
   esgotadas recolhidas. Depois, os factos do preço (mínimo de sempre, variação em 30 dias, MSRP), os **outros formatos
   da mesma coleção**, o **gráfico de preços** por período, o histórico de alterações e as correções (separar ou juntar
   anúncios).
+- **Portes incluídos:** cada loja pode ter o custo de envio e o valor a partir do qual o envio é grátis (em *Stores →
+  Edit → Shipping*). A ordem das lojas, o "mais barato" e os alertas contam com os portes: uma ETB a 52 € + 6 € de
+  portes fica atrás de uma a 55 € com envio grátis. Cada linha mostra "+ 4,99 € shipping" ou "Free shipping"; as lojas
+  sem portes definidos contam como 0 €.
+- **Mínimo de sempre:** quando o melhor preço de agora é o mais baixo que o bot já viu em qualquer loja (num produto
+  seguido há pelo menos uma semana), o cartão e a página do produto mostram **Lowest price ever**.
+- **Reposições:** a página do produto diz quantas vezes ele voltou a ter stock em cada loja e quando foi a última, e
+  ao lado das lojas esgotadas aparece quando essa loja costuma repor.
 - **MSRP** por tipo de produto (ETB, Booster Bundle, Display…), para veres quanto acima ou abaixo do preço de referência está cada oferta.
 
 **Releases (lançamentos)**
@@ -78,7 +91,7 @@
   data de lançamento e a abertura das pré-vendas. Cada lançamento pode ficar ligado ao produto que vigias, para veres
   ali as ofertas; se ainda não o vigias, **Vigiar** abre a pesquisa já preenchida.
 - **Coleções:** o bot já conhece as coleções inglesas de Pokémon (Scarlet & Violet e Mega Evolution), One Piece
-  (OP-01 a OP-18, EB e PRB), Riftbound e Cyberpunk (`Features/Sets/Data/set-defaults.json`), e todas as que têm data
+  (OP-01 a OP-18, EB e PRB), Riftbound, Cyberpunk e Magic (`Features/Sets/Data/set-defaults.json`), e todas as que têm data
   **aparecem sozinhas em Releases** (com a etiqueta *Built-in*). Editar uma delas guarda a data das pré-vendas, notas e
   link. Uma coleção nova entra quando a adicionas em Releases: o nome (sem o jogo à frente) e os **outros nomes nas
   lojas** (por exemplo `ME06`) passam a agrupar os produtos dessa coleção em Products.
@@ -87,7 +100,11 @@
 
 **Avisos**
 
+- **Notificações push** no telemóvel e no computador, sem serviços de terceiros nem nada no `.env`: em *Settings →
+  Alert channels → Push notifications*, carrega em **Turn on for this device**. Tocar na notificação abre a página da
+  loja.
 - **WhatsApp** (CallMeBot), **Telegram** (um bot teu) e **email** (SMTP), com o link direto para a página do produto.
+- Os alertas dizem os portes da loja ("+ €4.99 shipping" ou "free shipping") quando estão definidos.
 - **Resumo diário** opcional, à hora que escolheres: os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas com erro.
 - Um produto só é avisado uma vez enquanto continuar em stock, a não ser que **baixe de preço**.
 - **Pré-vendas** marcadas no aviso e no dashboard.
@@ -231,6 +248,24 @@ Usa o mesmo nome de pasta. O volume `tcgstockbot-data` é o mesmo e o formato do
 > [!IMPORTANT]
 > **Nunca faças commit de segredos.** O `.env` e os `appsettings.Development.json` estão no `.gitignore`. Para correr no PC, copia `TcgStockBot.WebApi/appsettings.Development.json.example` para `appsettings.Development.json` (e o mesmo no Website, se precisares).
 
+### Notificações push (telemóvel e computador)
+
+O Holo envia os alertas como notificações do sistema, pelo serviço de push do próprio browser (Google, Mozilla,
+Apple ou Microsoft). As mensagens vão cifradas de ponta a ponta (RFC 8291) e assinadas com uma chave do teu bot
+(VAPID); não há conta nem serviço de terceiros.
+
+1. Abre o Holo por **HTTPS** (o teu domínio no Nginx Proxy Manager). Por `http://IP:5080` o browser não deixa ligar.
+2. **iPhone e iPad (iOS 16.4 ou mais recente):** no Safari, *Partilhar → Adicionar ao ecrã principal*, e abre o Holo
+   a partir do ícone. Só assim o iOS deixa uma web app receber notificações.
+3. Em **Settings → Alert channels → Push notifications**, carrega em **Turn on for this device** e aceita.
+4. Carrega em *Send a test message*. Repete em cada telemóvel ou computador que queiras; a lista mostra os aparelhos,
+   a conta de cada um e a última notificação. *Remove* tira um aparelho.
+
+As chaves criam-se sozinhas no primeiro arranque e ficam no volume de dados (`push-keys.json`, os aparelhos em
+`push-subscriptions.json`). No `.env`, põe `WebPush__Subject=mailto:o-teu-email` (a Apple pede um contacto válido);
+`WebPush__Enabled=false` desliga o canal. O bot só aceita endereços dos serviços de push dos browsers, e os aparelhos
+que o serviço diz que já não existem são apagados sozinhos.
+
 ### WhatsApp (CallMeBot)
 
 1. Guarda nos contactos o número publicado em https://www.callmebot.com/blog/free-api-whatsapp-messages/
@@ -253,7 +288,7 @@ O token só existe no `.env`: o dashboard mostra apenas se está definido, e os 
 ### Resumo diário
 
 Em **Settings → Daily summary**, liga o resumo e escolhe a hora (de Portugal). Uma vez por dia, vai pelos canais
-ligados (email, Telegram e WhatsApp) com os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas
+ligados (push, email, Telegram e WhatsApp) com os alertas das últimas 24 horas, o que está em stock ao teu preço e as lojas
 que falharam no último ciclo.
 
 ## Lojas
@@ -408,6 +443,11 @@ Como funciona:
   ou o stock mudam. São até 500 alterações por produto, e os produtos que não aparecem há 180 dias são apagados. O
   mesmo produto em várias tarefas conta como um só (loja + URL). Na página de cada produto, o ícone de gráfico ao lado do preço abre o
   histórico e "mín." mostra o preço mais baixo já visto. Para comparar lojas, usa os **Products**.
+- **Quando as lojas repõem:** cada vez que um produto passa de esgotado a em stock, o bot guarda o dia e a hora. Os
+  produtos que voltam com menos de 3 horas de diferença contam como uma reposição (uma entrega). Em **Stores**, o
+  quadro *When stores restock* mostra as reposições por dia da semana e hora (hora de Portugal), para todas as lojas
+  ou só uma, e cada loja tem uma linha como "Usually Tue · 10:00–12:00 · 9 restocks". O padrão só aparece a partir
+  de 5 reposições; antes disso, diz quantas já viu.
 - A `alert-state.json` da v3.0 continua a ser lida; a partir do primeiro ciclo passa a guardar também o preço.
 
 ## Products (o catálogo)

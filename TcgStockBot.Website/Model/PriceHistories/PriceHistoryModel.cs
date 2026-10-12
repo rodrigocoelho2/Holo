@@ -17,4 +17,8 @@ public sealed class PriceHistoryModel(TcgStockBotClient apiClient) : WebsiteBase
     /// <param name="identifier">The history key.</param>
     /// <returns>The history.</returns>
     public Task<AjaxDataResult<PriceHistoryDTO>> GetAsync(string identifier) => CallAsync(() => ApiClient.PriceHistoryGetAsync(identifier ?? string.Empty));
+
+    /// <summary>When each store restocks.</summary>
+    /// <returns>One pattern per store.</returns>
+    public Task<AjaxDataResult<List<StoreRestockDTO>>> RestocksAsync() => CallAsync(() => ApiClient.PriceHistoryRestocksAsync());
 }

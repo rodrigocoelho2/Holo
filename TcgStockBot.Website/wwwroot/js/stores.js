@@ -65,6 +65,7 @@ RENDERERS.stores = function viewStores() {
         type: "button", class: `health-tile ${tone} ${state.storeHealthFilter === key ? "on" : ""}`, "aria-pressed": state.storeHealthFilter === key ? "true" : "false",
         onclick: () => { state.storeHealthFilter = state.storeHealthFilter === key ? "all" : key; renderView(true); },
       }, h("span", {}, label), h("strong", { class: "mono" }, counts[key])))),
+    restockCard(),
     h("div", { class: "toolbar wrap" },
       searchField(state.storeQuery, "Filter: name, site, tag…", (value) => { state.storeQuery = value; renderList(); }, "store-search", "Filter stores"),
       selectPill("Area", state.storeCountry, [["all", "All"], ...Object.entries(COUNTRIES).map(([key, [label]]) => [key, label])],
@@ -156,6 +157,7 @@ function storeCard(store, health) {
         ? [testPill(store.lastTest), h("span", { class: "muted small" }, ` ${relative(store.lastTest.at)} · ${store.lastTest.results} products`)]
         : h("span", { class: "muted" }, "never")),
       h("dt", {}, "Shipping"), h("dd", {}, storeShippingText(store)),
+      store.platform !== "Manual" ? [h("dt", {}, "Restocks"), h("dd", {}, storeRestockText(store))] : null,
       store.enabled && store.consecutiveFailures > 0
         ? [h("dt", {}, "Failed cycles"), h("dd", { class: "amber" }, `${store.consecutiveFailures} in a row`)] : null,
       store.autoDisabledAt && !store.enabled

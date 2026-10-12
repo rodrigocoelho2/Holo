@@ -124,4 +124,10 @@ public enum TranslationKeys
 
     /// <summary>A shipping amount outside 0–500 €.</summary>
     ShippingRange,
+
+    /// <summary>A push endpoint that is not a browser push service.</summary>
+    PushEndpointNotAllowed,
+
+    /// <summary>Push subscription keys that are not a P-256 key and a 16-byte secret.</summary>
+    PushKeysInvalid,
 }

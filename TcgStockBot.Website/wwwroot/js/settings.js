@@ -117,6 +117,7 @@ function channelsCard() {
     !notification
       ? h("p", { class: "muted" }, "Loading channels…")
       : h("div", { class: "channels" },
+        pushTile(),
         tile("WhatsApp", "chat", "WhatsApp", notification.whatsApp.enabled, [
           ["Number", notification.whatsApp.maskedPhone || missing("missing")],
           ["API key", notification.whatsApp.hasApiKey ? "set" : missing("missing")],
@@ -130,8 +131,7 @@ function channelsCard() {
         tile("Telegram", "send", "Telegram", Boolean(notification.telegram?.enabled), [
           ["Chat", notification.telegram?.maskedChatId || missing("missing")],
           ["Bot token", notification.telegram?.hasBotToken ? "set" : missing("missing")],
-        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Holo."),
-        pushTile()));
+        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Holo.")));
 }
 
 /** The signed-in account: change password, sign out; admins also manage the other accounts. */

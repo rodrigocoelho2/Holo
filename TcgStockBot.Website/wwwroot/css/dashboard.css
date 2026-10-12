@@ -1991,3 +1991,43 @@ body { font-size: 15px; }
   .ficha-best .price-xl { font-size: 38px; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- restocks: weekday × hour heatmap, store lines, product hints ---- */
+.restock-card { display: flex; flex-direction: column; gap: 14px; }
+.heat-wrap { overflow-x: auto; padding-bottom: 2px; }
+.restock-body { display: grid; gap: 18px; }
+.heat-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.heatmap { display: flex; flex-direction: column; gap: 3px; min-width: 420px; max-width: 720px; }
+.heat-row { display: grid; grid-template-columns: 34px repeat(24, minmax(10px, 1fr)); gap: 3px; align-items: center; }
+@media (min-width: 1180px) {
+  .restock-body { grid-template-columns: minmax(0, 720px) minmax(280px, 1fr); align-items: start; gap: 32px; }
+  .restock-body .restock-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  .restock-body .restock-list li > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+}
+.heat-day { font-size: 11.5px; color: var(--text-2); }
+.heat-hour { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); }
+.heat-cell { display: block; aspect-ratio: 1; border-radius: 3px; background: var(--surface-3, var(--line)); outline-offset: 1px; }
+.heat-cell.l1 { background: color-mix(in srgb, var(--accent) 28%, var(--surface)); }
+.heat-cell.l2 { background: color-mix(in srgb, var(--accent) 50%, var(--surface)); }
+.heat-cell.l3 { background: color-mix(in srgb, var(--accent) 75%, var(--surface)); }
+.heat-cell.l4 { background: var(--accent); }
+.heatmap .heat-cell[tabindex="0"]:hover, .heatmap .heat-cell:focus-visible { outline: 2px solid var(--text); }
+.heat-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.heat-scale { display: inline-flex; align-items: center; gap: 4px; }
+.heat-scale .heat-cell { width: 12px; }
+.restock-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.restock-list li { display: grid; grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.4fr) auto; gap: 4px 14px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+.restock-list li:first-child { border-top: 0; }
+.restock-list .text-link { text-align: left; font-weight: 600; color: var(--text); }
+.restock-list .text-link.on { color: var(--accent); }
+.restock-hint { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); }
+.restock-hint svg { width: 13px; height: 13px; }
+.low-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; background: var(--good); color: #FFFFFF; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.low-badge.small { padding: 2px 8px; font-size: 11.5px; }
+@media (max-width: 640px) {
+  .heatmap { min-width: 0; gap: 2px; }
+  .heat-row { grid-template-columns: 28px repeat(24, minmax(0, 1fr)); gap: 2px; }
+  .heat-cell { border-radius: 2px; }
+  .restock-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  .restock-list li > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+}
