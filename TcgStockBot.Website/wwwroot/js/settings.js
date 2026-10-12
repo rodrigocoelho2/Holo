@@ -58,7 +58,7 @@ RENDERERS.settings = function viewSettings() {
     channelsCard(),
     h("section", { class: "card settings-card", "aria-labelledby": "summary-h" },
       h("h2", { id: "summary-h" }, "Daily summary"),
-      h("p", { class: "muted small" }, "One message a day with the alerts of the last 24 hours, what is in stock at your price and the stores with errors. Sent by every channel that is on (email, Telegram, WhatsApp)."),
+      h("p", { class: "muted small" }, "One message a day with the alerts of the last 24 hours, what is in stock at your price and the stores with errors. Sent by every channel that is on (push, email, Telegram, WhatsApp)."),
       h("div", { class: "setting-row" },
         h("div", {}, h("strong", {}, "Send the summary"), h("div", { class: "muted small" }, "Saved with “Save changes”.")),
         switchInput(draft.summary, (checked) => { draft.summary = checked; }, "Send the daily summary")),
@@ -130,7 +130,8 @@ function channelsCard() {
         tile("Telegram", "send", "Telegram", Boolean(notification.telegram?.enabled), [
           ["Chat", notification.telegram?.maskedChatId || missing("missing")],
           ["Bot token", notification.telegram?.hasBotToken ? "set" : missing("missing")],
-        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Holo.")));
+        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Holo."),
+        pushTile()));
 }
 
 /** The signed-in account: change password, sign out; admins also manage the other accounts. */

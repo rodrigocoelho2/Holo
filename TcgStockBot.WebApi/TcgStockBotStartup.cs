@@ -33,6 +33,9 @@ using TcgStockBot.WebApi.Features.Users.Services;
 using TcgStockBot.WebApi.Features.Releases.Services;
 using TcgStockBot.WebApi.Features.Sets.Repositories;
 using TcgStockBot.WebApi.Features.Sets.Services;
+using TcgStockBot.WebApi.Features.Push.Models;
+using TcgStockBot.WebApi.Features.Push.Repositories;
+using TcgStockBot.WebApi.Features.Push.Services;
 
 namespace TcgStockBot.WebApi;
 
@@ -58,6 +61,7 @@ internal static class TcgStockBotStartup
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
         services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
+        services.Configure<WebPushOptions>(configuration.GetSection(WebPushOptions.SectionName));
 
         services.AddControllers()
             .ConfigureApplicationPartManager(manager => manager.FeatureProviders.Add(new InternalControllerFeatureProvider()))
@@ -115,6 +119,10 @@ internal static class TcgStockBotStartup
 
         // Same for Telegram: the bot token is part of the URL.
         services.AddHttpClient(TelegramNotifier.HttpClientName, static client => client.Timeout = TimeSpan.FromSeconds(30))
+            .RemoveAllLoggers();
+
+        // And for push: every endpoint URL carries a per-device token.
+        services.AddHttpClient(PushService.HttpClientName, static client => client.Timeout = TimeSpan.FromSeconds(20))
             .RemoveAllLoggers();
 
         // Stores
@@ -176,6 +184,9 @@ internal static class TcgStockBotStartup
         services.AddSingleton<INotifier, EmailNotifier>();
         services.AddSingleton<INotifier, WhatsAppNotifier>();
         services.AddSingleton<INotifier, TelegramNotifier>();
+        services.AddSingleton<IPushRepository, PushRepository>();
+        services.AddSingleton<IPushService, PushService>();
+        services.AddSingleton<INotifier, WebPushNotifier>();
         services.AddSingleton<INotificationService, NotificationService>();
 
         // Monitors

@@ -60,6 +60,10 @@ internal sealed class NotificationService(
                 MaskedChatId = Mask(telegram.ChatId),
                 HasBotToken = !string.IsNullOrEmpty(telegram.BotToken),
             },
+            Push = new PushNotificationDTO
+            {
+                Enabled = _notifiers.Any(static notifier => notifier.Channel == NotificationChannel.Push && notifier.IsEnabled),
+            },
         }));
     }
 

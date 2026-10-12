@@ -215,6 +215,22 @@ public sealed class TcgStockBotClient(HttpClient httpClient)
     /// <returns>A task that completes on success.</returns>
     public Task NotificationTestAsync(NotificationTestRequest item) => PostAsync("notification/test", item);
 
+    // ----- Push -----
+
+    /// <summary>Gets the push state: on or off, the public key and the devices.</summary>
+    /// <returns>The state.</returns>
+    public Task<PushDTO> PushGetAsync() => GetAsync<PushDTO>("push");
+
+    /// <summary>Adds (or updates) a device that receives push notifications.</summary>
+    /// <param name="item">The browser's subscription.</param>
+    /// <returns>The device identifier.</returns>
+    public Task<PushSubscribeResponse> PushSubscribeAsync(PushSubscribeRequest item) => PostAsync<PushSubscribeResponse>("push/subscribe", item);
+
+    /// <summary>Removes a device.</summary>
+    /// <param name="item">The device.</param>
+    /// <returns>A task that completes on success.</returns>
+    public Task PushUnsubscribeAsync(PushUnsubscribeRequest item) => PostAsync("push/unsubscribe", item);
+
     // ----- Transport -----
 
     private async Task<T> GetAsync<T>(string path)

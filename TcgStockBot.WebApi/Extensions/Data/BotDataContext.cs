@@ -65,6 +65,12 @@ internal sealed class BotDataContext
     /// <summary>Gets the path of the launch calendar.</summary>
     public string ReleasesPath => Path.Combine(DataDirectory, "releases.json");
 
+    /// <summary>Gets the path of the devices that receive push notifications.</summary>
+    public string PushSubscriptionsPath => Path.Combine(DataDirectory, "push-subscriptions.json");
+
+    /// <summary>Gets the path of the VAPID key pair of the push notifications.</summary>
+    public string PushKeysPath => Path.Combine(DataDirectory, "push-keys.json");
+
     /// <summary>Gets the optional MSRP reference prices file (when present it replaces the embedded defaults).</summary>
     public string MsrpPath => Path.Combine(DataDirectory, "msrp.json");
 

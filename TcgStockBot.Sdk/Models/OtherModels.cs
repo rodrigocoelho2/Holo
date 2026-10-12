@@ -50,6 +50,13 @@ public sealed class NotificationDTO
     public EmailNotificationDTO Email { get; set; } = new();
     public WhatsAppNotificationDTO WhatsApp { get; set; } = new();
     public TelegramNotificationDTO Telegram { get; set; } = new();
+    public PushNotificationDTO Push { get; set; } = new();
+}
+
+/// <summary>State of the push channel.</summary>
+public sealed class PushNotificationDTO
+{
+    public bool Enabled { get; set; }
 }
 
 /// <summary>State of the email channel.</summary>

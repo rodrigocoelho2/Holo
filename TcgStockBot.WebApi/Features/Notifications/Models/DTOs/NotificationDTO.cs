@@ -13,6 +13,18 @@ public sealed class NotificationDTO
 
     /// <summary>Gets or sets the Telegram channel.</summary>
     public TelegramNotificationDTO Telegram { get; set; } = new();
+
+    /// <summary>Gets or sets the push channel.</summary>
+    public PushNotificationDTO Push { get; set; } = new();
+}
+
+/// <summary>
+/// State of the push channel (the devices are listed by PushGet).
+/// </summary>
+public sealed class PushNotificationDTO
+{
+    /// <summary>Gets or sets a value indicating whether push is on and at least one device has it.</summary>
+    public bool Enabled { get; set; }
 }
 
 /// <summary>

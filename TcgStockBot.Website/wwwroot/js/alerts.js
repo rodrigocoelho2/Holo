@@ -45,14 +45,15 @@ function anyChannelEnabled() {
 
 /** The channels turned on in .env, as the /notification/test channel names. */
 function enabledChannels(notification) {
-  return [notification.whatsApp.enabled ? "WhatsApp" : null, notification.telegram?.enabled ? "Telegram" : null, notification.email.enabled ? "Email" : null].filter(Boolean);
+  return [notification.push?.enabled ? "Push" : null, notification.whatsApp.enabled ? "WhatsApp" : null, notification.telegram?.enabled ? "Telegram" : null,
+    notification.email.enabled ? "Email" : null].filter(Boolean);
 }
 
 function channelsSentence() {
   const notification = state.notification;
   if (!notification) return "";
-  const on = enabledChannels(notification).map((channel) => (channel === "Email" ? "email" : channel));
-  if (on.length === 0) return "No alert channel is on — set one up in .env.";
+  const on = enabledChannels(notification).map((channel) => (channel === "Email" ? "email" : channel === "Push" ? "push" : channel));
+  if (on.length === 0) return "No alert channel is on — turn on push in Settings, or set one up in .env.";
   const list = on.length === 1 ? on[0] : `${on.slice(0, -1).join(", ")} and ${on.at(-1)}`;
   return `${list[0].toUpperCase()}${list.slice(1)} ${on.length === 1 ? "is on" : "are on"}.`;
 }
@@ -60,7 +61,7 @@ function channelsSentence() {
 async function sendTestToAll() {
   const notification = state.notification || await api("/notification/get").catch(() => null);
   const channels = notification ? enabledChannels(notification) : ["WhatsApp", "Telegram", "Email"];
-  if (channels.length === 0) { toast("No channel is on. Set up WhatsApp, Telegram or email in .env.", "error"); return; }
+  if (channels.length === 0) { toast("No channel is on. Turn on push in Settings, or set up WhatsApp, Telegram or email in .env.", "error"); return; }
   for (const channel of channels) await sendTest(channel);
 }
 

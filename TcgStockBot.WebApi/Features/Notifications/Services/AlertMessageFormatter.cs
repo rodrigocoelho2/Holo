@@ -163,6 +163,27 @@ internal static class AlertMessageFormatter
         return text.ToString();
     }
 
+    /// <summary>
+    /// A push notification: the title says what happened and the price ("🟢 In stock · €54.99"), the body the product,
+    /// the store and the rest of the price line.
+    /// </summary>
+    /// <param name="alert">The alert.</param>
+    /// <returns>The title and the body.</returns>
+    public static (string Title, string Body) Push(StockAlert alert)
+    {
+        var listing = alert.Listing;
+        var title = alert.IsPriceDrop ? $"🔻 Price drop · {Price(listing.Price)}"
+            : listing.PreOrder ? $"🕒 Pre-order · {Price(listing.Price)}"
+            : $"🟢 In stock · {Price(listing.Price)}";
+        var body = new StringBuilder(listing.Title).Append('\n').Append(listing.StoreName).Append(" · ").Append(PriceLine(alert));
+        if (alert.LanguageToConfirm)
+        {
+            body.Append('\n').Append("⚠️ Check the language on the page.");
+        }
+
+        return (title, body.ToString());
+    }
+
     /// <summary>A notice (store turned off, daily summary) for Telegram.</summary>
     /// <param name="subject">The subject.</param>
     /// <param name="text">The plain text.</param>

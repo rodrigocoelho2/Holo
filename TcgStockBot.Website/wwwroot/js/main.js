@@ -111,7 +111,7 @@ async function resetAlertMemory() {
 async function sendTest(channel) {
   try {
     await post("/notification/test", { channel });
-    toast(channel === "Email" ? "Test email sent" : `Test message sent — check ${channel}`, "success");
+    toast(channel === "Email" ? "Test email sent" : channel === "Push" ? "Test notification sent" : `Test message sent — check ${channel}`, "success");
   } catch (error) {
     toast(errorText(error), "error");
   }
