@@ -64,7 +64,11 @@ internal static class DashboardAuthentication
                     // Pages go to the sign-in form; the dashboard's JSON calls get a plain 401 (the script then opens the form).
                     if (HttpMethods.IsGet(context.Request.Method) && context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase))
                     {
-                        context.Response.Redirect(context.RedirectUri);
+                        // Same-site path only ("/sign-in?returnUrl=…"): an absolute http:// address behind an HTTPS proxy would
+                        // leave the installed app (iOS shows it in a browser sheet) and break the session.
+                        context.Response.Redirect(Uri.TryCreate(context.RedirectUri, UriKind.Absolute, out var absolute)
+                            ? absolute.PathAndQuery
+                            : context.RedirectUri);
                     }
                     else
                     {

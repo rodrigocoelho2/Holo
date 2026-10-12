@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.HttpOverrides;
 using TcgStockBot.Sdk;
 using TcgStockBot.Website.Security;
 
@@ -28,6 +29,16 @@ internal static class TcgStockBotWebsiteStartup
 
         services.AddTcgStockBotClient(configuration);
 
+        // Behind a reverse proxy (Nginx Proxy Manager, Cloudflare) the request arrives as plain HTTP: take the real scheme
+        // and client from X-Forwarded-Proto / X-Forwarded-For, so links and the login cookie are HTTPS. The proxy runs in
+        // another container, so its address is not known in advance; only the last hop is read.
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor;
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+
         return services;
     }
 
@@ -38,6 +49,8 @@ internal static class TcgStockBotWebsiteStartup
     /// <returns>The application.</returns>
     public static WebApplication UseTcgStockBotWebsite(this WebApplication app)
     {
+        app.UseForwardedHeaders();
+
         var contentTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
         contentTypes.Mappings[".webmanifest"] = "application/manifest+json";
 
