@@ -53,6 +53,12 @@ public sealed class StoreSaveRequest
     /// <summary>Gets or sets free notes.</summary>
     public string Notes { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the shipping cost of one order in EUR (null = not known, 0 = always free).</summary>
+    public decimal? ShippingCost { get; set; }
+
+    /// <summary>Gets or sets the order total from which shipping is free, in EUR (null = never free).</summary>
+    public decimal? FreeShippingFrom { get; set; }
+
     /// <summary>
     /// Maps the request to an entity; the selectors are only kept for the HTML platform.
     /// </summary>
@@ -77,5 +83,7 @@ public sealed class StoreSaveRequest
             .DistinctBy(static tag => tag.ToLowerInvariant())
             .ToList(),
         Notes = (Notes ?? string.Empty).Trim(),
+        ShippingCost = ShippingCost is null ? null : Math.Round(ShippingCost.Value, 2, MidpointRounding.AwayFromZero),
+        FreeShippingFrom = FreeShippingFrom is null or 0 ? null : Math.Round(FreeShippingFrom.Value, 2, MidpointRounding.AwayFromZero),
     };
 }

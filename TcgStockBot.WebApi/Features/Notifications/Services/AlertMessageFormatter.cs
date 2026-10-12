@@ -172,7 +172,15 @@ internal static class AlertMessageFormatter
 
     private static string PriceLine(StockAlert alert) => (alert.IsPriceDrop
         ? $"🔻 {Price(alert.Listing.Price)} (was {Price(alert.PreviousPrice)})"
-        : Price(alert.Listing.Price)) + MsrpPart(alert);
+        : Price(alert.Listing.Price)) + ShippingPart(alert) + MsrpPart(alert);
+
+    /// <summary>" + €4.99 shipping", " · free shipping" or empty when the store's shipping is not known.</summary>
+    internal static string ShippingPart(StockAlert alert) => alert.Shipping switch
+    {
+        null => string.Empty,
+        0 => " · free shipping",
+        var shipping => $" + {Price(shipping)} shipping",
+    };
 
     /// <summary>" · MSRP 59,99 € (−8%)", " · MSRP 59,99 € (=)" or empty when the MSRP or the price is unknown.</summary>
     internal static string MsrpPart(StockAlert alert)

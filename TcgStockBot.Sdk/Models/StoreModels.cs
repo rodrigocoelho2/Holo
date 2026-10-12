@@ -19,6 +19,8 @@ public sealed class StoreDTO
     public StoreType Type { get; set; }
     public List<string> Tags { get; set; } = [];
     public string Notes { get; set; } = string.Empty;
+    public decimal? ShippingCost { get; set; }
+    public decimal? FreeShippingFrom { get; set; }
     public StoreTestResultDTO? LastTest { get; set; }
     public int ConsecutiveFailures { get; set; }
     public DateTimeOffset? AutoDisabledAt { get; set; }
@@ -54,6 +56,8 @@ public sealed class StoreSaveRequest
     public StoreType Type { get; set; } = StoreType.Unknown;
     public List<string>? Tags { get; set; } = [];
     public string Notes { get; set; } = string.Empty;
+    public decimal? ShippingCost { get; set; }
+    public decimal? FreeShippingFrom { get; set; }
 }
 
 /// <summary>Output of StoreSave.</summary>

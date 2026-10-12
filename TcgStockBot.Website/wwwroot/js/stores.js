@@ -108,6 +108,13 @@ function storeMatchesFilters(store) {
 
 const HEALTH_TONE = { ok: "accent", slow: "amber", partial: "amber", error: "red", pending: "plain", off: "plain", manual: "plain" };
 
+/** "€4.99 · free from €60.00", "Always free" or a muted "not set". */
+function storeShippingText(store) {
+  if (store.shippingCost === null || store.shippingCost === undefined) return h("span", { class: "muted" }, "not set");
+  if (store.shippingCost === 0) return "Always free";
+  return store.freeShippingFrom > 0 ? `${money(store.shippingCost)} · free from ${money(store.freeShippingFrom)}` : money(store.shippingCost);
+}
+
 function storeCard(store, health) {
   const tasks = state.tasks.filter((task) => task.enabled && ((task.storeNames || []).length === 0 || task.storeNames.some((name) => sameName(name, store.name))));
   const isFeed = ["Fnac", "Worten", "ElCorteIngles", "Awin"].includes(store.platform);
@@ -127,7 +134,7 @@ function storeCard(store, health) {
         h("h3", {}, store.name),
         h("div", { class: "muted small" }, PLATFORM_LABELS[store.platform] || store.platform,
           safeHref(store.baseUrl) ? [" · ", h("a", { href: store.baseUrl, target: "_blank", rel: "noopener noreferrer", class: "plain-link" }, hostLabel(store.baseUrl))] : null)),
-      switchInput(store.enabled, (checked) => setStoreEnabled(store.name, checked), store.enabled ? `Desligar ${store.name}` : `Ativar ${store.name}`)),
+      switchInput(store.enabled, (checked) => setStoreEnabled(store.name, checked), store.enabled ? `Turn off ${store.name}` : `Turn on ${store.name}`)),
     h("div", { class: `health-line ${HEALTH_TONE[health.kind]}` },
       h("span", { class: "health-dot", "aria-hidden": "true" }), h("span", { class: "health-label", title: health.error || "" }, label),
       h("span", { class: "mono muted small health-right" }, right)),
@@ -147,7 +154,8 @@ function storeCard(store, health) {
       h("dt", {}, "Products"), h("dd", {}, `${tasks.length} watched here`),
       h("dt", {}, "Last test"), h("dd", {}, store.lastTest
         ? [testPill(store.lastTest), h("span", { class: "muted small" }, ` ${relative(store.lastTest.at)} · ${store.lastTest.results} products`)]
-        : h("span", { class: "muted" }, "nunca")),
+        : h("span", { class: "muted" }, "never")),
+      h("dt", {}, "Shipping"), h("dd", {}, storeShippingText(store)),
       store.enabled && store.consecutiveFailures > 0
         ? [h("dt", {}, "Failed cycles"), h("dd", { class: "amber" }, `${store.consecutiveFailures} in a row`)] : null,
       store.autoDisabledAt && !store.enabled

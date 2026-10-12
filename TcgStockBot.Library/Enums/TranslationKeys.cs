@@ -121,4 +121,7 @@ public enum TranslationKeys
 
     /// <summary>The last admin account cannot be deleted.</summary>
     LastAdmin,
+
+    /// <summary>A shipping amount outside 0–500 €.</summary>
+    ShippingRange,
 }

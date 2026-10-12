@@ -35,6 +35,8 @@ internal sealed class StoreService(
     private const string FieldAwinFeedKey = "AwinFeedKey";
     private const string FieldProductSelector = "ProductSelector";
     private const string FieldQuery = "Query";
+    private const string FieldShippingCost = "ShippingCost";
+    private const string FieldFreeShippingFrom = "FreeShippingFrom";
 
     private readonly IStoreRepository _storeRepository = storeRepository;
     private readonly IStockTaskRepository _stockTaskRepository = stockTaskRepository;
@@ -226,6 +228,16 @@ internal sealed class StoreService(
             {
                 validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldAwinFeedKey, nameof(TranslationKeys.InvalidKey)));
             }
+        }
+
+        if (item.ShippingCost is < 0 or > 500)
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldShippingCost, nameof(TranslationKeys.ShippingRange)));
+        }
+
+        if (item.FreeShippingFrom is < 0 or > 500)
+        {
+            validationErrors.Add(await _globalizationHelper.ValidationErrorAsync(FieldFreeShippingFrom, nameof(TranslationKeys.ShippingRange)));
         }
 
         if (item.Platform == StorePlatform.Html)

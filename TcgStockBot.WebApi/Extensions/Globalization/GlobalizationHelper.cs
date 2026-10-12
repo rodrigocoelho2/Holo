@@ -76,6 +76,7 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.WrongCredentials)] = "Wrong user name or password.",
         [nameof(TranslationKeys.PasswordWrong)] = "is wrong.",
         [nameof(TranslationKeys.LastAdmin)] = "The last admin account cannot be deleted.",
+        [nameof(TranslationKeys.ShippingRange)] = "must be between 0 and 500 €.",
 
         // Field labels
         ["Identifier"] = "Id",
@@ -101,6 +102,8 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         ["Password"] = "Password",
         ["CurrentPassword"] = "Current password",
         ["NewPassword"] = "New password",
+        ["ShippingCost"] = "Shipping",
+        ["FreeShippingFrom"] = "Free shipping from",
     };
 
     /// <inheritdoc />

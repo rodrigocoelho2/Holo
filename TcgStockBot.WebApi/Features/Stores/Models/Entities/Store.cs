@@ -55,6 +55,23 @@ public sealed class Store
     /// <summary>Gets or sets free notes (what is left to configure, why it is off).</summary>
     public string Notes { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the shipping cost of one order in EUR (null = not known, 0 = always free).</summary>
+    public decimal? ShippingCost { get; set; }
+
+    /// <summary>Gets or sets the order total from which shipping is free, in EUR (null = never free).</summary>
+    public decimal? FreeShippingFrom { get; set; }
+
+    /// <summary>
+    /// What this store charges to ship an order of one product at <paramref name="price"/>: 0 from the free-shipping
+    /// amount up, otherwise the shipping cost.
+    /// </summary>
+    /// <param name="price">The product price.</param>
+    /// <returns>The shipping in EUR, or null when the store's shipping is not known.</returns>
+    public decimal? ShippingFor(decimal? price) =>
+        ShippingCost is null ? null
+        : FreeShippingFrom is > 0 && price >= FreeShippingFrom ? 0m
+        : ShippingCost;
+
     /// <summary>Gets or sets the result of the last test from the dashboard (null = never tested).</summary>
     public StoreTestRecord? LastTest { get; set; }
 

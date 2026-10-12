@@ -479,6 +479,27 @@ const sameName = (a, b) => (a || "").toLowerCase() === (b || "").toLowerCase();
 const findTask = (id) => (state.tasks || []).find((task) => task.id === id);
 const findStore = (name) => (state.stores || []).find((store) => sameName(store.name, name));
 
+/**
+ * What a store charges to ship one product at this price: 0 from its free-shipping amount up, otherwise its
+ * shipping cost; null when the store's shipping is not known (same rule as Store.ShippingFor in the API).
+ */
+function shippingFor(storeName, price) {
+  const store = findStore(storeName);
+  if (!store || store.shippingCost === null || store.shippingCost === undefined || price === null || price === undefined) return null;
+  if (store.freeShippingFrom > 0 && price >= store.freeShippingFrom) return 0;
+  return store.shippingCost;
+}
+
+/** The price with shipping (the price alone when the shipping is not known). */
+const totalPrice = (storeName, price) => (price === null || price === undefined ? null : price + (shippingFor(storeName, price) ?? 0));
+
+/** "+ €4.99 shipping" / "Free shipping" / null. */
+function shippingText(storeName, price) {
+  const shipping = shippingFor(storeName, price);
+  if (shipping === null) return null;
+  return shipping === 0 ? "Free shipping" : `+ ${money(shipping)} shipping`;
+}
+
 function storesForTask(task) {
   const names = task.storeNames || [];
   return enabledStores().filter((store) => store.platform !== "Manual" && (names.length === 0 || names.some((name) => sameName(name, store.name))));

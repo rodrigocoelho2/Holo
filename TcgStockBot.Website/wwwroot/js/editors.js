@@ -302,7 +302,16 @@ function storeToSaveRequest(store, originalName) {
     type: store.type || "Unknown",
     tags: Array.isArray(store.tags) ? store.tags : splitList(String(store.tags || "")),
     notes: (store.notes || "").trim(),
+    shippingCost: euroOrNull(store.shippingCost),
+    freeShippingFrom: euroOrNull(store.freeShippingFrom),
   };
+}
+
+/** "4,99" / 4.99 → 4.99; empty or not a number → null. */
+function euroOrNull(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const number = Number(String(value).replace(",", "."));
+  return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
 function openStoreDrawer(store, preset = null) {
@@ -410,6 +419,12 @@ function openStoreDrawer(store, preset = null) {
         field("Tags", textInput((draft.tags || []).join(", "), (value) => { draft.tags = splitList(value); }, { placeholder: "untested, ships to PT" }),
           "Comma-separated. They show on the card and work as filters."),
         field("Notes", h("textarea", { rows: 3, oninput: (event) => { draft.notes = event.target.value; } }, draft.notes || ""), null, true))),
+    drawerSection("Shipping",
+      h("div", { class: "fields" },
+        field("Shipping (€)", h("input", { type: "number", min: 0, max: 500, step: "0.01", value: draft.shippingCost ?? "", placeholder: "not known", class: "mono", inputmode: "decimal",
+          oninput: (event) => { draft.shippingCost = event.target.value; } }), "What one order costs to ship to you. 0 = always free."),
+        field("Free shipping from (€)", h("input", { type: "number", min: 0, max: 500, step: "0.01", value: draft.freeShippingFrom ?? "", placeholder: "never", class: "mono", inputmode: "decimal",
+          oninput: (event) => { draft.freeShippingFrom = event.target.value; } }), "Orders from this amount ship free. Prices are compared with shipping included."))),
     platformFields,
     drawerSection("Test before saving",
       h("div", { class: "input-with-button" }, testQueryInput, button("Test", { iconName: "flask", onClick: runTest })),
@@ -703,6 +718,8 @@ function openStoreImportDrawer() {
             ...existing, country: raw.country || existing.country, tier: raw.tier || existing.tier, type: raw.type || existing.type,
             tags: [...new Set([...(existing.tags || []), ...(Array.isArray(raw.tags) ? raw.tags : [])].filter((tag) => tag !== "por testar" && tag !== "untested"))],
             notes: existing.notes || raw.notes || "",
+            shippingCost: raw.shippingCost ?? existing.shippingCost ?? null,
+            freeShippingFrom: raw.freeShippingFrom ?? existing.freeShippingFrom ?? null,
           };
           await post("/store/save", storeToSaveRequest(merged, existing.name));
           updated++; rows.push([label, "blue", `classification updated (${existing.name})`]);
@@ -732,8 +749,8 @@ function openStoreImportDrawer() {
     subtitle: "Paste a list of stores or pick a file. The format is the same as “Export JSON”.",
     body: importDrawerBody({
       placeholder: '[\n  { "name": "Store", "platform": "Shopify", "baseUrl": "https://store.pt", "country": "Portugal", "tier": "A", "type": "Specialist", "tags": ["untested"], "enabled": false }\n]',
-      help: "Fields: name, platform (Shopify, WooCommerce, Html, Amazon, Fnac, Worten, ElCorteIngles, Awin, Manual), baseUrl, country (Portugal/Spain/Europe), tier (S/A/B/C), type (Retail/Specialist/Importer/Marketplace/Official), tags, notes, enabled, shopifyCatalogPaths, wooCommerceProductsPath, html, awinFeedKey.",
-      switchLabel: "For the ones that already exist (same name or site), only update area, tier, type and tags", switchValue: updateClassification,
+      help: "Fields: name, platform (Shopify, WooCommerce, Html, Amazon, Fnac, Worten, ElCorteIngles, Awin, Manual), baseUrl, country (Portugal/Spain/Europe), tier (S/A/B/C), type (Retail/Specialist/Importer/Marketplace/Official), tags, notes, enabled, shippingCost, freeShippingFrom, shopifyCatalogPaths, wooCommerceProductsPath, html, awinFeedKey.",
+      switchLabel: "For the ones that already exist (same name or site), only update area, tier, type, tags and shipping", switchValue: updateClassification,
       onSwitch: (checked) => { updateClassification = checked; }, onText: (value) => { text = value; }, results,
     }),
     footer: [button("Close", { kind: "ghost", onClick: closeDrawer }), button("Import", { iconName: "check", kind: "primary", onClick: runImport })],

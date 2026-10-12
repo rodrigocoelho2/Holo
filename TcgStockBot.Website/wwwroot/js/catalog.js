@@ -53,7 +53,9 @@ async function loadFicha(key, { quiet = false } = {}) {
 /** Cheapest in stock, runner-up, lowest ever and most recent drop of one product. */
 function compareSummary(group) {
   const listings = group.listings;
-  const inStock = listings.filter((listing) => listing.currentInStock && listing.currentPrice !== null).sort((a, b) => a.currentPrice - b.currentPrice);
+  // Cheapest with shipping: a €52 box with €6 shipping loses to a €55 one that ships free.
+  const inStock = listings.filter((listing) => listing.currentInStock && listing.currentPrice !== null)
+    .sort((a, b) => (totalPrice(a.storeName, a.currentPrice) - totalPrice(b.storeName, b.currentPrice)) || (a.currentPrice - b.currentPrice));
   const lowestEver = listings.filter((listing) => listing.lowestPrice !== null)
     .reduce((best, listing) => (!best || listing.lowestPrice < best.lowestPrice ? listing : best), null);
   const lastDrop = listings.filter((listing) => listing.lastDropAt).sort((a, b) => new Date(b.lastDropAt) - new Date(a.lastDropAt))[0] || null;
@@ -364,6 +366,10 @@ RENDERERS.product = function viewFicha() {
               h("span", { class: "price-xl" }, money(item.from)),
               best ? msrpPill(best.currentPrice, group.msrp) : h("span", { class: "ficha-best-label" }, "last price"),
               group.msrp ? h("span", { class: "ficha-best-label" }, `MSRP ${money(group.msrp)}`) : null),
+            best && shippingFor(best.storeName, best.currentPrice) !== null ? h("span", { class: "ficha-best-label" },
+              shippingFor(best.storeName, best.currentPrice) === 0
+                ? "Free shipping"
+                : `${shippingText(best.storeName, best.currentPrice)} · ${money(totalPrice(best.storeName, best.currentPrice))} delivered`) : null,
             task ? h("span", { class: "ficha-best-label" },
               limit ? (toGo ? `Your alert fires at ${money(limit)} or less · ${money(toGo)} to go` : `Your alert fires at ${money(limit)} or less`) : `Alert rule: ${priceRuleText(task)}`,
               " · ", h("a", { href: routeHash("watched", task.id) }, "change"))
@@ -384,7 +390,8 @@ RENDERERS.product = function viewFicha() {
 
 /** Every store with this product: in stock first, cheapest first; the sold-out ones folded away. */
 function fichaStores(group, summary) {
-  const byPrice = (a, b) => (a.currentPrice ?? Infinity) - (b.currentPrice ?? Infinity);
+  const byPrice = (a, b) => ((totalPrice(a.storeName, a.currentPrice) ?? Infinity) - (totalPrice(b.storeName, b.currentPrice) ?? Infinity))
+    || ((a.currentPrice ?? Infinity) - (b.currentPrice ?? Infinity));
   const inStock = group.listings.filter((listing) => listing.currentInStock && listing.currentPrice !== null).sort(byPrice);
   const soldOut = group.listings.filter((listing) => !inStock.includes(listing)).sort(byPrice);
   // One price scale for the bars: from a bit under the cheapest (or the MSRP) to the dearest.
@@ -394,12 +401,14 @@ function fichaStores(group, summary) {
   const scale = { at: (price) => (high > low ? Math.min(100, Math.max(3, ((price - low) / (high - low)) * 100)) : 50), msrp: group.msrp };
   const rows = [...inStock.map((listing, index) => storeRow(group, listing, index + 1, listing === summary.best, scale)),
     ...(state.fichaShowSoldOut || inStock.length === 0 ? soldOut.map((listing) => storeRow(group, listing, null, false, scale)) : [])];
-  const note = [inStock.length ? `${inStock.length} in stock` : "none in stock", soldOut.length ? `${soldOut.length} sold out` : null, "cheapest first"].filter(Boolean).join(" · ");
+  const withShipping = group.listings.some((listing) => shippingFor(listing.storeName, listing.currentPrice) !== null);
+  const note = [inStock.length ? `${inStock.length} in stock` : "none in stock", soldOut.length ? `${soldOut.length} sold out` : null,
+    withShipping ? "sorted with shipping" : null].filter(Boolean).join(" · ");
 
   return h("section", { class: "card price-card", "aria-labelledby": "stores-table-h" },
     h("div", { class: "price-card-head" },
       h("h2", { id: "stores-table-h" }, "Every store, cheapest first"),
-      h("span", { class: "muted small price-card-note" }, group.msrp ? h("span", { class: "msrp-key", "aria-hidden": "true" }) : null, group.msrp ? `MSRP ${money(group.msrp)} · ` : "", note.replace(" · cheapest first", ""))),
+      h("span", { class: "muted small price-card-note" }, group.msrp ? h("span", { class: "msrp-key", "aria-hidden": "true" }) : null, group.msrp ? `MSRP ${money(group.msrp)} · ` : "", note)),
     h("div", { class: "price-head", "aria-hidden": "true" }, h("span", {}, "#"), h("span", {}, "Store"), h("span", {}, ""), h("span", { class: "num" }, "Price"), h("span", {}, "vs MSRP"), h("span", {})),
     h("ol", { class: "price-rows" }, rows),
     soldOut.length && inStock.length
@@ -428,7 +437,11 @@ function storeRow(group, listing, rank, isBest, scale) {
         h("button", { type: "button", class: "text-link small", onclick: () => separateListing(group, listing) }, "Split"),
         listing.isManual ? h("button", { type: "button", class: "text-link small", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Back to automatic") : null)),
     bar || h("span", { class: "price-bar", style: "visibility:hidden" }),
-    h("strong", { class: `price-value mono ${out ? "struck" : ""}` }, money(listing.currentPrice)),
+    h("span", { class: "price-value-box" },
+      h("strong", { class: `price-value mono ${out ? "struck" : ""}` }, money(listing.currentPrice)),
+      shippingText(listing.storeName, listing.currentPrice)
+        ? h("small", { class: `price-shipping ${shippingFor(listing.storeName, listing.currentPrice) === 0 ? "free" : ""}` }, shippingText(listing.storeName, listing.currentPrice))
+        : null),
     h("span", { class: "price-delta" }, out ? h("span", { class: "muted small" }, `low ${money(listing.lowestPrice)}`) : msrpPill(listing.currentPrice, group.msrp) || h("span", { class: "dim small" }, "—")),
     h("span", { class: "price-action" }, safeHref(listing.url)
       ? linkButton(out ? "Page" : "Open", listing.url, { kind: isBest ? "primary small" : "small", external: true, trailingIcon: "external" })

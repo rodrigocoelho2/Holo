@@ -132,7 +132,8 @@ internal sealed class StockCheckService(
                     .Select(listing => new StockAlert(task.Id, task.Name,
                         new StoreListing(store.Name, listing.Title, new Uri(listing.Url), listing.Price, listing.InStock, listing.ProductId, listing.Currency, listing.Seller, listing.PreOrder, listing.ImageUrl),
                         LanguageToConfirm: listing.Outcome == MatchOutcome.MatchLanguageToConfirm,
-                        Msrp: listing.Msrp)));
+                        Msrp: listing.Msrp,
+                        Shipping: store.ShippingFor(listing.Price))));
             }
         }
 

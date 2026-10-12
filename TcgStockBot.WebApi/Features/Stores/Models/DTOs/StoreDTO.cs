@@ -35,6 +35,8 @@ public sealed class StoreDTO
         Type = entity.Type;
         Tags = [.. entity.Tags];
         Notes = entity.Notes;
+        ShippingCost = entity.ShippingCost;
+        FreeShippingFrom = entity.FreeShippingFrom;
         LastTest = entity.LastTest is null ? null : new StoreTestResultDTO(entity.Name, entity.LastTest);
         ConsecutiveFailures = entity.ConsecutiveFailures;
         AutoDisabledAt = entity.AutoDisabledAt;
@@ -81,6 +83,12 @@ public sealed class StoreDTO
 
     /// <summary>Gets or sets the free notes.</summary>
     public string Notes { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the shipping cost of one order in EUR (null = not known, 0 = always free).</summary>
+    public decimal? ShippingCost { get; set; }
+
+    /// <summary>Gets or sets the order total from which shipping is free, in EUR (null = never free).</summary>
+    public decimal? FreeShippingFrom { get; set; }
 
     /// <summary>Gets or sets the result of the last test (null = never tested).</summary>
     public StoreTestResultDTO? LastTest { get; set; }
