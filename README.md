@@ -192,7 +192,12 @@ A configuração, as tarefas, o histórico e os lançamentos ficam no volume `tc
 `docker compose down -v`, que os apaga.
 
 > [!WARNING]
-> Não abras a porta 5080 no router, porque a password passa sem HTTPS. Para aceder de fora de casa, usa uma VPN (por exemplo Tailscale).
+> Não abras a porta 5080 no router, porque a password passa sem HTTPS. Para aceder de fora de casa, usa uma VPN (por exemplo Tailscale) ou um reverse proxy com HTTPS.
+
+**Reverse proxy (Nginx Proxy Manager).** O `tcgstockbot-website` também está ligado à rede externa `nas-net`,
+a mesma do Nginx Proxy Manager. A rede tem de existir antes do `docker compose up`; se não existir, cria-a com
+`docker network create nas-net`. No proxy host, usa o scheme `http`, o hostname `tcgstockbot-website` e a porta `8080`.
+Se o site for público, põe `ALLOW_REGISTRATION=false` no `.env`.
 
 ## Contas, login e app no telemóvel
 

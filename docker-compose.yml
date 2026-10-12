@@ -38,8 +38,15 @@ services:
       Dashboard__AllowRegistration: ${ALLOW_REGISTRATION:-true}                          # false = só o admin cria contas
     volumes:
       - tcgstockbot-keys:/keys              # chaves das sessões: "manter sessão" sobrevive às atualizações
+    networks:
+      - default                             # fala com o webapi
+      - nas-net                             # o Nginx Proxy Manager chega aqui por http://tcgstockbot-website:8080
     logging: *logging
 
 volumes:
   tcgstockbot-data:
   tcgstockbot-keys:
+
+networks:
+  nas-net:
+    external: true                          # rede já criada no NAS, partilhada com o Nginx Proxy Manager
