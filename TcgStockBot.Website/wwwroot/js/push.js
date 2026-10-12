@@ -13,6 +13,23 @@ const pushSupported = () => window.isSecureContext && "serviceWorker" in navigat
 const isAppleMobile = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const isInstalledApp = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 
+/** Why this browser can't subscribe, in words the person can act on; null when it can. */
+function pushProblem() {
+  if (!window.isSecureContext) {
+    return `This page isn't HTTPS (${location.origin}). Open Holo at your https address${isInstalledApp() ? ", remove this Home Screen icon and add it again from there" : ""}.`;
+  }
+  if (!("serviceWorker" in navigator)) return "This browser has service workers turned off (private mode or a setting), so it can't get push notifications.";
+  if (!("PushManager" in window) || !("Notification" in window)) {
+    if (isAppleMobile()) {
+      return isInstalledApp()
+        ? "iOS doesn't offer push to this Home Screen icon. It needs iOS 16.4 or later, and the icon must be added from Safari on the https address: remove it, open Holo in Safari, tap Share → Add to Home Screen, and open it from the new icon."
+        : null;   // handled by the "Add to Home Screen" hint
+    }
+    return "This browser doesn't support web push notifications. Try Chrome, Edge, Firefox or Safari.";
+  }
+  return null;
+}
+
 function base64UrlBytes(text) {
   const base64 = text.replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
@@ -74,7 +91,7 @@ async function loadPush() {
 /** Subscribes this browser (asks for permission first) and registers it with the bot. */
 async function enablePush({ quiet = false } = {}) {
   if (!pushSupported()) {
-    if (!quiet) toast(isAppleMobile() && !isInstalledApp() ? "On iPhone, add Holo to the Home Screen first, then turn notifications on from the app." : "This browser can't receive push notifications here (it needs HTTPS).", "error");
+    if (!quiet) toast(isAppleMobile() && !isInstalledApp() ? "On iPhone, add Holo to the Home Screen first, then turn notifications on from the app." : (pushProblem() || "This browser can't receive push notifications here."), "error");
     return;
   }
   if (!state.push?.publicKey) await loadPush();
@@ -157,7 +174,7 @@ function pushTile() {
   if (!push.enabled) action = h("p", { class: "muted small" }, "Turned off with WebPush__Enabled=false in .env.");
   else if (here) action = button("Turn off on this device", { kind: "small", onClick: disablePush });
   else if (needsHomeScreen) action = h("p", { class: "info-box small" }, "On iPhone and iPad: tap Share → ", h("strong", {}, "Add to Home Screen"), ", open Holo from there and turn notifications on.");
-  else if (!pushSupported()) action = h("p", { class: "info-box small" }, "This browser can't get push notifications here. Open Holo over HTTPS (your domain) to turn them on.");
+  else if (!pushSupported()) action = h("p", { class: "info-box small" }, pushProblem() || "This browser can't get push notifications here.");
   else action = button("Turn on for this device", { kind: "primary small", iconName: "bell", onClick: () => enablePush() });
 
   return h("div", { class: `channel ${on ? "on" : ""}` },
