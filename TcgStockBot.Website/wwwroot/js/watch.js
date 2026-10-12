@@ -91,7 +91,7 @@ function watchCard(insight) {
   const kinds = kindBreakdown(insight);
   const shown = kinds.slice(0, 5);
   const offerCount = new Set(insight.matches.map((listing) => listing.url)).size;
-  const statusText = insight.status === "stock" ? `${offerCount} ${offerCount === 1 ? "oferta" : "ofertas"}` : STATUS_LABELS[insight.status];
+  const statusText = insight.status === "stock" ? `${offerCount} ${offerCount === 1 ? "offer" : "offers"}` : STATUS_LABELS[insight.status];
 
   return h("article", { class: `watch-card ${insight.status}` },
     h("header", { class: "watch-head" },
@@ -99,7 +99,7 @@ function watchCard(insight) {
       h("div", { class: "watch-head-text" },
         h("h3", { class: "watch-card-title" }, h("a", { href: link }, task.name || task.id)),
         h("div", { class: "watch-meta" }, gamePill(task.game), h("span", { class: `status-dot ${insight.status}` }), h("span", { class: STATUS_TONES[insight.status] }, statusText))),
-      switchInput(task.enabled, (checked) => setTaskEnabled(task.id, checked), task.enabled ? `Pausar ${task.name}` : `Retomar ${task.name}`)),
+      switchInput(task.enabled, (checked) => setTaskEnabled(task.id, checked), task.enabled ? `Pause ${task.name}` : `Resume ${task.name}`)),
     h("div", { class: "rule-line" }, icon("check", "rule-icon"), h("span", {}, priceRuleText(task, true), " · ", kindsText(task))),
     shown.length
       ? h("ul", { class: "kind-rows" }, shown.map((group) => kindRow(group)))
@@ -113,7 +113,12 @@ function watchCard(insight) {
 function kindRow(group) {
   let price = null, tone = "dim", note;
   if (group.best) { price = group.best.price; tone = "accent"; note = group.best.storeName; }
-  else if (group.above) { price = group.above.price; tone = "amber"; note = `acima · ${shortStoreName(group.above.storeName)}`; }
+  else if (group.above) {
+    price = group.above.price; tone = "amber";
+    // Why it doesn't alert: over the limit, the language isn't in the title, or the type has no MSRP.
+    const why = { AboveMaxPrice: "above", LanguageUnknown: "language?", NoMsrp: "no MSRP", NoPrice: "no price" }[group.above.outcome] || "not alerting";
+    note = `${why} · ${shortStoreName(group.above.storeName)}`;
+  }
   else note = group.soldOut ? `sold out at ${group.storeCount} ${group.storeCount === 1 ? "store" : "stores"}` : "no stock";
   return h("li", { class: `kind-row ${group.best ? "ok" : ""}` },
     h("span", { class: "kind-name" }, group.label),
