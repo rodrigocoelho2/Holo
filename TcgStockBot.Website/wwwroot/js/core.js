@@ -321,7 +321,7 @@ const TASK_LANGUAGES = { English: ["EN", "English"], Japanese: ["JP", "Japanese"
 /** The card games a task can belong to (TcgGame). The colour comes from CSS (.game-…). */
 const GAMES = { Pokemon: "Pokémon", OnePiece: "One Piece", Riftbound: "Riftbound", Cyberpunk: "Cyberpunk", Lorcana: "Lorcana", Magic: "Magic", Other: "Other" };
 /** Games that always have a tab; the others get one only when something of theirs exists. */
-const MAIN_GAMES = ["Pokemon", "OnePiece", "Riftbound", "Cyberpunk"];
+const MAIN_GAMES = ["Pokemon", "OnePiece", "Riftbound", "Cyberpunk", "Magic"];
 const gameKey = (game) => (GAMES[game] ? game : "Pokemon");
 const gameClass = (game) => `game-${gameKey(game).toLowerCase()}`;
 const gamePill = (game) => h("span", { class: `game-pill ${gameClass(game)}` }, GAMES[gameKey(game)]);
@@ -330,7 +330,7 @@ const gamePill = (game) => h("span", { class: `game-pill ${gameClass(game)}` }, 
 const inGameTab = (game) => state.game === "all" || gameKey(game) === state.game;
 
 /**
- * The game tabs (Todos, Pokémon, One Piece, Riftbound, Cyberpunk, + others in use) with how many items of each.
+ * The game tabs (All, Pokémon, One Piece, Riftbound, Cyberpunk, Magic, + others in use) with how many items of each.
  * The choice is shared by every page and kept in this browser.
  */
 function gameTabs(games, noun = "") {
@@ -407,7 +407,9 @@ const storeAvatar = (name, size = "") => h("span", { class: `store-avatar ${size
 /** Product kind from a title or search text: drives the placeholder drawing and the small caption. */
 const KINDS = [
   [/elite trainer|\betb\b/, "box", "Elite Trainer Box"],
-  [/booster bundle|\bbundle\b/, "bundle", "Booster Bundle"],
+  [/booster bundle|\bbundle\b/, "bundle", "Bundle"],
+  [/commander/, "pack", "Commander Deck"],
+  [/collector booster/, "display", "Collector Booster"],
   [/booster box|booster display|\bdisplay\b|\bcase\b|\bcaixa de boosters?\b/, "display", "Booster Box"],
   [/\btin\b|\blata\b/, "tin", "Tin"],
   [/premium|collection|colec|cole[cç][aã]o|\bupc\b|chest|\bbox\b/, "premium", "Collection"],

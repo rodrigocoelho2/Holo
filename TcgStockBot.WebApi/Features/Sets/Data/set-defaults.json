@@ -55,5 +55,22 @@
   { "id": "rb-ven", "name": "Vendetta", "game": "Riftbound", "code": "VEN", "releaseDate": "2026-07-31" },
   { "id": "rb-rad", "name": "Radiance", "game": "Riftbound", "code": "RAD", "releaseDate": "2026-10-23" },
 
+  { "id": "mtg-blb", "name": "Bloomburrow", "game": "Magic", "code": "BLB", "releaseDate": "2024-08-02" },
+  { "id": "mtg-dsk", "name": "Duskmourn: House of Horror", "game": "Magic", "code": "DSK", "releaseDate": "2024-09-27", "aliases": ["duskmourn"] },
+  { "id": "mtg-fdn", "name": "Foundations", "game": "Magic", "code": "FDN", "releaseDate": "2024-11-15" },
+  { "id": "mtg-dft", "name": "Aetherdrift", "game": "Magic", "code": "DFT", "releaseDate": "2025-02-14" },
+  { "id": "mtg-tdm", "name": "Tarkir: Dragonstorm", "game": "Magic", "code": "TDM", "releaseDate": "2025-04-11", "aliases": ["dragonstorm", "tarkir"] },
+  { "id": "mtg-fin", "name": "Final Fantasy", "game": "Magic", "releaseDate": "2025-06-13" },
+  { "id": "mtg-eoe", "name": "Edge of Eternities", "game": "Magic", "code": "EOE", "releaseDate": "2025-08-01" },
+  { "id": "mtg-spm", "name": "Marvel's Spider-Man", "game": "Magic", "code": "SPM", "releaseDate": "2025-09-26", "aliases": ["spider-man", "spiderman", "marvel spider-man"] },
+  { "id": "mtg-tla", "name": "Avatar: The Last Airbender", "game": "Magic", "code": "TLA", "releaseDate": "2025-11-21", "aliases": ["avatar", "last airbender"] },
+  { "id": "mtg-ecl", "name": "Lorwyn Eclipsed", "game": "Magic", "code": "ECL", "releaseDate": "2026-01-23", "aliases": ["lorwyn"] },
+  { "id": "mtg-tmt", "name": "Teenage Mutant Ninja Turtles", "game": "Magic", "code": "TMT", "releaseDate": "2026-03-06", "aliases": ["tmnt", "ninja turtles"] },
+  { "id": "mtg-sos", "name": "Secrets of Strixhaven", "game": "Magic", "code": "SOS", "releaseDate": "2026-04-24", "aliases": ["strixhaven"] },
+  { "id": "mtg-msh", "name": "Marvel Super Heroes", "game": "Magic", "code": "MSH", "releaseDate": "2026-06-26" },
+  { "id": "mtg-hob", "name": "The Hobbit", "game": "Magic", "code": "HOB", "releaseDate": "2026-08-14", "aliases": ["hobbit"] },
+  { "id": "mtg-fra", "name": "Reality Fracture", "game": "Magic", "releaseDate": "2026-10-02" },
+  { "id": "mtg-trk", "name": "Star Trek", "game": "Magic", "code": "TRK", "releaseDate": "2026-11-13" },
+
   { "id": "cp-wnc", "name": "Welcome to Night City", "game": "Cyberpunk", "aliases": ["night city"] }
 ]

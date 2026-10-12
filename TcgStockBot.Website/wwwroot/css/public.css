@@ -64,6 +64,7 @@
 .g-onepiece { --g: var(--game-onepiece); }
 .g-riftbound { --g: var(--game-riftbound); }
 .g-cyberpunk { --g: var(--game-cyberpunk); }
+.g-magic { --g: var(--game-magic); }
 .g-more { color: var(--text-2); }
 
 /* the phone with example alerts */

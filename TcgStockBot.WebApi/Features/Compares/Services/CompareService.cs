@@ -53,7 +53,7 @@ internal sealed class CompareService(
     /// </summary>
     private static readonly HashSet<string> KindsWithVariants = new(StringComparer.OrdinalIgnoreCase)
     {
-        "checklane-blister", "blister-2", "blister-3", "tin", "ex-box", "premium-collection", "collection", "deck", "other",
+        "checklane-blister", "blister-2", "blister-3", "tin", "ex-box", "premium-collection", "collection", "deck", "commander-deck", "other",
     };
 
     private static readonly CultureInfo Portuguese = CultureInfo.GetCultureInfo("pt-PT");

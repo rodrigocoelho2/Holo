@@ -38,6 +38,18 @@ public class ProductKindClassifierTests
     [InlineData("Destined Rivals Ultra Premium Collection", "ultra-premium")]
     [InlineData("Prismatic Evolutions Super Premium Collection", "super-premium")]
     [InlineData("Journey Together Build & Battle Box", "build-battle")]
+    [InlineData("Pokémon Collector Chest 2025", "other")]
+    [InlineData("Magic: The Gathering - Edge of Eternities Play Booster Box (30 packs)", "booster-display")]
+    [InlineData("MTG Lorwyn Eclipsed Play Booster Display - EN", "booster-display")]
+    [InlineData("Magic: The Gathering - The Hobbit Collector Booster Box", "collector-booster-display")]
+    [InlineData("Secrets of Strixhaven Collector Booster Display (12)", "collector-booster-display")]
+    [InlineData("Magic The Gathering Final Fantasy Collector Booster", "collector-booster")]
+    [InlineData("Magic: The Gathering - Avatar: The Last Airbender Bundle", "bundle")]
+    [InlineData("Magic: The Gathering Foundations Gift Bundle", "gift-bundle")]
+    [InlineData("Edge of Eternities Commander Deck - World Shaper (+ Collector Booster Sample Pack)", "commander-deck")]
+    [InlineData("Magic: The Gathering - Marvel Super Heroes Prerelease Pack", "prerelease-pack")]
+    [InlineData("Magic: The Gathering - Star Trek Play Booster", "booster-pack")]
+    [InlineData("Pokémon Bundle 6 Boosters Pitch Black", "booster-bundle")]
     public void Classify_RecognisesTheKind(string title, string expected) =>
         Assert.Equal(expected, ProductKindClassifier.Classify(title).Code);
 
@@ -87,5 +99,16 @@ public class ProductKindClassifierTests
         var title = "Stellar Crown Elite Trainer Box";
 
         Assert.Equal("crown stellar", ProductKindClassifier.Variant(title, ProductKindClassifier.Classify(title), ["elite trainer box"]));
+    }
+
+    [Theory]
+    [InlineData("Magic: The Gathering - Edge of Eternities Play Booster Box (30 packs)", "")]
+    [InlineData("MTG Edge of Eternities Booster Display", "")]
+    [InlineData("Edge of Eternities Commander Deck - World Shaper (+ Collector Booster Sample Pack)", "shaper world")]
+    public void Variant_OfMagicProducts_DropsTheGameAndPlay(string title, string expected)
+    {
+        var kind = ProductKindClassifier.Classify(title);
+
+        Assert.Equal(expected, ProductKindClassifier.Variant(title, kind, ["edge of eternities"]));
     }
 }

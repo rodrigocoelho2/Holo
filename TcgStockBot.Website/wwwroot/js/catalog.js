@@ -95,12 +95,14 @@ function movePill(move, long = false) {
 const FORMATS = [
   ["etb", "Elite Trainer Box", ["etb", "pokemon-center-etb", "etb-booster-box-combo"]],
   ["display", "Booster Display", ["booster-display", "half-display"]],
-  ["bundle", "Booster Bundle", ["booster-bundle"]],
+  ["collector", "Collector", ["collector-booster-display", "collector-booster"]],
+  ["bundle", "Bundles", ["booster-bundle", "bundle", "gift-bundle"]],
   ["booster", "Boosters", ["booster-pack", "sleeved-booster"]],
   ["blister", "Blisters", ["checklane-blister", "blister-2", "blister-3"]],
   ["collection", "Collections", ["ultra-premium", "super-premium", "premium-collection", "collection", "ex-box", "binder-collection", "poster-collection", "build-battle"]],
   ["tin", "Tins", ["tin", "mini-tin"]],
-  ["deck", "Decks", ["deck"]],
+  ["deck", "Decks", ["deck", "commander-deck"]],
+  ["prerelease", "Prerelease", ["prerelease-pack"]],
   ["other", "Other", ["other"]],
 ];
 const formatOf = (kind) => (FORMATS.find(([, , kinds]) => kinds.includes(kind)) || FORMATS[FORMATS.length - 1])[0];

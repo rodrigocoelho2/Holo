@@ -21,10 +21,18 @@ public static partial class ProductKindClassifier
 
     private static readonly (ProductKind Kind, Func<string, bool> Matches)[] Rules =
     [
+        // Magic first: a Commander deck title often mentions the Collector Booster sample pack inside it.
+        (new("commander-deck", "Commander Deck"), static title => Has(title, "commander") && HasAny(title, "deck", "decks", "mazo", "mazos", "baralho", "precon")
+            && !HasAny(title, "booster box", "booster display", "play booster", "draft booster", "set booster", "collector booster box", "collector booster display")),
+        (new("prerelease-pack", "Prerelease Pack"), static title => HasAny(title, "prerelease", "pre release", "pre lancamento", "presentacion")),
+        (new("collector-booster-display", "Collector Booster Display"), static title => IsCollector(title) && HasAny(title, "display", "box", "caja", "caixa", "12 boosters", "12 packs")),
         (new("etb-booster-box-combo", "Combo Booster Box + ETB"), static title => HasAny(title, "booster box", "booster display") && HasAny(title, "elite trainer box", "etb")),
         (new("pokemon-center-etb", "Pokémon Center ETB"), static title => Has(title, "pokemon center") && HasAny(title, "elite trainer box", "etb")),
         (new("etb", "Elite Trainer Box"), static title => HasAny(title, "elite trainer box", "etb")),
-        (new("booster-bundle", "Booster Bundle"), static title => Has(title, "booster bundle")),
+        (new("booster-bundle", "Booster Bundle"), static title =>
+            Has(title, "booster bundle") || (Has(title, "bundle") && HasAny(title, "pokemon", "pkm", "6 boosters", "6 booster", "6 packs"))),
+        (new("gift-bundle", "Gift Bundle"), static title => Has(title, "gift bundle")),
+        (new("bundle", "Bundle"), static title => Has(title, "bundle")),
         (new("half-display", "Half Booster Display"), static title =>
             HasAny(title, "booster display", "booster box", "display", "box") && HasAny(title, "half", "meia", "18 boosters", "18 booster", "18 packs", "18 pack")),
         (new("booster-display", "Booster Display"), static title => HasAny(title, "booster display", "booster box", "display", "boosterbox")),
@@ -33,6 +41,7 @@ public static partial class ProductKindClassifier
         (new("build-battle", "Build & Battle"), static title => HasAny(title, "build battle", "build and battle", "build & battle")),
         (new("binder-collection", "Binder Collection"), static title => Has(title, "binder collection")),
         (new("poster-collection", "Poster Collection"), static title => Has(title, "poster collection")),
+        (new("collector-booster", "Collector Booster"), IsCollector),
         (new("sleeved-booster", "Sleeved Booster"), static title => Has(title, "sleeved")),
         (new("blister-3", "Blister 3 boosters"), static title => HasAny(title, "3 pack", "3 booster", "3pack", "tripack", "triple pack")),
         (new("checklane-blister", "Checklane Blister"), static title => Has(title, "checklane")),
@@ -42,7 +51,7 @@ public static partial class ProductKindClassifier
         (new("ex-box", "ex Box"), static title => HasAny(title, "ex box", "ex collection")),
         (new("premium-collection", "Premium Collection"), static title => Has(title, "premium collection")),
         (new("collection", "Collection"), static title => HasAny(title, "collection", "coleccao", "colecao")),
-        (new("deck", "Deck"), static title => HasAny(title, "deck", "battle deck", "theme deck")),
+        (new("deck", "Deck"), static title => HasAny(title, "deck", "battle deck", "theme deck", "starter kit")),
         (new("booster-pack", "Booster"), static title => HasAny(title, "booster pack", "booster", "boosters", "pack")),
     ];
 
@@ -56,6 +65,7 @@ public static partial class ProductKindClassifier
         "varios", "vario", "random", "aleatorio", "aleatoria", "sortido", "sortida", "assorted", "x",
         "novidade", "exclusivo", "exclusive", "oferta", "promo", "promocao", "limitada", "limited", "gratis", "portes", "stock",
         "league", "legends", "product", "products", "produto", "produtos", "unidad", "mazo", "inicial", "espanol",
+        "magic", "gathering", "mtg", "play", "draft", "universes", "beyond", "collector", "sample",
     ];
 
     /// <summary>Gets every kind, most specific first, ending with <see cref="Other"/>.</summary>
@@ -153,6 +163,11 @@ public static partial class ProductKindClassifier
 
     [GeneratedRegex(@"(?i)(?<![\p{L}\p{Nd}])st[\s\-_]?0*(\d{1,3})(?![\p{L}\p{Nd}])")]
     private static partial Regex DeckCodePattern();
+
+    /// <summary>A Magic Collector Booster ("Collector Booster", "Sobres de Coleccionista"), not the sample pack in a Commander deck.</summary>
+    private static bool IsCollector(string title) =>
+        HasAny(title, "collector booster", "collector boosters", "collectors booster", "sobres de coleccionista", "sobre de coleccionista",
+            "booster de coleccionista", "boosters de colecionador", "booster de colecionador") && !Has(title, "sample");
 
     private static bool IsSeriesCode(string word) =>
         word.Length <= 5 && (word.StartsWith("me", StringComparison.Ordinal) || word.StartsWith("sv", StringComparison.Ordinal)) && word.Skip(2).All(char.IsDigit);
