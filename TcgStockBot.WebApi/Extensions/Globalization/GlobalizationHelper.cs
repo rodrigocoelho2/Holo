@@ -68,7 +68,7 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.StoreDetectBlocked)] = "The site refused the bot (403/429 or anti-bot protection). It is not bypassed: leave it as \"No integration\", or use an Awin feed/API if there is one.",
         [nameof(TranslationKeys.StoreDetectUnreachable)] = "Could not connect to the site (DNS, connection or timeout).",
         [nameof(TranslationKeys.StoreDetectUnknown)] = "The site answered, but has no recognisable Shopify/WooCommerce API or PrestaShop search. Set up HTML by hand (if the terms allow it) or leave it as \"No integration\".",
-        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[Card Forge] Store(s) turned off after errors: {0}",
+        [nameof(TranslationKeys.StoresAutoDisabledSubject)] = "[Holo] Store(s) turned off after errors: {0}",
         [nameof(TranslationKeys.StoreAutoDisabledLine)] = "{0}: {1} cycles in a row with errors — {2}",
         [nameof(TranslationKeys.NotificationFailed)] = "Sending by {0} failed: {1}",
         [nameof(TranslationKeys.UserNameInvalid)] = "must be 3 to 32 letters, digits, '.', '_' or '-'.",

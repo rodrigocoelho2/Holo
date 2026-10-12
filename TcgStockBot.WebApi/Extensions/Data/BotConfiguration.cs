@@ -32,7 +32,7 @@ public sealed class BotConfiguration
     public int DailySummaryHour { get; set; } = 9;
 
     /// <summary>Gets or sets the User-Agent sent to stores.</summary>
-    public string UserAgent { get; set; } = "CardForge/1.0 (personal stock alert)";
+    public string UserAgent { get; set; } = "Holo/1.0 (personal stock alert)";
 
     /// <summary>Gets or sets the stock tasks (stored as "wishlist" for compatibility).</summary>
     public List<StockTask> Wishlist { get; set; } = [];

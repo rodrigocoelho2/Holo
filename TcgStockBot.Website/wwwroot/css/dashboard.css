@@ -1,38 +1,43 @@
 /* ==========================================================================
-   Card Forge dashboard — design tokens, 4 accents × dark/light, components.
-   Fonts are self-hosted (wwwroot/fonts, SIL OFL): Geist, Geist Mono, Bricolage Grotesque.
+   Holo dashboard — design tokens, dark (default) and light, 4 accents, components.
+   Fonts are self-hosted (wwwroot/fonts, SIL OFL): Instrument Sans (text) and Space Grotesk (titles and prices).
    ========================================================================== */
 
-@font-face { font-family: "Geist"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/geist-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Geist"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/geist-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Geist"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/geist-latin-600-normal.woff2") format("woff2"); }
-@font-face { font-family: "Geist Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/geist-mono-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Geist Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/geist-mono-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/bricolage-grotesque-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/bricolage-grotesque-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/instrument-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/instrument-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/instrument-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/space-grotesk-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/space-grotesk-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/space-grotesk-latin-700-normal.woff2") format("woff2"); }
 
 /* ---------------------------------------------------------------- tokens -- */
 
 :root {
   color-scheme: dark;
-  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
-  --font-display: "Bricolage Grotesque", "Geist", system-ui, sans-serif;
+  --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Space Grotesk", "Instrument Sans", system-ui, sans-serif;   /* prices and numbers (tabular) */
+  --font-code: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-display: "Space Grotesk", "Instrument Sans", system-ui, sans-serif;
 
-  --bg: #0E0F12;
-  --bg-side: #0A0B0E;
-  --surface: #15171C;
-  --surface-2: #1C1F26;
-  --surface-3: #1E2128;
-  --line: #23262E;
-  --line-2: #2A2E37;
-  --line-side: #1F222A;
-  --text: #ECEEF2;
-  --text-2: #A3A9B5;
-  --text-3: #8A919E;
-  --block: #3A3F4A;
+  --bg: #0C0C0F;
+  --bg-side: #111115;
+  --surface: #16161B;
+  --surface-2: #1D1D23;
+  --surface-3: #24242B;
+  --line: #26262D;
+  --line-2: #303038;
+  --line-side: #222228;
+  --text: #F4F3EF;
+  --text-2: #A2A1A8;
+  --text-3: #8C8B93;
+  --block: #3A3A42;
 
-  --accent: #8C96F0;
+  --good: #19B07A;
+  --good-text: #4FD7A2;
+  --good-soft: rgba(25, 176, 122, 0.14);
+  --foil: linear-gradient(120deg, #7CF2D6, #8FA8FF 35%, #F49BEA 70%, #FFD58A);
+
+  --accent: #9AA9FF;
   --on-accent: #111318;
   --accent-text: color-mix(in srgb, var(--accent) 78%, white);
   --accent-soft: color-mix(in srgb, var(--accent) 15%, transparent);
@@ -53,10 +58,10 @@
   --game-riftbound: #3CC8B4;
   --game-cyberpunk: #FF5FAE;
 
-  --radius-s: 8px;
-  --radius: 12px;
-  --radius-l: 16px;
-  --radius-xl: 20px;
+  --radius-s: 10px;
+  --radius: 14px;
+  --radius-l: 20px;
+  --radius-xl: 24px;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   --focus: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
   --sidebar-w: 232px;
@@ -68,30 +73,34 @@
 
 :root[data-mode="light"] {
   color-scheme: light;
-  --bg: #F3F5FA;
-  --bg-side: #EEF1F7;
+  --bg: #F3F2EE;
+  --bg-side: #FFFFFF;
   --surface: #FFFFFF;
-  --surface-2: #EEF1F7;
-  --surface-3: #E4E8F0;
-  --line: #E1E5EE;
-  --line-2: #D5DAE5;
-  --line-side: #E1E5EE;
-  --text: #1A1D29;
-  --text-2: #545B69;
-  --text-3: #6B7280;
-  --block: #C3C9D6;
+  --surface-2: #EFEEE9;
+  --surface-3: #E7E6E0;
+  --line: #E4E2DC;
+  --line-2: #D8D6CF;
+  --line-side: #E4E2DC;
+  --text: #111114;
+  --text-2: #5F5F66;
+  --text-3: #6E6E75;
+  --block: #C9C7C0;
 
-  --accent: #4F5BD5;
+  --good: #0F8A5F;
+  --good-text: #0B6B49;
+  --good-soft: #D9F5E8;
+
+  --accent: #4E5FD9;
   --on-accent: #FFFFFF;
   --accent-text: color-mix(in srgb, var(--accent) 82%, black);
   --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
 
-  --amber: #B45309;
-  --amber-soft: rgba(217, 119, 6, 0.12);
-  --red: #D93B3B;
-  --red-soft: rgba(217, 59, 59, 0.09);
-  --blue: #2F7BD8;
-  --blue-soft: rgba(47, 123, 216, 0.1);
+  --amber: #8A4B05;
+  --amber-soft: #FDEBD3;
+  --red: #A12A1C;
+  --red-soft: #FBE0DC;
+  --blue: #2F6FD0;
+  --blue-soft: rgba(47, 111, 208, 0.1);
 
   --game-pokemon: #B7791F;
   --game-onepiece: #D4513F;
@@ -101,7 +110,7 @@
   --game-riftbound: #0F8F80;
   --game-cyberpunk: #C21F72;
 
-  --shadow: 0 18px 50px rgba(26, 29, 41, 0.16);
+  --shadow: 0 18px 50px rgba(17, 17, 20, 0.14);
 }
 
 :root[data-mode="light"][data-accent="coral"] { --accent: #C94A33; }
@@ -139,7 +148,7 @@ kbd {
   border: 1px solid var(--line-2);
   color: var(--text-2);
 }
-code { font-family: var(--font-mono); }
+code { font-family: var(--font-code); }
 
 :focus-visible { outline: none; box-shadow: var(--focus); }
 ::selection { background: var(--accent-soft); }
@@ -1752,3 +1761,222 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
 .catalog-count-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .chip.small-chip { min-height: 32px; padding: 0 10px 0 12px; font-size: 13px; gap: 6px; }
 .chip.small-chip .icon { width: 14px; height: 14px; }
+
+/* ==========================================================================
+   Holo layer — the redesign: top bar on the desktop, ink buttons, green for stock, Space Grotesk numbers,
+   segmented game picker, underlined formats, pack art, the price ladder.
+   ========================================================================== */
+
+body { font-size: 15px; }
+.mono, .price-l, .price-xl { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.page-title h1 { font: 700 46px/1 var(--font-display); letter-spacing: -0.035em; }
+.page-eyebrow { display: block; margin-bottom: 10px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); }
+.section-head h2, .section-title h2, .section-card h2 { letter-spacing: -0.025em; }
+.good { color: var(--good-text); }
+
+/* buttons: ink is the primary action */
+.btn.primary { background: var(--text); border-color: var(--text); color: var(--bg); }
+.btn.primary:hover { filter: none; opacity: 0.9; }
+.btn.invert { background: var(--bg); border-color: var(--bg); color: var(--text); font-weight: 600; }
+.btn.on-ink { background: transparent; border-color: color-mix(in srgb, var(--bg) 30%, transparent); color: inherit; }
+.btn.on-ink:hover, .btn.invert:hover { text-decoration: none; opacity: 0.9; }
+
+/* green means "in stock / below MSRP" everywhere */
+.bot-dot { background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
+.stock-badge.in { background: #FFFFFF; color: #0B6B49; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+.delta-pill.accent, .move-pill.down, .pill.accent, .tag.accent { background: var(--good-soft); color: var(--good-text); }
+.best-badge { background: var(--good); color: #FFFFFF; }
+.nav-count.accent { background: var(--good-soft); color: var(--good-text); }
+
+/* ---- top bar (desktop) ---- */
+@media (min-width: 1101px) {
+  .app { flex-direction: column; }
+  .sidebar {
+    position: sticky; top: 0; width: auto; height: auto; flex-direction: row; align-items: center; gap: 12px 26px; flex-wrap: wrap;
+    padding: 12px clamp(20px, 3vw, 40px);
+    background: color-mix(in srgb, var(--bg-side) 90%, transparent); backdrop-filter: blur(14px);
+    border-right: 0; border-bottom: 1px solid var(--line-side); overflow: visible;
+  }
+  .brand { padding: 0; gap: 10px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 9px; }
+  .brand-name { font: 700 22px/1 var(--font-display); letter-spacing: -0.045em; text-transform: lowercase; }
+  .brand-sub { display: none; }
+  .nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 2px; }
+  .nav a { min-height: 38px; padding: 0 14px; gap: 7px; border-radius: 999px; font-weight: 500; }
+  .nav a .icon { display: none; }
+  .nav a:hover { background: var(--surface-2); }
+  .nav a.on { background: var(--text); color: var(--bg); font-weight: 600; }
+  .nav a.on .nav-count { background: color-mix(in srgb, var(--bg) 22%, transparent); color: var(--bg); }
+  .nav-label { flex: none; }
+  .nav-count { padding: 3px 7px; font-size: 11.5px; }
+  .nav a:hover .nav-count { display: inline-block; }
+  .nav a:hover .nav-key, .nav-key { display: none !important; }
+  .nav-section { width: 1px; height: 20px; margin: 0 10px; padding: 0; background: var(--line-2); font-size: 0; overflow: hidden; }
+  .nav-section:first-child { display: none; }
+  .sidebar-bottom { margin: 0 0 0 auto; flex-direction: row; align-items: center; gap: 10px; }
+  .bot-card {
+    flex-direction: row; align-items: center; gap: 12px; min-height: 42px; padding: 0 5px 0 14px;
+    border-radius: var(--radius); background: transparent; border: 1px solid var(--line-2);
+  }
+  .bot-card .bot-state { font-size: 0; gap: 0; }
+  .bot-card .bot-meta { font-size: 13px; }
+  .bot-card .bot-last, .bot-card .bar { display: none; }
+  .bot-card .bot-meta strong { color: var(--text); font-weight: 600; }
+  .bot-card .btn { width: auto; min-height: 32px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+  .bot-card .btn .icon { width: 15px; height: 15px; }
+  .sidebar-user { padding: 0; }
+  .sidebar-user strong, .sidebar-user .text-link { display: none; }
+  .sidebar-user .avatar-initial { width: 40px; height: 40px; text-decoration: none; }
+  .view { max-width: 1440px; margin: 0 auto; padding-top: 36px; }
+}
+
+.avatar-initial:hover { text-decoration: none; }
+
+/* ---- Products: game picker, formats, cards ---- */
+.game-cards {
+  display: inline-flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 100%;
+  padding: 6px; margin-top: -8px; border-radius: 18px; background: var(--surface-2);
+}
+.game-card {
+  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px;
+  border: 0; border-radius: 13px; background: transparent; color: var(--text-2); font-weight: 600; font-size: 14.5px;
+}
+.game-card:hover { background: transparent; color: var(--text); border: 0; }
+.game-card.on { background: var(--surface); color: var(--text); border: 0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 4px 14px rgba(0, 0, 0, 0.08); }
+.game-card .game-dot { width: 10px; height: 10px; }
+.game-card-count { font: 500 12px var(--font-mono); opacity: 0.6; }
+
+.format-chips { gap: 4px 24px; margin-top: -4px; border-bottom: 1px solid var(--line); }
+.format-chips .chip {
+  min-height: 44px; padding: 0 0 10px; margin-bottom: -1px; gap: 6px; align-items: flex-end;
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--text-2); font-weight: 600;
+}
+.format-chips .chip:hover { color: var(--text); border-color: transparent; }
+.format-chips .chip.on { background: transparent; color: var(--text); border-color: transparent; border-bottom-color: var(--text); }
+.format-chips .chip .chip-count, .format-chips .chip.on .chip-count { color: inherit; opacity: 0.55; }
+.catalog-toolbar { border-top: 0; padding-top: 0; margin-top: -10px; }
+
+.catalog-grid { grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 20px; }
+.catalog-card { padding: 0; gap: 0; overflow: hidden; border-radius: var(--radius-xl); }
+.catalog-card:hover { transform: translateY(-3px); border-color: var(--line-2); box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.5); }
+.catalog-card.sold-out .catalog-art { opacity: 1; }
+.catalog-art .art.hero { height: 196px; border-radius: 0; }
+.catalog-body { padding: 16px 20px 20px; gap: 14px; }
+.catalog-heading { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.catalog-title { font: 600 21px/1.15 var(--font-display); letter-spacing: -0.025em; -webkit-line-clamp: 2; }
+.catalog-kind { font-size: 13px; color: var(--text-2); }
+.catalog-kind .game-dot { width: 8px; height: 8px; vertical-align: 1px; }
+.catalog-price { justify-content: space-between; align-items: baseline; margin-top: 0; }
+.catalog-from { display: inline-flex; align-items: baseline; gap: 6px; }
+.catalog-price .price-l { font-size: 26px; font-weight: 600; }
+.price-l.struck { color: var(--text-2); text-decoration: line-through; text-decoration-thickness: 1px; }
+.catalog-foot { border-top: 0; padding-top: 0; gap: 10px; justify-content: flex-start; }
+.catalog-stock { white-space: nowrap; color: var(--text-2); font-size: 12.5px; }
+.stock-meter { display: flex; gap: 3px; flex: 1; min-width: 0; }
+.stock-meter span { flex: 1; height: 6px; border-radius: 3px; background: var(--line-2); }
+.stock-meter span.on { background: var(--good); }
+.set-badge { background: #FFFFFF; color: #111114; top: 14px; right: 14px; }
+.set-badge.out { background: rgba(17, 17, 20, 0.72); color: #FFFFFF; }
+.set-code-badge {
+  position: absolute; left: 14px; top: 14px; padding: 4px 9px; border-radius: 8px;
+  background: rgba(17, 17, 20, 0.72); color: #FFFFFF; font: 600 11.5px/1.2 var(--font-display); letter-spacing: 0.04em;
+}
+.catalog-art .stock-badge { display: none; }
+
+/* pack art: products without a photo */
+.art.has-pack:not(.has-photo) { background: color-mix(in srgb, var(--pack-tint) 16%, var(--surface)); }
+:root[data-mode="light"] .art.has-pack:not(.has-photo) { background: color-mix(in srgb, var(--pack-tint) 13%, #FFFFFF); }
+.pack {
+  width: 46%; max-width: 132px; aspect-ratio: 112 / 136; padding: 10% 9%;
+  display: flex; flex-direction: column; justify-content: space-between;
+  border-radius: 12px; color: #FFFFFF; transform: rotate(-6deg);
+  background: linear-gradient(150deg, var(--pack-1), var(--pack-2));
+  box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.5);
+}
+.pack-kind { font: 700 10px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.pack-name { font: 700 16px/1.05 var(--font-display); letter-spacing: -0.02em; overflow: hidden; overflow-wrap: anywhere; hyphens: auto; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.catalog-card.sold-out .pack { filter: grayscale(0.85); opacity: 0.55; }
+.ficha-art .pack { max-width: 200px; padding: 22px 20px; border-radius: 18px; }
+.ficha-art .pack-kind { font-size: 13px; }
+.ficha-art .pack-name { font-size: 30px; }
+.art.thumb .pack, .art.card .pack { border-radius: 6px; }
+.art.thumb .pack-kind, .art.thumb .pack-name { display: none; }
+
+/* ---- product page ---- */
+.ficha-layout { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.ficha-aside { flex: 1 1 340px; max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
+.ficha-aside .ficha-art .art.hero { height: 380px; border-radius: 28px; }
+.ficha-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.ficha-title { font: 700 clamp(36px, 4.4vw, 58px)/0.95 var(--font-display); letter-spacing: -0.045em; }
+.ficha-sub { font-size: 20px; }
+.ficha-best {
+  padding: 22px 24px; border-radius: var(--radius-xl); border: 0;
+  background: var(--text); color: var(--bg);
+}
+.ficha-best .price-xl { font-size: 46px; font-weight: 600; letter-spacing: -0.045em; line-height: 1; }
+.ficha-best-label { font-size: 13px; opacity: 0.72; }
+.ficha-best-label strong { color: inherit; }
+.ficha-best-label a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ficha-best .country-tag { background: color-mix(in srgb, var(--bg) 18%, transparent); color: inherit; }
+.ficha-best-price { gap: 8px; }
+.ficha-price-row { gap: 12px; }
+.ficha-best .delta-pill.accent { background: #D9F5E8; color: #0B6B49; }
+.ficha-best .delta-pill.amber { background: #FDEBD3; color: #8A4B05; }
+.ficha-best .delta-pill.red { background: #FBE0DC; color: #A12A1C; }
+
+.facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+.fact strong { font: 600 22px/1.2 var(--font-display); letter-spacing: -0.02em; }
+.fact strong.red { color: var(--red); }
+.fact strong.good { color: var(--good-text); }
+
+.price-card { border-radius: var(--radius-xl); }
+.price-card-head h2 { font: 600 22px/1.2 var(--font-display); letter-spacing: -0.025em; }
+.price-card-note { display: inline-flex; align-items: center; gap: 8px; }
+.msrp-key { width: 2px; height: 14px; background: var(--text); display: inline-block; }
+.price-head, .price-row { grid-template-columns: 30px minmax(220px, 2.2fr) minmax(80px, 1.3fr) 100px 118px 96px; gap: 16px; }
+.price-store-meta > * { white-space: nowrap; flex: none; }
+.price-store-meta > .listing-title { flex: 0 1 auto; min-width: 0; }
+.price-row.best { background: var(--good-soft); }
+.price-bar { position: relative; height: 8px; border-radius: 4px; background: var(--surface-2); }
+.price-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--text-3); }
+.price-row.best .price-bar-fill { background: var(--good); }
+.price-row.out .price-bar-fill { background: var(--line-2); }
+.price-bar-msrp { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--text); }
+.price-value { font-weight: 600; }
+.price-row .btn.small { border-radius: 12px; }
+.price-more { background: var(--surface-2); }
+.same-set a { min-height: 50px; }
+
+@media (max-width: 1100px) {
+  .ficha-aside { max-width: none; }
+  .ficha-aside .ficha-art .art.hero { height: 300px; }
+}
+@media (max-width: 760px) {
+  .page-title h1 { font-size: 34px; }
+  .game-cards { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: -12px 0 0; }
+  .game-cards::-webkit-scrollbar { display: none; }
+  .game-card { flex: none; padding: 0 13px; font-size: 14px; }
+  .format-chips { margin: -10px 0 0; padding: 0; gap: 18px; }
+  .format-chips .chip { min-height: 40px; padding: 0 0 8px; }
+  .catalog-grid { grid-template-columns: 1fr; gap: 12px; }
+  .catalog-card { flex-direction: row; align-items: stretch; }
+  .catalog-art { flex: 0 0 112px; }
+  .catalog-art { display: flex; }
+  .catalog-art .art.hero { height: auto; flex: 1; min-height: 128px; }
+  .catalog-art .art img { position: absolute; inset: 0; padding: 12%; }
+  .catalog-art .pack { width: 64%; }
+  .catalog-art .pack-kind, .catalog-art .pack-name { display: none; }
+  .set-code-badge, .set-badge { top: 8px; left: 8px; right: auto; font-size: 10px; padding: 3px 6px; }
+  .set-badge { top: auto; bottom: 8px; }
+  .catalog-body { padding: 12px 14px; gap: 8px; }
+  .catalog-title { font-size: 17px; }
+  .catalog-price .price-l { font-size: 20px; }
+  .catalog-price .delta-pill { display: inline-flex; }
+  .catalog-foot { flex-direction: row; align-items: center; gap: 8px; }
+  .price-row { grid-template-columns: 22px minmax(0, 1fr) auto; grid-template-areas: "rank store value" "rank store delta" ". action action"; }
+  .price-bar { display: none; }
+  .ficha-best { padding: 18px; }
+  .ficha-best .price-xl { font-size: 38px; }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

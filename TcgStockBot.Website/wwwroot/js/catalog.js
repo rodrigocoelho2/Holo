@@ -157,14 +157,14 @@ function gameCards(items) {
     type: "button", role: "tab", class: `game-card ${key === "all" ? "" : gameClass(key)} ${state.game === key ? "on" : ""}`,
     "aria-selected": state.game === key ? "true" : "false",
     onclick: () => { state.game = key; writePreference("game", key); state.catalogShown = 48; renderView(true); },
+    title: total ? `${total} ${total === 1 ? "product" : "products"} · ${stock} in stock` : "Nothing found yet",
   },
     h("span", { class: key === "all" ? "game-dot every" : "game-dot", "aria-hidden": "true" }),
-    h("span", { class: "game-card-text" },
-      h("strong", {}, label),
-      h("span", {}, total ? `${total} ${total === 1 ? "product" : "products"} · ${stock} in stock` : "nothing found yet")));
+    label,
+    h("span", { class: "game-card-count" }, total));
   const all = { total: items.length, stock: items.filter((item) => !item.soldOut).length };
   return h("div", { class: "game-cards", role: "tablist", "aria-label": "Game" },
-    card("all", "All games", all), games.map((game) => card(game, GAMES[game], byGame.get(game))));
+    card("all", "All", all), games.map((game) => card(game, GAMES[game], byGame.get(game))));
 }
 
 RENDERERS.products = function viewCatalog() {
@@ -225,9 +225,13 @@ RENDERERS.products = function viewCatalog() {
   };
 
   return [
-    pageHead("Products", "Pick a game and a format. Every product shows its lowest price in the stores in Portugal and Spain.", [
-      searchField(state.catalogQuery, "Search a set, a code or a store", (value) => { state.catalogQuery = value; rerender(); }, "catalog-search", "Search products"),
-    ]),
+    h("header", { class: "page-head" },
+      h("div", { class: "page-title" },
+        h("span", { class: "page-eyebrow" }, "Products"),
+        h("h1", {}, "Lowest prices, every store."),
+        h("p", {}, `${enabledStores().length} stores in Portugal and Spain, checked every few minutes. Newest sets first.`)),
+      h("div", { class: "page-actions" },
+        searchField(state.catalogQuery, "Search sets, codes, stores", (value) => { state.catalogQuery = value; rerender(); }, "catalog-search", "Search products"))),
     gameCards(all),
     h("div", { class: "format-chips", role: "group", "aria-label": "Format" },
       formatChip("all", "All formats", inTab.length),
@@ -247,25 +251,39 @@ RENDERERS.products = function viewCatalog() {
   ];
 };
 
+/** The pack drawn when a product has no photo: its kind and its set. */
+const productPack = (group) => ({ kind: group.kindLabel || kindLabel(group.kind), name: productHeading(group) });
+
+/** One bar per store (up to 12), the ones with stock lit. */
+function stockMeter(inStock, stores) {
+  const cells = Math.min(Math.max(stores, 1), 12);
+  const lit = stores ? Math.round((inStock / stores) * cells) : 0;
+  return h("span", { class: "stock-meter", "aria-hidden": "true" },
+    Array.from({ length: cells }, (_, index) => h("span", { class: index < lit ? "on" : "" })));
+}
+
 function catalogCard(item) {
   const { group, summary } = item;
-  const badge = setBadge(group);
+  const badge = item.soldOut ? "Sold out" : setBadge(group);
   return h("a", { class: `catalog-card ${item.soldOut ? "sold-out" : ""}`, href: routeHash("product", group.key) },
     h("div", { class: "catalog-art" },
-      productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero" }),
-      h("span", { class: `stock-badge ${item.soldOut ? "out" : "in"}` }, item.soldOut ? "Sold out" : "In stock"),
-      badge ? h("span", { class: "set-badge" }, badge) : null),
+      productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero", pack: productPack(group) }),
+      group.setCode ? h("span", { class: "set-code-badge" }, group.setCode) : null,
+      badge ? h("span", { class: `set-badge ${item.soldOut ? "out" : ""}` }, badge) : null),
     h("div", { class: "catalog-body" },
-      h("div", { class: "catalog-meta" }, state.game === "all" ? gamePill(group.game) : null, h("span", { class: "catalog-kind" }, productKindText(group))),
-      h("h3", { class: "catalog-title", title: group.title }, productHeading(group)),
+      h("div", { class: "catalog-heading" },
+        h("h3", { class: "catalog-title", title: group.title }, productHeading(group)),
+        h("span", { class: "catalog-kind" }, state.game === "all" ? [h("span", { class: `game-dot ${gameClass(group.game)}`, "aria-hidden": "true" }), " "] : null, productKindText(group))),
       h("div", { class: "catalog-price" },
-        h("span", { class: "muted small" }, item.soldOut ? "last price" : "from"),
-        h("strong", { class: "price-l mono" }, money(item.from)),
-        msrpPill(summary.best?.currentPrice, group.msrp)),
+        h("span", { class: "catalog-from" },
+          h("span", { class: "muted small" }, item.soldOut ? "last" : "from"),
+          h("strong", { class: `price-l mono ${item.soldOut ? "struck" : ""}` }, money(item.from))),
+        item.soldOut ? h("span", { class: "dim small" }, "no stock") : msrpPill(summary.best?.currentPrice, group.msrp)),
       h("div", { class: "catalog-foot" },
-        h("span", { class: "catalog-stock" }, h("span", { class: `bot-dot ${item.soldOut ? "off" : "on"}`, "aria-hidden": "true" }),
-          item.soldOut ? `Sold out at ${item.stores === 1 ? "1 store" : `all ${item.stores} stores`}` : `In stock at ${summary.inStockCount} of ${item.stores} ${item.stores === 1 ? "store" : "stores"}`),
-        h("span", { class: "catalog-move" }, h("span", { class: "dim small" }, "30d"), movePill(item.move)))));
+        stockMeter(summary.inStockCount, item.stores),
+        h("span", { class: "catalog-stock" }, item.soldOut
+          ? `sold out · ${item.stores} ${item.stores === 1 ? "store" : "stores"}`
+          : `${summary.inStockCount} of ${item.stores} ${item.stores === 1 ? "store" : "stores"}`))));
 }
 
 /* ----- Ficha (product page) ----- */
@@ -319,11 +337,15 @@ RENDERERS.product = function viewFicha() {
   const lastSeenListing = [...group.listings].sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen))[0];
   const limit = task ? limitFor(task, group.kind) : null;
 
+  const toGo = best && limit && best.currentPrice > limit ? best.currentPrice - limit : null;
+
   return [
     back,
-    h("section", { class: "ficha-hero" },
-      h("div", { class: "ficha-art" }, productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero" })),
-      h("div", { class: "ficha-main" },
+    h("div", { class: "ficha-layout" },
+      h("aside", { class: "ficha-aside" },
+        h("div", { class: "ficha-art" }, productArt({ imageUrl: item.image, game: group.game, title: group.title, query: group.kindLabel, size: "hero", pack: productPack(group) })),
+        fichaFacts(group, item, lastSeenListing)),
+      h("section", { class: "ficha-main" },
         h("div", { class: "catalog-meta" }, gamePill(group.game),
           group.setCode ? h("span", { class: "set-code mono" }, group.setCode) : null,
           releaseText(group) ? h("span", { class: "muted small" }, releaseText(group)) : null,
@@ -333,27 +355,22 @@ RENDERERS.product = function viewFicha() {
           h("p", { class: "ficha-sub" }, productKindText(group))),
         h("div", { class: "ficha-best" },
           h("div", { class: "ficha-best-price" },
-            h("span", { class: "muted small" }, best
-              ? ["Cheapest in stock · ", h("strong", {}, best.storeName), countryTag(best.storeName) ? [" ", countryTag(best.storeName)] : null]
+            h("span", { class: "ficha-best-label" }, best
+              ? ["Best price now · ", h("strong", {}, best.storeName), countryTag(best.storeName) ? [" ", countryTag(best.storeName)] : null]
               : "Not in stock in any store"),
             h("div", { class: "ficha-price-row" },
-              h("span", { class: `price-xl ${best ? "" : "muted"}` }, money(item.from)),
-              best ? msrpPill(best.currentPrice, group.msrp) : h("span", { class: "muted small" }, "last price"),
-              group.msrp ? h("span", { class: "muted small" }, `MSRP ${money(group.msrp)}`) : null)),
+              h("span", { class: "price-xl" }, money(item.from)),
+              best ? msrpPill(best.currentPrice, group.msrp) : h("span", { class: "ficha-best-label" }, "last price"),
+              group.msrp ? h("span", { class: "ficha-best-label" }, `MSRP ${money(group.msrp)}`) : null),
+            task ? h("span", { class: "ficha-best-label" },
+              limit ? (toGo ? `Your alert fires at ${money(limit)} or less · ${money(toGo)} to go` : `Your alert fires at ${money(limit)} or less`) : `Alert rule: ${priceRuleText(task)}`,
+              " · ", h("a", { href: routeHash("watched", task.id) }, "change"))
+              : h("span", { class: "ficha-best-label" }, "Not watched any more. ", h("a", { href: routeHash("watch") }, "Watch it"))),
           h("div", { class: "ficha-actions" },
-            best && safeHref(best.url) ? linkButton(`Open in ${best.storeName}`, best.url, { kind: "primary", external: true, trailingIcon: "external" }) : null,
-            cardmarket ? linkButton("Cardmarket", cardmarket, { external: true, trailingIcon: "external" }) : null)),
-        h("p", { class: "ficha-rule" }, icon("bell"),
-          task
-            ? [limit ? `You get an alert at ${money(limit)} or less (${priceRuleText(task, true).replace(/^Up to /, "")}).` : `Alert rule: ${priceRuleText(task)}.`,
-              " ", h("a", { href: routeHash("watched", task.id) }, "Change rule")]
-            : ["Not watched any more: no alerts for this product. ", h("a", { href: routeHash("watch") }, "Watch it")]))),
-
-    fichaStores(group, summary),
-
-    h("div", { class: "ficha-cols" },
-      fichaFacts(group, item, lastSeenListing),
-      fichaSameSet(group)),
+            best && safeHref(best.url) ? linkButton(`Open in ${best.storeName}`, best.url, { kind: "invert", external: true, trailingIcon: "external" }) : null,
+            cardmarket ? linkButton("Cardmarket", cardmarket, { kind: "on-ink", external: true, trailingIcon: "external" }) : null)),
+        fichaStores(group, summary),
+        fichaSameSet(group))),
 
     fichaChart(group, colors),
     fichaHistory(group),
@@ -368,15 +385,20 @@ function fichaStores(group, summary) {
   const byPrice = (a, b) => (a.currentPrice ?? Infinity) - (b.currentPrice ?? Infinity);
   const inStock = group.listings.filter((listing) => listing.currentInStock && listing.currentPrice !== null).sort(byPrice);
   const soldOut = group.listings.filter((listing) => !inStock.includes(listing)).sort(byPrice);
-  const rows = [...inStock.map((listing, index) => storeRow(group, listing, index + 1, listing === summary.best)),
-    ...(state.fichaShowSoldOut || inStock.length === 0 ? soldOut.map((listing) => storeRow(group, listing, null, false)) : [])];
+  // One price scale for the bars: from a bit under the cheapest (or the MSRP) to the dearest.
+  const prices = group.listings.map((listing) => listing.currentPrice).filter((price) => price !== null);
+  const low = Math.min(...prices, group.msrp ?? Infinity) * 0.9;
+  const high = Math.max(...prices, group.msrp ?? 0) * 1.02;
+  const scale = { at: (price) => (high > low ? Math.min(100, Math.max(3, ((price - low) / (high - low)) * 100)) : 50), msrp: group.msrp };
+  const rows = [...inStock.map((listing, index) => storeRow(group, listing, index + 1, listing === summary.best, scale)),
+    ...(state.fichaShowSoldOut || inStock.length === 0 ? soldOut.map((listing) => storeRow(group, listing, null, false, scale)) : [])];
   const note = [inStock.length ? `${inStock.length} in stock` : "none in stock", soldOut.length ? `${soldOut.length} sold out` : null, "cheapest first"].filter(Boolean).join(" · ");
 
   return h("section", { class: "card price-card", "aria-labelledby": "stores-table-h" },
     h("div", { class: "price-card-head" },
-      h("h2", { id: "stores-table-h" }, "Prices in every store"),
-      h("span", { class: "muted small" }, note)),
-    h("div", { class: "price-head", "aria-hidden": "true" }, h("span", {}, "#"), h("span", {}, "Store"), h("span", { class: "num" }, "Price"), h("span", {}, "vs MSRP"), h("span", {})),
+      h("h2", { id: "stores-table-h" }, "Every store, cheapest first"),
+      h("span", { class: "muted small price-card-note" }, group.msrp ? h("span", { class: "msrp-key", "aria-hidden": "true" }) : null, group.msrp ? `MSRP ${money(group.msrp)} · ` : "", note.replace(" · cheapest first", ""))),
+    h("div", { class: "price-head", "aria-hidden": "true" }, h("span", {}, "#"), h("span", {}, "Store"), h("span", {}, ""), h("span", { class: "num" }, "Price"), h("span", {}, "vs MSRP"), h("span", {})),
     h("ol", { class: "price-rows" }, rows),
     soldOut.length && inStock.length
       ? h("button", {
@@ -387,8 +409,11 @@ function fichaStores(group, summary) {
       : null);
 }
 
-function storeRow(group, listing, rank, isBest) {
+function storeRow(group, listing, rank, isBest, scale) {
   const out = !listing.currentInStock;
+  const bar = listing.currentPrice === null ? null : h("span", { class: "price-bar", "aria-hidden": "true" },
+    h("span", { class: "price-bar-fill", style: `width:${scale.at(listing.currentPrice)}%` }),
+    scale.msrp ? h("span", { class: "price-bar-msrp", style: `left:${scale.at(scale.msrp)}%` }) : null);
   return h("li", { class: `price-row ${isBest ? "best" : ""} ${out ? "out" : ""}` },
     h("span", { class: "price-rank mono" }, rank ?? "–"),
     h("div", { class: "price-store" },
@@ -400,24 +425,25 @@ function storeRow(group, listing, rank, isBest) {
         h("span", { class: "nowrap", title: dateTime(listing.lastSeen) }, out ? `sold out · seen ${relative(listing.lastSeen)}` : `checked ${relative(listing.lastSeen)}`),
         h("button", { type: "button", class: "text-link small", onclick: () => separateListing(group, listing) }, "Split"),
         listing.isManual ? h("button", { type: "button", class: "text-link small", onclick: () => assignListing(listing.historyKey, "", group.key) }, "Back to automatic") : null)),
+    bar || h("span", { class: "price-bar", style: "visibility:hidden" }),
     h("strong", { class: `price-value mono ${out ? "struck" : ""}` }, money(listing.currentPrice)),
     h("span", { class: "price-delta" }, out ? h("span", { class: "muted small" }, `low ${money(listing.lowestPrice)}`) : msrpPill(listing.currentPrice, group.msrp) || h("span", { class: "dim small" }, "—")),
     h("span", { class: "price-action" }, safeHref(listing.url)
-      ? linkButton(out ? "Store page" : "Open", listing.url, { kind: isBest ? "primary small" : "small", external: true, trailingIcon: "external" })
+      ? linkButton(out ? "Page" : "Open", listing.url, { kind: isBest ? "primary small" : "small", external: true, trailingIcon: "external" })
       : null));
 }
 
-/** All-time low, 30-day move, MSRP and how long the bot has known the product. */
+/** All-time low, 30-day move, MSRP and how long the bot has known the product: four tiles under the picture. */
 function fichaFacts(group, item, lastSeenListing) {
   const { summary } = item;
-  const fact = (label, value, note = null) => h("div", { class: "fact" }, h("span", {}, label), h("strong", { class: "mono" }, value), note ? h("small", {}, note) : null);
-  return h("section", { class: "card section-card", "aria-labelledby": "facts-h" },
-    h("h2", { id: "facts-h", class: "small-h" }, "Price facts"),
-    h("div", { class: "facts" },
-      fact("All-time low", money(summary.lowestEver?.lowestPrice), summary.lowestEver ? `${summary.lowestEver.storeName} · ${shortDate(summary.lowestEver.lowestPriceAt)}` : null),
-      fact("30-day move", movePill(item.move, true), "lowest price"),
-      fact("MSRP", group.msrp ? money(group.msrp) : "—", group.msrp ? `${group.msrpLabel} · ${(MSRP_BASIS[group.msrpBasis] || MSRP_BASIS.Estimate)[0].toLowerCase()}` : "no reference"),
-      fact("Known since", item.firstSeen ? shortDate(new Date(item.firstSeen).toISOString()) : "—", lastSeenListing ? `last read ${relative(lastSeenListing.lastSeen)}` : null)));
+  const fact = (label, value, note = null, tone = "") => h("div", { class: "fact" }, h("span", {}, label), h("strong", { class: `mono ${tone}` }, value), note ? h("small", {}, note) : null);
+  const move = item.move === null ? null : Math.round(item.move);
+  return h("div", { class: "facts", role: "group", "aria-label": "Price facts" },
+    fact("MSRP", group.msrp ? money(group.msrp) : "—", group.msrp ? (MSRP_BASIS[group.msrpBasis] || MSRP_BASIS.Estimate)[0] : "no reference"),
+    fact("All-time low", money(summary.lowestEver?.lowestPrice), summary.lowestEver ? `${shortStoreName(summary.lowestEver.storeName)} · ${shortDate(summary.lowestEver.lowestPriceAt)}` : null),
+    fact(group.releaseDate ? "Released" : "Known since", group.releaseDate ? shortDate(`${group.releaseDate}T00:00:00`) : item.firstSeen ? shortDate(new Date(item.firstSeen).toISOString()) : "—",
+      lastSeenListing ? `read ${relative(lastSeenListing.lastSeen)}` : null),
+    fact("30 days", move === null ? "—" : move === 0 ? "=" : `${move < 0 ? "↓" : "↑"} ${Math.abs(move)}%`, "lowest price", move === null || move === 0 ? "" : move < 0 ? "good" : "red"));
 }
 
 /** The other formats of the same set, so you can hop from the ETB to the Booster Bundle. */

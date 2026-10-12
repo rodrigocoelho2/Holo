@@ -9,15 +9,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="request-verification-token" content="@antiforgeryToken" />
     <meta name="color-scheme" content="dark light" />
-    <title>@(ViewData["Title"] is string title && title != "Card Forge" ? $"{title} · Card Forge" : "Card Forge")</title>
-    <meta name="description" content="Card Forge watches Portuguese and Spanish stores and tells you when the sealed TCG product you want is in stock at your price." />
-    <meta name="theme-color" content="#14161D" />
-    <meta name="application-name" content="Card Forge" />
-    <meta name="apple-mobile-web-app-title" content="Card Forge" />
+    <title>@(ViewData["Title"] is string title && title != "Holo" ? $"{title} · Holo" : "Holo")</title>
+    <meta name="description" content="Holo watches Portuguese and Spanish stores and tells you when the sealed TCG product you want is in stock at your price." />
+    <meta name="theme-color" content="#0C0C0F" />
+    <meta name="application-name" content="Holo" />
+    <meta name="apple-mobile-web-app-title" content="Holo" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <link rel="icon" href="~/img/card-forge.svg" type="image/svg+xml" />
+    <link rel="icon" href="~/img/holo.svg" type="image/svg+xml" />
     <link rel="icon" href="~/img/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="~/img/apple-touch-icon.png" />
     <link rel="manifest" href="~/manifest.webmanifest" />
@@ -34,8 +34,8 @@
             document.documentElement.setAttribute("data-mode", mode === "light" ? "light" : "dark");
         })();
     </script>
-    <link rel="preload" href="~/fonts/geist-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="~/fonts/bricolage-grotesque-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/space-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>

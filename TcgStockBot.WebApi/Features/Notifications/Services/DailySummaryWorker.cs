@@ -136,7 +136,7 @@ internal sealed class DailySummaryWorker(
             text.AppendLine().AppendLine($"Stores with errors in the last cycle: {string.Join(", ", failing)}");
         }
 
-        var subject = $"[Card Forge] Daily summary: {lastDay.Count} alert(s), {offers.Count} in stock";
+        var subject = $"[Holo] Daily summary: {lastDay.Count} alert(s), {offers.Count} in stock";
         return (subject, text.ToString().TrimEnd());
     }
 

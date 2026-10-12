@@ -30,7 +30,7 @@ internal sealed class MonitorService(
     public Task<ServiceApiResponse<string>> RunAsync()
     {
         _scheduler.RequestRun();
-        _activity.Log("info", "Check requested from Card Forge");
+        _activity.Log("info", "Check requested from Holo");
         return Task.FromResult(ServiceApiResponse<string>.Success());
     }
 

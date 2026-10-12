@@ -1,8 +1,8 @@
 @model LandingModel
 @{
-    ViewData["Title"] = "Card Forge";
+    ViewData["Title"] = "Holo";
     var cta = Model.SignedIn ? "/" : "/sign-in";
-    var ctaLabel = Model.SignedIn ? "Open Card Forge" : "Sign in";
+    var ctaLabel = Model.SignedIn ? "Open Holo" : "Sign in";
 }
 @section Head {
     <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
@@ -11,8 +11,8 @@
 <div class="landing">
     <header class="landing-bar">
         <a class="landing-brand" href="/about">
-            <img src="~/img/card-forge.svg" width="36" height="36" alt="" />
-            <span>Card Forge</span>
+            <img src="~/img/holo.svg" width="36" height="36" alt="" />
+            <span>Holo</span>
         </a>
         <a class="landing-cta small" href="@cta">@ctaLabel</a>
     </header>
@@ -22,7 +22,7 @@
             <div class="lp-hero-text">
                 <p class="eyebrow">Sealed TCG monitor · Portugal &amp; Spain</p>
                 <h1>Catch sealed product <span class="ember">at the right price.</span></h1>
-                <p class="lead">Card Forge watches Portuguese and Spanish stores for you — stock, prices and pre-orders — and pings your
+                <p class="lead">Holo watches Portuguese and Spanish stores for you — stock, prices and pre-orders — and pings your
                     phone the minute the product you want shows up at your price.</p>
                 <div class="lp-hero-actions">
                     <a class="landing-cta" href="@cta">@ctaLabel</a>
@@ -41,19 +41,19 @@
                 <div class="phone-screen">
                     <div class="phone-top"><span>09:41</span><span class="phone-pill"></span><span>5G</span></div>
                     <div class="notif">
-                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>now</span></div>
+                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>now</span></div>
                         <strong>🟢 In stock at your price</strong>
                         <p>Elite Trainer Box · Example store</p>
                         <p class="notif-price">€54.90 <span class="good">−8% vs MSRP</span></p>
                     </div>
                     <div class="notif dim">
-                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>2 h ago</span></div>
+                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>2 h ago</span></div>
                         <strong>🔻 Price drop</strong>
                         <p>Booster Bundle · Another store</p>
                         <p class="notif-price">€27.50 <s>€32.90</s></p>
                     </div>
                     <div class="notif dim">
-                        <div class="notif-head"><img src="~/img/card-forge.svg" width="20" height="20" alt="" /> Card Forge <span>yesterday</span></div>
+                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>yesterday</span></div>
                         <strong>🕒 Pre-orders open</strong>
                         <p>Booster Display · out on 14 Nov</p>
                     </div>
@@ -101,7 +101,7 @@
         <section class="how" id="how-it-works" aria-labelledby="steps-h">
             <h2 id="steps-h">How it works</h2>
             <ol>
-                <li><span>1</span><div><h3>Pick the product</h3><p>Search for a set or a product. Card Forge looks for it in every store and shows you what it found.</p></div></li>
+                <li><span>1</span><div><h3>Pick the product</h3><p>Search for a set or a product. Holo looks for it in every store and shows you what it found.</p></div></li>
                 <li><span>2</span><div><h3>Set the price</h3><p>MSRP + a margin, or a max price. Pick the language and the product types you care about.</p></div></li>
                 <li><span>3</span><div><h3>Get the alert</h3><p>Every few minutes the bot checks the stores. When it shows up at your price, your phone buzzes.</p></div></li>
             </ol>
@@ -119,7 +119,7 @@
     </main>
 
     <footer class="landing-foot">
-        <span><img src="~/img/card-forge.svg" width="18" height="18" alt="" /> Card Forge @Model.Version</span>
+        <span><img src="~/img/holo.svg" width="18" height="18" alt="" /> Holo @Model.Version</span>
         <span>A private bot: your data stays on your own server.</span>
     </footer>
 </div>

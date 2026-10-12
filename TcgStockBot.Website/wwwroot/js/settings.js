@@ -120,17 +120,17 @@ function channelsCard() {
         tile("WhatsApp", "chat", "WhatsApp", notification.whatsApp.enabled, [
           ["Number", notification.whatsApp.maskedPhone || missing("missing")],
           ["API key", notification.whatsApp.hasApiKey ? "set" : missing("missing")],
-        ], "WhatsApp__Enabled, WhatsApp__Phone and WhatsApp__ApiKey in .env. The key never goes through Card Forge."),
+        ], "WhatsApp__Enabled, WhatsApp__Phone and WhatsApp__ApiKey in .env. The key never goes through Holo."),
         tile("Email", "mail", "Email", notification.email.enabled, [
           ["Server", notification.email.smtpHost || "—"],
           ["From", notification.email.from || "—"],
           ["To", notification.email.to.length ? notification.email.to.join(", ") : "—"],
           ["Password", notification.email.hasPassword ? "set" : missing("missing")],
-        ], "Email__… in .env. The password never goes through Card Forge."),
+        ], "Email__… in .env. The password never goes through Holo."),
         tile("Telegram", "send", "Telegram", Boolean(notification.telegram?.enabled), [
           ["Chat", notification.telegram?.maskedChatId || missing("missing")],
           ["Bot token", notification.telegram?.hasBotToken ? "set" : missing("missing")],
-        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Card Forge.")));
+        ], "Create a bot with @BotFather and put Telegram__Enabled, Telegram__BotToken and Telegram__ChatId in .env. The token never goes through Holo.")));
 }
 
 /** The signed-in account: change password, sign out; admins also manage the other accounts. */
@@ -166,7 +166,7 @@ function accountCard() {
       field("Confirm new password", passwordInput("confirm", "new-password"))),
     errors,
     h("div", { class: "card-actions" },
-      linkButton("About Card Forge", "/about", { iconName: "info", kind: "ghost" }),
+      linkButton("About Holo", "/about", { iconName: "info", kind: "ghost" }),
       button("Sign out", { iconName: "logout", onClick: signOut }),
       button("Change password", { kind: "primary", onClick: changePassword })),
     isAdmin ? usersSection() : null,

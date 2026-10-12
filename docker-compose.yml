@@ -19,7 +19,7 @@ services:
         max-size: "5m"
         max-file: "3"
 
-  # Card Forge (o painel): http://<IP-do-NAS>:5080
+  # Holo (o painel): http://<IP-do-NAS>:5080
   website:
     build:
       context: .

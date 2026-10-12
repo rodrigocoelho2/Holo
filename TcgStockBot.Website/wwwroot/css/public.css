@@ -1,22 +1,23 @@
 /* ==========================================================================
-   Card Forge — public pages: the landing page (what the app does) and the login form. Mobile first.
-   Uses the dashboard tokens (dashboard.css) plus the brand's ember colours.
+   Holo — public pages: the landing page (what the app does) and the login form. Mobile first.
+   Uses the dashboard tokens (dashboard.css) plus the foil colours of the icon (kept as --ember-*).
    ========================================================================== */
 
 :root {
-  --ember: #FF6A33;
-  --ember-2: #FFB547;
-  --ember-grad: linear-gradient(100deg, #FF5A2C, #FFB547);
-  --ember-soft: rgba(255, 106, 51, 0.14);
+  --ember: #8FA8FF;                                   /* Holo: the foil of the icon */
+  --ember-2: #B4C1FF;
+  --ember-grad: linear-gradient(110deg, #7CF2D6, #8FA8FF 38%, #F49BEA 72%, #FFD58A);
+  --ember-soft: rgba(143, 168, 255, 0.16);
 }
+:root[data-mode="light"] { --ember: #4E5FD9; --ember-2: #4E5FD9; --ember-soft: rgba(78, 95, 217, 0.12); }
 
 .ember { background: var(--ember-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .landing-cta {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 46px; padding: 0 22px; border-radius: 12px;
-  background: var(--ember-grad); color: #1A0F08; font-weight: 600; letter-spacing: 0.01em;
-  box-shadow: 0 10px 30px rgba(255, 106, 51, 0.25);
+  background: var(--ember-grad); color: #111114; font-weight: 600; letter-spacing: 0.01em;
+  box-shadow: 0 10px 30px rgba(143, 168, 255, 0.25);
 }
 .landing-cta:hover { text-decoration: none; filter: brightness(1.06); }
 .landing-cta.small { min-height: 38px; padding: 0 16px; border-radius: 10px; box-shadow: none; }
@@ -27,8 +28,8 @@
 .landing {
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 15% -10%, rgba(255, 106, 51, 0.16), transparent 60%),
-    radial-gradient(700px 400px at 100% 10%, rgba(255, 181, 71, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 15% -10%, rgba(143, 168, 255, 0.16), transparent 60%),
+    radial-gradient(700px 400px at 100% 10%, rgba(244, 155, 234, 0.08), transparent 60%),
     var(--bg);
 }
 
@@ -40,7 +41,7 @@
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
-.landing-brand { display: flex; align-items: center; gap: 10px; color: var(--text); font: 700 20px/1 var(--font-display); letter-spacing: -0.01em; }
+.landing-brand { display: flex; align-items: center; gap: 10px; color: var(--text); font: 700 22px/1 var(--font-display); letter-spacing: -0.045em; text-transform: lowercase; }
 .landing-brand:hover { text-decoration: none; }
 .landing-brand img { border-radius: 9px; }
 
@@ -102,7 +103,7 @@
 .how li { display: flex; gap: 16px; align-items: flex-start; }
 .how li > span {
   flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--ember-grad); color: #1A0F08; font: 700 16px/1 var(--font-display);
+  background: var(--ember-grad); color: #111114; font: 700 16px/1 var(--font-display);
 }
 .how h3 { font: 600 17px/1.3 var(--font); margin-bottom: 4px; }
 .how p { color: var(--text-2); }
@@ -141,7 +142,7 @@
 .login-page {
   min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
   padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
-  background: radial-gradient(600px 400px at 50% 0%, rgba(255, 106, 51, 0.16), transparent 70%), var(--bg);
+  background: radial-gradient(600px 400px at 50% 0%, rgba(143, 168, 255, 0.14), transparent 70%), var(--bg);
 }
 .login-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 14px; }
 .login-back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -150,7 +151,7 @@
   width: min(100%, 400px); display: grid; gap: 16px; padding: 32px 24px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow);
 }
-.login-brand { display: flex; align-items: center; justify-content: center; gap: 12px; font: 700 24px/1 var(--font-display); letter-spacing: -0.02em; }
+.login-brand { display: flex; align-items: center; justify-content: center; gap: 12px; font: 700 26px/1 var(--font-display); letter-spacing: -0.045em; text-transform: lowercase; }
 .login-logo { border-radius: 16px; }
 .login-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
 .login-tabs a { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 9px; color: var(--text-2); font-weight: 500; font-size: 14.5px; }
@@ -188,8 +189,8 @@
 .login-check small { color: var(--text-3); }
 
 .login-submit {
-  height: 48px; border: 0; border-radius: 12px; background: var(--ember-grad); color: #1A0F08;
-  font-weight: 600; font-size: 16px; box-shadow: 0 10px 30px rgba(255, 106, 51, 0.22);
+  height: 48px; border: 0; border-radius: 12px; background: var(--ember-grad); color: #111114;
+  font-weight: 600; font-size: 16px; box-shadow: 0 10px 30px rgba(143, 168, 255, 0.22);
 }
 .login-submit:hover { filter: brightness(1.06); }
 .login-note { color: var(--text-3); font-size: 12.5px; text-align: center; line-height: 1.5; }

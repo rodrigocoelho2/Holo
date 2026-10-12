@@ -43,7 +43,7 @@ public class WhatsAppNotifierTests
 
         Assert.Contains("3 products in stock", text);
         Assert.Contains("check on the page", text);
-        Assert.Contains("+1 more in Card Forge", text);
+        Assert.Contains("+1 more in Holo", text);
         Assert.DoesNotContain("*C*", text);
     }
 

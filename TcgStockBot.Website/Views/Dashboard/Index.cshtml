@@ -6,7 +6,7 @@
 <div class="app" id="app" data-poll-ms="@Model.PollMilliseconds" data-version="@Model.Version" data-user="@Model.UserName" data-admin="@(Model.IsAdmin ? "true" : "false")">
     <aside class="sidebar" id="sidebar" aria-label="Menu">
         <a class="brand" href="#/products">
-            <img class="brand-mark" src="~/img/card-forge.svg" width="38" height="38" alt="" />
+            <img class="brand-mark" src="~/img/holo.svg" width="38" height="38" alt="" />
             <span class="brand-text">
                 <span class="brand-name">@Model.ApplicationName</span>
                 <span class="brand-sub">Sealed TCG · @Model.Version</span>
@@ -18,7 +18,7 @@
         <div class="sidebar-bottom">
             <div class="bot-card" id="bot-card"></div>
             <div class="sidebar-user">
-                <span class="avatar-initial" aria-hidden="true">@(string.IsNullOrEmpty(Model.UserName) ? "?" : Model.UserName[..1].ToUpperInvariant())</span>
+                <a class="avatar-initial" href="#/settings" title="@Model.UserName · Account and settings" aria-label="Account and settings">@(string.IsNullOrEmpty(Model.UserName) ? "?" : Model.UserName[..1].ToUpperInvariant())</a>
                 <strong>@Model.UserName</strong>
                 <a class="text-link small" href="#/settings">Account</a>
             </div>
@@ -31,8 +31,8 @@
             <button class="icon-btn" id="menu-button" type="button" aria-label="Open menu">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
-            <img class="mobile-logo" src="~/img/card-forge.svg" width="26" height="26" alt="" />
-            <span class="mobile-title" id="mobile-title">Card Forge</span>
+            <img class="mobile-logo" src="~/img/holo.svg" width="26" height="26" alt="" />
+            <span class="mobile-title" id="mobile-title">Holo</span>
             <span class="status-chip" id="status-chip"></span>
         </header>
 

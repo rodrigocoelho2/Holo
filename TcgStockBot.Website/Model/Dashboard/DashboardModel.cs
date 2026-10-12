@@ -6,7 +6,7 @@ namespace TcgStockBot.Website.Model.Dashboard;
 public sealed class DashboardModel
 {
     /// <summary>The product name.</summary>
-    public const string ProductName = "Card Forge";
+    public const string ProductName = "Holo";
 
     /// <summary>The version shown in the app.</summary>
     public const string CurrentVersion = "v4.0";

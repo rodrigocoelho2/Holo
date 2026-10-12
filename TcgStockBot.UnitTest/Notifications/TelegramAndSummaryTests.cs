@@ -41,7 +41,7 @@ public class TelegramAndSummaryTests
         Assert.Contains("&lt;b&gt;ETB&lt;/b&gt;", text);
         Assert.Contains("Loja &lt;A&gt;", text);
         Assert.Contains("x=1&amp;y=2", text);
-        Assert.Contains("+1 more in Card Forge", text);
+        Assert.Contains("+1 more in Holo", text);
     }
 
     [Fact]

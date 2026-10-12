@@ -26,13 +26,13 @@ internal static class AlertMessageFormatter
         {
             var alert = alerts[0];
             var kind = alert.IsPriceDrop ? "Price drop" : alert.Listing.PreOrder ? "Pre-order" : "In stock";
-            return $"[Card Forge] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
+            return $"[Holo] {kind}: {alert.Listing.Title} ({alert.Listing.StoreName})";
         }
 
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
-        return drops == alerts.Count ? $"[Card Forge] {alerts.Count} price drops"
-            : drops > 0 ? $"[Card Forge] {alerts.Count} alerts ({drops} price drop(s))"
-            : $"[Card Forge] {alerts.Count} products in stock";
+        return drops == alerts.Count ? $"[Holo] {alerts.Count} price drops"
+            : drops > 0 ? $"[Holo] {alerts.Count} alerts ({drops} price drop(s))"
+            : $"[Holo] {alerts.Count} products in stock";
     }
 
     /// <summary>
@@ -45,10 +45,10 @@ internal static class AlertMessageFormatter
     {
         var drops = alerts.Count(static alert => alert.IsPriceDrop);
         var header = alerts.Count == 1
-            ? drops == 1 ? "🔻 *Card Forge: price drop*" : "🟢 *Card Forge: in stock*"
-            : drops == alerts.Count ? $"🔻 *Card Forge: {alerts.Count} price drops*"
-            : drops > 0 ? $"🟢 *Card Forge: {alerts.Count} alerts ({drops} price drop(s))*"
-            : $"🟢 *Card Forge: {alerts.Count} products in stock*";
+            ? drops == 1 ? "🔻 *Holo: price drop*" : "🟢 *Holo: in stock*"
+            : drops == alerts.Count ? $"🔻 *Holo: {alerts.Count} price drops*"
+            : drops > 0 ? $"🟢 *Holo: {alerts.Count} alerts ({drops} price drop(s))*"
+            : $"🟢 *Holo: {alerts.Count} products in stock*";
         var text = new StringBuilder(header);
 
         foreach (var alert in alerts.Take(Math.Max(1, maxAlerts)))
@@ -70,7 +70,7 @@ internal static class AlertMessageFormatter
 
         if (alerts.Count > maxAlerts)
         {
-            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Card Forge.");
+            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Holo.");
         }
 
         return text.ToString();
@@ -157,7 +157,7 @@ internal static class AlertMessageFormatter
 
         if (alerts.Count > maxAlerts)
         {
-            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Card Forge.");
+            text.Append("\n\n+").Append(alerts.Count - maxAlerts).Append(" more in Holo.");
         }
 
         return text.ToString();

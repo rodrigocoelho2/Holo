@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/card-forge-banner.png" alt="Card Forge" width="100%">
+  <img src="docs/holo-banner.png" alt="Holo" width="100%">
 </p>
 
 <p align="center">
@@ -27,10 +27,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="Card Forge: Products (Pokémon, Elite Trainer Box) no PC e a página do produto no telemóvel" width="100%">
+  <img src="docs/images/hero.png" alt="Holo: Products (Pokémon, Elite Trainer Box) no PC e a página do produto no telemóvel" width="100%">
 </p>
 
-> O Card Forge chamava-se TcgStockBot. O código (projetos, namespaces, contentores e o volume `tcgstockbot-data`)
+> O Holo chamava-se TcgStockBot. O código (projetos, namespaces, contentores e o volume `tcgstockbot-data`)
 > mantém o nome antigo, para as atualizações não perderem nada.
 
 ---
@@ -100,10 +100,13 @@
 - **Watch a product:** pesquisas em todas as lojas ao mesmo tempo, marcas os resultados certos e as regras (nome, tipos, MSRP + margem, palavras, lojas) são sugeridas a partir deles.
 - **Stores:** lojas portuguesas e espanholas agrupadas por **área** (Portugal, Espanha, Europa) e **tier**, com o estado de cada pesquisa do último ciclo, etiquetas e notas. **Detect** a plataforma a partir do link, **testar** várias lojas de uma vez, e desligar automaticamente as que falham. **Test a store** abre-se a partir daqui.
 - **Menu em dois grupos:** **Shop** (Products, Deals, Releases), para comprar, e **Bot** (Watching, Alerts, Stores, Settings), para configurar.
-- **Temas:** Azul, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
+- **Design Holo:** barra de navegação no topo (no telemóvel, a barra em baixo), títulos e preços em Space Grotesk e
+  texto em Instrument Sans (servidos pela própria app), verde para "em stock" e "abaixo do MSRP", e uma "embalagem" com
+  as cores da coleção quando a loja não tem foto.
+- **Temas:** Holo, Coral, Lavanda e Oceano, em modo escuro (por omissão), claro ou automático.
 - **Contas:** cada pessoa entra com o seu utilizador (Sign in / Create account), com "Keep me signed in"; o admin gere as contas. Uma **página de apresentação** para quem chega sem sessão.
 - **Em inglês**, com os preços em euros (€54.99) e as datas no formato europeu.
-- **App no telemóvel:** barra de navegação em baixo, e instala-se no ecrã principal com o ícone do Card Forge.
+- **App no telemóvel:** barra de navegação em baixo, e instala-se no ecrã principal com o ícone do Holo.
 - Atalhos: `1`–`7` mudam de página, `N` vigia um produto novo, `/` vai para a pesquisa e `R` verifica logo.
 
 **Feito para correr em casa**
@@ -152,15 +155,15 @@ Com dados de exemplo. Quando a loja devolve a foto do produto, aparece no lugar 
 <tr>
 <td width="33%"><b>About (telemóvel)</b><br><img src="docs/screenshots/dashboard-about-phone.png" alt="The public page on the phone"></td>
 <td width="33%"><b>Sign in (telemóvel)</b><br><img src="docs/screenshots/dashboard-sign-in-phone.png" alt="Sign in on the phone"></td>
-<td width="33%"><b>Primeira conta</b><br><img src="docs/screenshots/dashboard-create-account.png" alt="Set up Card Forge: create the first (admin) account with the setup key"></td>
+<td width="33%"><b>Primeira conta</b><br><img src="docs/screenshots/dashboard-create-account.png" alt="Set up Holo: create the first (admin) account with the setup key"></td>
 </tr>
 </table>
 
 ### Temas
 
-Quatro cores (Azul, Coral, Lavanda e Oceano), cada uma em modo escuro (por omissão), claro ou automático, a seguir o sistema.
+Quatro cores (Holo, Coral, Lavanda e Oceano), cada uma em modo escuro (por omissão), claro ou automático, a seguir o sistema.
 
-<img src="docs/images/temas.png" alt="Os temas Azul e Coral em modo escuro, e Lavanda e Oceano em modo claro">
+<img src="docs/images/temas.png" alt="Os temas Holo e Coral em modo escuro, e Lavanda e Oceano em modo claro">
 
 ## Arranque rápido (Docker no NAS)
 
@@ -175,7 +178,7 @@ São dois contentores:
 | Contentor | Porta | O que faz |
 | --- | --- | --- |
 | `tcgstockbot-webapi` | nenhuma | o bot: monitor em segundo plano e API JSON (`x-api-key`) |
-| `tcgstockbot-website` | `5080` | o Card Forge (dashboard), com login |
+| `tcgstockbot-website` | `5080` | o Holo (dashboard), com login |
 
 1. Copia a pasta da solução para o NAS (por exemplo `docker/tcgstockbot`).
 2. Copia `.env.example` para `.env` e preenche `DASHBOARD_PASSWORD`, `TCG_API_KEY` (uma chave longa e aleatória) e o WhatsApp, o Telegram e/ou o email.
@@ -198,16 +201,16 @@ A app está em **inglês**. Os endereços são `#/products` (a página inicial),
 
 - **Contas:** cada pessoa entra com o seu utilizador e password. As contas ficam no bot (`data/users.json`), com a
   password guardada só como hash (PBKDF2). Toda a gente vê e mexe nos mesmos produtos, lojas e alertas.
-- **Primeira visita:** sem contas, `http://<IP-do-NAS>:5080` abre **Set up Card Forge** para criares a primeira conta,
+- **Primeira visita:** sem contas, `http://<IP-do-NAS>:5080` abre **Set up Holo** para criares a primeira conta,
   que fica **admin**. É pedida a **setup key**: é a `DASHBOARD_PASSWORD` do `.env`, para ninguém na rede a criar antes de ti.
 - **Sign in / Create account:** quem ainda não tem conta cria-a no separador **Create account** (como na Living Dex).
   Com `ALLOW_REGISTRATION=false` no `.env`, só o admin cria contas, em **Settings → Account**.
 - **Keep me signed in on this device** mantém a sessão 30 dias (`Dashboard__RememberDays`). Mudar a password termina
   as sessões dos outros dispositivos. Cinco passwords erradas seguidas, do mesmo endereço, bloqueiam as tentativas 5 minutos.
 - **Settings → Account:** mudar a password, **Sign out** e, para o admin, a lista de contas (adicionar e apagar).
-- Sem sessão, `/` mostra a **página de apresentação** (o que o Card Forge faz), também em `/about`.
+- Sem sessão, `/` mostra a **página de apresentação** (o que o Holo faz), também em `/about`.
 - **Instalar no telemóvel:** no iPhone, no Safari, Partilhar → *Adicionar ao ecrã principal*; no Android, no Chrome,
-  ⋮ → *Adicionar ao ecrã principal*. Fica com o ícone e o nome Card Forge e abre em ecrã inteiro. Com HTTPS (por
+  ⋮ → *Adicionar ao ecrã principal*. Fica com o ícone e o nome Holo e abre em ecrã inteiro. Com HTTPS (por
   exemplo o proxy reverso do NAS ou o Tailscale), o Chrome também oferece *Instalar app*.
 
 <details>
@@ -508,7 +511,7 @@ TcgStockBot.slnx
 │       │   └── Http/*.http     # pedidos de teste para cada endpoint
 │       │   (Stores/Services/Adapters: Shopify, WooCommerce, Html, Amazon/ (Creators API), Awin/ (FNAC, Worten, El Corte Inglés))
 ├── TcgStockBot.Sdk/            # cliente tipado da WebApi (TcgStockBotClient) + cópias dos DTOs
-├── TcgStockBot.Website/        # o Card Forge (MVC)
+├── TcgStockBot.Website/        # o Holo (MVC)
 │   ├── Controllers/            # finos: criam o model, chamam-no, devolvem Json(AjaxDataResult); Account = entrar/sair
 │   ├── Model/{Feature}/        # "fat models": chamam a WebApi através do Sdk
 │   ├── Security/               # login por cookie, limite de tentativas, chaves das sessões

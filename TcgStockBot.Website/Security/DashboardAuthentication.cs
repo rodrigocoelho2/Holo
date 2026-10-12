@@ -38,6 +38,7 @@ internal static class DashboardAuthentication
     {
         var options = configuration.GetSection(DashboardOptions.SectionName).Get<DashboardOptions>() ?? new DashboardOptions();
 
+        // The pre-Holo name: changing it would sign everybody out and invalidate "keep me signed in".
         var dataProtection = services.AddDataProtection().SetApplicationName("CardForge");
         if (!string.IsNullOrWhiteSpace(options.KeysDirectory))
         {

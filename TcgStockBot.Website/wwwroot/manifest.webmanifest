@@ -1,20 +1,20 @@
 {
-  "name": "Card Forge",
-  "short_name": "Card Forge",
+  "name": "Holo",
+  "short_name": "Holo",
   "description": "Sealed TCG stock and prices in Portuguese and Spanish stores. Get alerted when it shows up at your price.",
   "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#14161D",
-  "theme_color": "#14161D",
+  "background_color": "#0C0C0F",
+  "theme_color": "#0C0C0F",
   "categories": ["shopping", "utilities"],
   "icons": [
     { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/img/card-forge.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/img/holo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
     { "name": "Radar", "url": "/#/radar", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }] },

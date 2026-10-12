@@ -77,7 +77,7 @@ function renderChrome() {
   renderStatusChip();
   const view = VIEWS.find((item) => item.id === (SUB_ROUTES[state.route.view] || state.route.view));
   document.getElementById("mobile-title").textContent = state.route.view === "watch" ? "Watch a product"
-    : state.route.view === "test-store" ? "Test a store" : view?.label || "Card Forge";
+    : state.route.view === "test-store" ? "Test a store" : view?.label || "Holo";
 }
 
 const activeMenu = () => SUB_ROUTES[state.route.view] || state.route.view;
@@ -137,17 +137,16 @@ function renderBotCard() {
   const last = monitor.lastCycle;
   const duration = last ? Math.round((new Date(last.finishedAt) - new Date(last.startedAt)) / 1000) : null;
   card.replaceChildren(
-    h("div", { class: "bot-state" }, h("span", { class: `bot-dot ${tone}` }), label),
+    h("div", { class: "bot-state", title: label }, h("span", { class: `bot-dot ${tone}` }), label),
     h("div", { class: "bot-meta" },
-      monitor.isChecking ? "Searching every active store."
+      h("span", { class: "bot-next" }, monitor.isChecking ? "Searching every active store."
         : monitor.paused ? "Not searching until you resume."
-          : monitor.nextCheckAt ? ["Next check in ", h("span", { class: "mono strong", id: "bot-countdown" }, countdown(monitor.nextCheckAt))] : "—",
-      h("br"),
-      last ? `Last cycle: ${duration} s · ${last.searches} searches` : "No cycles yet"),
+          : monitor.nextCheckAt ? ["Next check in ", h("span", { class: "mono strong", id: "bot-countdown" }, countdown(monitor.nextCheckAt))] : "—"),
+      h("span", { class: "bot-last" }, last ? `Last cycle: ${duration} s · ${last.searches} searches` : "No cycles yet")),
     h("div", { class: "bar" }, h("span", { id: "bot-progress", style: `width:${monitor.isChecking ? 100 : Math.round(cycleProgress() * 100)}%`, class: monitor.isChecking ? "busy" : "" })),
     monitor.paused
-      ? button("Resume the bot", { iconName: "play", kind: "primary block", onClick: () => setPaused(false) })
-      : button("Pause the bot", { kind: "block", onClick: () => setPaused(true) }));
+      ? button("Resume", { iconName: "play", kind: "primary block", title: "Resume the bot", onClick: () => setPaused(false) })
+      : button("Pause", { iconName: "pause", kind: "block", title: "Pause the bot", onClick: () => setPaused(true) }));
 }
 
 /** Every second: the countdowns only, not the whole chrome. */
@@ -197,7 +196,7 @@ function closeSidebar() {
 /* ----------------------------------------------------------------- theme -- */
 
 const ACCENTS = {
-  azul: ["Blue", "#8C96F0", "#4F5BD5"],
+  azul: ["Holo", "#9AA9FF", "#4E5FD9"],
   coral: ["Coral", "#F08A73", "#C94A33"],
   lavanda: ["Lavender", "#A891F5", "#7C5CE0"],
   oceano: ["Ocean", "#5BB4D6", "#1C7FA6"],

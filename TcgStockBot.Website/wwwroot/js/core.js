@@ -1,7 +1,7 @@
 "use strict";
 
 /* ==========================================================================
-   Card Forge dashboard — vanilla JS, no build step. Scripts load in order (see Views/Dashboard/Index.cshtml)
+   Holo dashboard — vanilla JS, no build step. Scripts load in order (see Views/Dashboard/Index.cshtml)
    and share the global scope: core → shell → views → editors → main.
    Talks only to the Website controllers (which call the WebApi through the Sdk).
    Everything coming from stores (titles, URLs, images) is inserted as text or checked URLs, never HTML.
@@ -205,7 +205,7 @@ async function api(path, options = {}) {
       credentials: "same-origin",
     });
   } catch {
-    throw new ApiError(["Can't reach Card Forge."]);
+    throw new ApiError(["Can't reach Holo."]);
   }
 
   const text = await response.text();
@@ -433,10 +433,29 @@ const SHAPES = {
  * The picture of a product: the store's photo when there is one, otherwise a line drawing of the product kind
  * in the colour of its game. size: "hero" (cards), "thumb" (rows), "mini".
  */
-function productArt({ imageUrl, game, title, query, size = "thumb", caption = false }) {
+/** Colour pairs of the "pack" drawn for a product without a photo; the set name picks one, so a set keeps its colours. */
+const PACK_COLORS = [["#3A3550", "#7C6BDA"], ["#D2463C", "#7A1F2B"], ["#3C7BE0", "#1B3D8F"], ["#E0B33C", "#9C6B1E"],
+  ["#E8613A", "#5B2A86"], ["#33A07A", "#1F5D7A"], ["#F2C14E", "#E0703A"], ["#2F8F9D", "#1E3F5A"], ["#B23A48", "#2D2A4A"]];
+
+function packColors(name) {
+  let hash = 0;
+  for (const character of String(name || "")) hash = (hash * 31 + character.codePointAt(0)) >>> 0;
+  return PACK_COLORS[hash % PACK_COLORS.length];
+}
+
+/** A tilted "pack" with the kind and the set, for products without a photo. */
+function packDrawing(pack) {
+  const [from, to] = packColors(pack.name);
+  return h("div", { class: "pack", style: `--pack-1:${from};--pack-2:${to}`, "aria-hidden": "true" },
+    h("span", { class: "pack-kind" }, pack.kind || ""), h("span", { class: "pack-name" }, pack.name || ""));
+}
+
+function productArt({ imageUrl, game, title, query, size = "thumb", caption = false, pack = null }) {
   const kind = productKind(title, query);
   const box = h("div", { class: `art ${size} ${gameClass(game)}` });
-  const drawing = svg("svg", { class: "art-shape", viewBox: "0 0 100 100", "aria-hidden": "true" }, svg("path", { d: SHAPES[kind.shape] }));
+  const drawing = pack ? packDrawing(pack) : svg("svg", { class: "art-shape", viewBox: "0 0 100 100", "aria-hidden": "true" }, svg("path", { d: SHAPES[kind.shape] }));
+  if (pack) box.style.setProperty("--pack-tint", packColors(pack.name)[0]);
+  if (pack) box.classList.add("has-pack");
   const src = safeHref(imageUrl);
   if (src) {
     const image = h("img", { src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });

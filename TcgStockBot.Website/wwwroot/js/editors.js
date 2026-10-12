@@ -171,7 +171,7 @@ function taskToJson(task) {
 }
 
 function exportTasks() {
-  downloadJson(JSON.stringify(state.tasks.map(taskToJson), null, 2), `cardforge-products-${new Date().toISOString().slice(0, 10)}.json`);
+  downloadJson(JSON.stringify(state.tasks.map(taskToJson), null, 2), `holo-products-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
 /**
@@ -659,7 +659,7 @@ function openStoreTestDrawer() {
 
 function exportStores() {
   const json = JSON.stringify(state.stores.map((store) => ({ ...storeToSaveRequest(store, null), originalName: undefined })), null, 2);
-  downloadJson(json, `cardforge-stores-${new Date().toISOString().slice(0, 10)}.json`);
+  downloadJson(json, `holo-stores-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
 /** The site of a store URL ("loja.pt"); a URL with a query (a search link) keeps it, so two searches are not one site. */

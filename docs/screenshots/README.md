@@ -1,6 +1,6 @@
-# Screenshots do Card Forge
+# Screenshots do Holo
 
-Esta pasta contém exemplos visuais do Card Forge (antes TcgStockBot).
+Esta pasta contém exemplos visuais do Holo (antes TcgStockBot).
 
 ## Imagens
 
