@@ -48,7 +48,7 @@
   { "id": "op-prb01", "name": "Premium Booster The Best", "game": "OnePiece", "code": "PRB-01", "releaseDate": "2024-11-08" },
   { "id": "op-prb02", "name": "The Best Vol. 2", "game": "OnePiece", "code": "PRB-02", "releaseDate": "2025-10-03" },
 
-  { "id": "rb-ogn", "name": "Origins", "game": "Riftbound", "code": "OGN", "releaseDate": "2025-10-31" },
+  { "id": "rb-ogn", "name": "Origins", "game": "Riftbound", "code": "OGN", "releaseDate": "2025-10-31", "aliases": ["set one"] },
   { "id": "rb-ogs", "name": "Proving Grounds", "game": "Riftbound", "code": "OGS", "releaseDate": "2025-10-31" },
   { "id": "rb-sfd", "name": "Spiritforged", "game": "Riftbound", "code": "SFD", "releaseDate": "2026-02-13", "aliases": ["spirit forged"] },
   { "id": "rb-unl", "name": "Unleashed", "game": "Riftbound", "code": "UNL", "releaseDate": "2026-05-08" },

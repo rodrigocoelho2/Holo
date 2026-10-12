@@ -47,6 +47,7 @@ const state = {
   catalogStock: readPreference("catalogStock", false),
   catalogSort: readPreference("catalogSort", "newest"),  // newest | cheap | stores | drop | name
   catalogShown: 48,
+  catalogSet: null,                                     // Products: only one set (from a release card), or null
   ficha: null,                                          // the open product page (from /compare/get)
   fichaPeriod: readPreference("fichaPeriod", "90"),     // 7 | 30 | 90 | 180 | 365 | all
   fichaHidden: [],                                      // stores switched off in the chart
@@ -303,12 +304,13 @@ const OUTCOMES = {
   AboveMaxPrice: ["Above your price", "amber"],
   OtherKind: ["Type you don't watch", "plain"],
   NoMsrp: ["No MSRP for this type", "amber"],
+  OtherGame: ["Another game", "plain"],
 };
 
 const isMatch = (outcome) => outcome === "Match" || outcome === "MatchLanguageToConfirm";
 
 /** "Not this product": the store's search returned something unrelated. */
-const isIrrelevant = (listing) => listing.outcome === "MissingKeyword";
+const isIrrelevant = (listing) => listing.outcome === "MissingKeyword" || listing.outcome === "OtherGame";
 
 /** Outcomes of products a task recognises: only these have a price history. */
 const TRACKED_OUTCOMES = new Set(["Match", "MatchLanguageToConfirm", "LanguageUnknown", "OutOfStock", "NoPrice", "AboveMaxPrice", "NoMsrp"]);

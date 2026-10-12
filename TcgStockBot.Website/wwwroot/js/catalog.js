@@ -37,7 +37,7 @@ async function loadCatalog() {
     state.compare = state.compare || [];
     toast(errorText(error), "error");
   }
-  if (state.route.view === "products" || (state.route.view === "product" && state.ficha)) renderView(true);
+  if (state.route.view === "products" || state.route.view === "releases" || (state.route.view === "product" && state.ficha)) renderView(true);
 }
 
 async function loadFicha(key, { quiet = false } = {}) {
@@ -57,7 +57,8 @@ function compareSummary(group) {
   const lowestEver = listings.filter((listing) => listing.lowestPrice !== null)
     .reduce((best, listing) => (!best || listing.lowestPrice < best.lowestPrice ? listing : best), null);
   const lastDrop = listings.filter((listing) => listing.lastDropAt).sort((a, b) => new Date(b.lastDropAt) - new Date(a.lastDropAt))[0] || null;
-  return { best: inStock[0] || null, second: inStock[1] || null, inStockCount: inStock.length, lowestEver, lastDrop };
+  const inStockCount = new Set(inStock.map((listing) => listing.storeName)).size;   // stores, not listings
+  return { best: inStock[0] || null, second: inStock[1] || null, inStockCount, lowestEver, lastDrop };
 }
 
 /** What a catalogue card shows: "from", stock, movement over 30 days, picture, dates. */
@@ -179,6 +180,8 @@ RENDERERS.products = function viewCatalog() {
   const storeNames = [...new Set(inTab.flatMap((item) => item.group.listings.map((listing) => listing.storeName)))].sort((a, b) => a.localeCompare(b, "en"));
   if (state.catalogStore && !storeNames.includes(state.catalogStore)) state.catalogStore = "";
   if (!CATALOG_SORTS[state.catalogSort]) state.catalogSort = "newest";
+  const onlySet = state.catalogSet ? state.compare.find((group) => group.setId === state.catalogSet) : null;
+  if (state.catalogSet && !onlySet) state.catalogSet = null;
 
   const grid = h("div", { class: "catalog-grid" });
   const counter = h("p", { class: "catalog-count" });
@@ -186,6 +189,7 @@ RENDERERS.products = function viewCatalog() {
 
   const renderGrid = () => {
     const visible = inTab.filter((item) => (state.catalogKind === "all" || formatOf(item.group.kind) === state.catalogKind)
+      && (!state.catalogSet || item.group.setId === state.catalogSet)
       && (!state.catalogStore || item.group.listings.some((listing) => listing.storeName === state.catalogStore && (!state.catalogStock || listing.currentInStock)))
       && (!state.catalogStock || !item.soldOut)
       && matchesWords(state.catalogQuery, item.group.title, item.group.setName, item.group.setCode || "", item.group.listings.map((listing) => `${listing.storeName} ${listing.title}`).join(" ")));
@@ -229,7 +233,11 @@ RENDERERS.products = function viewCatalog() {
       formatChip("all", "All formats", inTab.length),
       FORMATS.filter(([id]) => formatCounts.has(id)).map(([id, label]) => formatChip(id, label, formatCounts.get(id)))),
     h("div", { class: "catalog-toolbar" },
-      counter,
+      h("div", { class: "catalog-count-row" }, counter,
+        onlySet ? h("button", {
+          type: "button", class: "chip small-chip on", title: "Show every set",
+          onclick: () => { state.catalogSet = null; renderView(true); },
+        }, `Set: ${onlySet.setName}`, icon("close")) : null),
       h("div", { class: "toolbar wrap" },
         storeNames.length > 1 ? selectPill("Store", state.catalogStore, [["", "All"], ...storeNames.map((name) => [name, name])], (value) => { state.catalogStore = value; rerender(); }) : null,
         labelledSwitch(state.catalogStock, "In stock only", (checked) => { state.catalogStock = checked; writePreference("catalogStock", checked); rerender(); }),

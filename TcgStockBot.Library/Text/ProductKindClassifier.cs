@@ -55,6 +55,7 @@ public static partial class ProductKindClassifier
         "reserva", "envio", "selado", "sealed", "novo", "new", "oficial", "official",
         "varios", "vario", "random", "aleatorio", "aleatoria", "sortido", "sortida", "assorted", "x",
         "novidade", "exclusivo", "exclusive", "oferta", "promo", "promocao", "limitada", "limited", "gratis", "portes", "stock",
+        "league", "legends", "product", "products", "produto", "produtos", "unidad", "mazo", "inicial", "espanol",
     ];
 
     /// <summary>Gets every kind, most specific first, ending with <see cref="Other"/>.</summary>
@@ -99,7 +100,9 @@ public static partial class ProductKindClassifier
     /// <param name="setWords">Words of the set name to drop (e.g. "pitch black").</param>
     /// <returns>The variant words, sorted and space-separated.</returns>
     public static string Variant(string title, ProductKind kind, IEnumerable<string> setWords) =>
-        string.Join(' ', VariantWords(title, kind, setWords).Select(static word => word.Normalized).Order(StringComparer.Ordinal));
+        DeckCode(title) is { } code
+            ? $"st{code}"
+            : string.Join(' ', VariantWords(title, kind, setWords).Select(static word => word.Normalized).Order(StringComparer.Ordinal));
 
     /// <summary>
     /// The same words as <see cref="Variant"/>, in the title's order and casing, for display ("Stellar Crown", "Luxray").
@@ -109,7 +112,20 @@ public static partial class ProductKindClassifier
     /// <param name="setWords">Words of the set name to drop.</param>
     /// <returns>The variant as written in the title.</returns>
     public static string VariantLabel(string title, ProductKind kind, IEnumerable<string> setWords) =>
-        string.Join(' ', VariantWords(title, kind, setWords).Select(static word => word.Original));
+        DeckCode(title) is { } code
+            ? $"ST-{code:00}"
+            : string.Join(' ', VariantWords(title, kind, setWords).Select(static word => word.Original));
+
+    /// <summary>
+    /// The number of a starter deck code ("ST-01", "ST01", "st 1" → 1): the code alone identifies the deck, however the
+    /// store words the rest of the title.
+    /// </summary>
+    /// <param name="title">The product title.</param>
+    /// <returns>The deck number, or null.</returns>
+    public static int? DeckCode(string title) =>
+        DeckCodePattern().Match(title) is { Success: true } match && int.TryParse(match.Groups[1].Value, out var number) && number > 0
+            ? number
+            : null;
 
     private static List<(string Original, string Normalized)> VariantWords(string title, ProductKind kind, IEnumerable<string> setWords)
     {
@@ -134,6 +150,9 @@ public static partial class ProductKindClassifier
 
     [GeneratedRegex(@"[^\p{L}\p{Nd}]+")]
     private static partial Regex WordSplitter();
+
+    [GeneratedRegex(@"(?i)(?<![\p{L}\p{Nd}])st[\s\-_]?0*(\d{1,3})(?![\p{L}\p{Nd}])")]
+    private static partial Regex DeckCodePattern();
 
     private static bool IsSeriesCode(string word) =>
         word.Length <= 5 && (word.StartsWith("me", StringComparison.Ordinal) || word.StartsWith("sv", StringComparison.Ordinal)) && word.Skip(2).All(char.IsDigit);

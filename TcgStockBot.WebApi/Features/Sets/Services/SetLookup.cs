@@ -40,6 +40,13 @@ internal sealed class SetLookup
     public TcgSet? Get(string id) => _byId.GetValueOrDefault(id);
 
     /// <summary>
+    /// Whether any set of a game is known.
+    /// </summary>
+    /// <param name="game">The game.</param>
+    /// <returns>True when the game has sets.</returns>
+    public bool HasSets(TcgGame game) => _phrases.Contains(game);
+
+    /// <summary>
     /// The set a title names.
     /// </summary>
     /// <param name="game">The game of the product.</param>

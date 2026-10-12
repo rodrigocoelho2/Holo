@@ -46,6 +46,10 @@
 
 - Cada **produto vigiado** (tarefa) pode ser um produto (30th ETB) ou um **set inteiro** (Chaos Rising): o texto de pesquisa, as palavras obrigatórias e excluídas (com alternativas `a|b` e prefixos `op*`), os **tipos de produto** que queres (ETB, Booster Bundle, Display…; nenhum = todos), o **idioma** (inglês ou japonês), as lojas e o **jogo** (Pokémon, One Piece, Riftbound, Cyberpunk, Lorcana, Magic ou outro).
 - **Regra de preço:** **MSRP + margem** (cada tipo comparado com o seu MSRP: um booster com o MSRP de um booster, uma display com o de uma display) ou um **preço máximo fixo**.
+- **Jogo certo:** um produto genérico (booster box, booster, deck…) só conta se o título disser o jogo ("Pokémon",
+  "PKM", "One Piece"…) ou uma coleção conhecida dele; assim uma display de Flesh & Blood ou Naruto não aparece como
+  Pokémon. Os formatos que só a Pokémon tem (ETB, Booster Bundle, UPC…) não precisam.
+- Os **starter decks** de One Piece são reconhecidos pelo código (ST-01, ST01, ST 1), seja qual for o resto do título.
 - Em cada ciclo, o bot pesquisa em todas as lojas e explica cada resultado: *ao teu preço*, *acima · avisa até 65,99 €*, *esgotado*, *não é inglês*, *tipo que não vigias*, *falta a palavra…*.
 - Os resultados e os alertas trazem a **imagem do produto** que a loja devolve.
 - Importar e exportar os produtos vigiados (tarefas) em JSON, no menu **More** de *Watching*.
@@ -74,9 +78,12 @@
   data de lançamento e a abertura das pré-vendas. Cada lançamento pode ficar ligado ao produto que vigias, para veres
   ali as ofertas; se ainda não o vigias, **Vigiar** abre a pesquisa já preenchida.
 - **Coleções:** o bot já conhece as coleções inglesas de Pokémon (Scarlet & Violet e Mega Evolution), One Piece
-  (OP-01 a OP-18, EB e PRB), Riftbound e Cyberpunk (`Features/Sets/Data/set-defaults.json`). Uma coleção nova entra
-  quando a adicionas em Releases: o nome (sem o jogo à frente) e os **outros nomes nas lojas** (por exemplo `ME06`)
-  passam a agrupar os produtos dessa coleção em Products.
+  (OP-01 a OP-18, EB e PRB), Riftbound e Cyberpunk (`Features/Sets/Data/set-defaults.json`), e todas as que têm data
+  **aparecem sozinhas em Releases** (com a etiqueta *Built-in*). Editar uma delas guarda a data das pré-vendas, notas e
+  link. Uma coleção nova entra quando a adicionas em Releases: o nome (sem o jogo à frente) e os **outros nomes nas
+  lojas** (por exemplo `ME06`) passam a agrupar os produtos dessa coleção em Products.
+- Cada lançamento mostra o que as lojas têm dessa coleção ("4 produtos · 3 em stock · desde 54,99 €") e abre Products
+  só com essa coleção.
 
 **Avisos**
 

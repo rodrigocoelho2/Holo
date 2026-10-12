@@ -3,9 +3,10 @@ using TcgStockBot.Library.Services;
 using TcgStockBot.Library.Text;
 using TcgStockBot.Library.Validation;
 using TcgStockBot.WebApi.Extensions.Globalization;
+using TcgStockBot.WebApi.Features.Msrps.Services;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 using TcgStockBot.WebApi.Features.StockTasks.Services;
-using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Stores.Models.DTOs;
 using TcgStockBot.WebApi.Features.Stores.Repositories;
 using TcgStockBot.WebApi.Features.Stores.Services.Adapters;
@@ -24,7 +25,8 @@ internal sealed class StoreService(
     IStockTaskRepository stockTaskRepository,
     IStoreAdapterResolver storeAdapterResolver,
     IGlobalizationHelper globalizationHelper,
-    IMsrpService? msrpService = null) : IStoreService
+    IMsrpService? msrpService = null,
+    ISetService? setService = null) : IStoreService
 {
     private const string FieldName = "Name";
     private const string FieldBaseUrl = "BaseUrl";
@@ -132,6 +134,7 @@ internal sealed class StoreService(
         var store = item.Store.StoreNew();
         var tasks = await _stockTaskRepository.ListAsync();
         var msrp = msrpService is null ? MsrpLookup.Empty : await msrpService.LookupAsync();
+        var sets = setService is null ? null : await setService.LookupAsync();
 
         try
         {
@@ -144,7 +147,7 @@ internal sealed class StoreService(
                 Price = listing.Price,
                 InStock = listing.InStock,
                 Language = LanguageClassifier.Classify(listing.Title),
-                OutcomeByTask = tasks.ToDictionary(task => task.Id, task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp)),
+                OutcomeByTask = tasks.ToDictionary(task => task.Id, task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp, sets)),
                 ProductId = listing.ProductId,
                 Currency = listing.Currency,
                 Seller = listing.Seller,

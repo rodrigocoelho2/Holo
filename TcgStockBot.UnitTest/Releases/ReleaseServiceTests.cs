@@ -4,6 +4,8 @@ using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.Releases.Models.DTOs;
 using TcgStockBot.WebApi.Features.Releases.Repositories;
 using TcgStockBot.WebApi.Features.Releases.Services;
+using TcgStockBot.WebApi.Features.Sets.Repositories;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Models.Entities;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 
@@ -79,6 +81,26 @@ public sealed class ReleaseServiceTests : IDisposable
         Assert.Equal(ServiceApiResponseStatus.Success, (await _service.DeleteAsync(created.Id)).Status);
         Assert.Empty((await _service.ListAsync()).Result!);
         Assert.Equal(ServiceApiResponseStatus.NotFound, (await _service.DeleteAsync(created.Id)).Status);
+    }
+
+    [Fact]
+    public async Task KnownSets_AreInTheCalendar_UnlessAReleaseCoversThem()
+    {
+        var repository = new ReleaseRepository(_data.Context);
+        var withSets = new ReleaseService(repository, _tasks, new GlobalizationHelper(), new SetService(new SetRepository(), repository));
+        await withSets.SaveAsync(Request("Pokémon — Pitch Black", "2026-07-17", "2026-06-01"));
+
+        var list = (await withSets.ListAsync()).Result!;
+
+        var pitchBlack = Assert.Single(list, static release => release.SetId == "pkm-me05");
+        Assert.False(pitchBlack.BuiltIn);
+        var chaosRising = Assert.Single(list, static release => release.SetId == "pkm-me04");
+        Assert.True(chaosRising.BuiltIn);
+        Assert.Equal("set:pkm-me04", chaosRising.Id);
+        Assert.Equal(new DateOnly(2026, 5, 22), chaosRising.ReleaseDate);
+        Assert.Contains(list, static release => release.SetId == "rb-rad");
+        Assert.DoesNotContain(list, static release => release.SetId == "cp-wnc");   // no date
+        Assert.Equal(list.OrderBy(static release => release.ReleaseDate).Select(static release => release.Id), list.Select(static release => release.Id));
     }
 
     private sealed class FakeTaskRepository : IStockTaskRepository

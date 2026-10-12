@@ -16,6 +16,12 @@ public sealed class ReleaseDTO
 
     /// <summary>Gets or sets other ways stores write the set.</summary>
     public List<string> Aliases { get; set; } = [];
+
+    /// <summary>Gets or sets a value indicating whether the app knows this set by itself (not saved in releases.json).</summary>
+    public bool BuiltIn { get; set; }
+
+    /// <summary>Gets or sets the set this release is (for its products in the catalogue), or null.</summary>
+    public string? SetId { get; set; }
 }
 
 /// <summary>Creates (empty id) or replaces a release.</summary>

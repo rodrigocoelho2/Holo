@@ -5,6 +5,7 @@ using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.Releases.Models.DTOs;
 using TcgStockBot.WebApi.Features.Releases.Models.Entities;
 using TcgStockBot.WebApi.Features.Releases.Repositories;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 
 namespace TcgStockBot.WebApi.Features.Releases.Services;
@@ -18,8 +19,12 @@ namespace TcgStockBot.WebApi.Features.Releases.Services;
 internal sealed class ReleaseService(
     IReleaseRepository releaseRepository,
     IStockTaskRepository stockTaskRepository,
-    IGlobalizationHelper globalizationHelper) : IReleaseService
+    IGlobalizationHelper globalizationHelper,
+    ISetService? setService = null) : IReleaseService
 {
+    /// <summary>Id prefix of the sets the app knows by itself, listed as releases.</summary>
+    internal const string BuiltInPrefix = "set:";
+
     private const string FieldName = "Name";
     private const string FieldReleaseDate = "ReleaseDate";
     private const string FieldPreOrderDate = "PreOrderDate";
@@ -32,8 +37,35 @@ internal sealed class ReleaseService(
     private readonly IGlobalizationHelper _globalizationHelper = globalizationHelper;
 
     /// <inheritdoc />
-    public async Task<ServiceApiResponse<List<ReleaseDTO>>> ListAsync() =>
-        ServiceApiResponse<List<ReleaseDTO>>.Success(Sorted(await _releaseRepository.ListAsync()).Select(ToDTO).ToList());
+    public async Task<ServiceApiResponse<List<ReleaseDTO>>> ListAsync()
+    {
+        var releases = Sorted(await _releaseRepository.ListAsync()).Select(ToDTO).ToList();
+        if (setService is null)
+        {
+            return ServiceApiResponse<List<ReleaseDTO>>.Success(releases);
+        }
+
+        // Every known set with a date is in the calendar: the saved releases, plus the built-in sets none of them covers.
+        var sets = await setService.ListAsync();
+        foreach (var release in releases)
+        {
+            release.SetId = sets.FirstOrDefault(set => set.ReleaseId == release.Id)?.Id;
+        }
+
+        releases.AddRange(sets.Where(static set => set.ReleaseId is null && set.ReleaseDate is not null).Select(static set => new ReleaseDTO
+        {
+            Id = BuiltInPrefix + set.Id,
+            Name = set.Name,
+            Game = set.Game,
+            ReleaseDate = set.ReleaseDate!.Value,
+            Aliases = [.. new[] { set.Code }.Concat(set.Aliases).OfType<string>()],
+            BuiltIn = true,
+            SetId = set.Id,
+        }));
+
+        return ServiceApiResponse<List<ReleaseDTO>>.Success(
+            [.. releases.OrderBy(static release => release.ReleaseDate).ThenBy(static release => release.Name, StringComparer.OrdinalIgnoreCase)]);
+    }
 
     /// <inheritdoc />
     public async Task<ServiceApiResponse<ReleaseDTO>> SaveAsync(ReleaseSaveRequest item)

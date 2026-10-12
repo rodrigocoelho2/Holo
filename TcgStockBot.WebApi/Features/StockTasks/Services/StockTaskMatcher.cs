@@ -2,8 +2,9 @@ using TcgStockBot.Library.Enums;
 using TcgStockBot.Library.Text;
 using TcgStockBot.WebApi.Features.Msrps.Models.Entities;
 using TcgStockBot.WebApi.Features.Msrps.Services;
-using TcgStockBot.WebApi.Features.Stores.Services.Adapters;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Models.Entities;
+using TcgStockBot.WebApi.Features.Stores.Services.Adapters;
 
 namespace TcgStockBot.WebApi.Features.StockTasks.Services;
 
@@ -17,11 +18,21 @@ namespace TcgStockBot.WebApi.Features.StockTasks.Services;
 internal sealed record PriceCheck(ProductKind Kind, MsrpEntry? Msrp, decimal? Limit);
 
 /// <summary>
-/// Decides whether a store listing is the product a task asks for: keywords, product kind, the task's language
+/// Decides whether a store listing is the product a task asks for: keywords, game, product kind, the task's language
 /// (English or Japanese), in stock and at or below the price limit.
 /// </summary>
 internal static class StockTaskMatcher
 {
+    /// <summary>
+    /// Pokémon product kinds no other game sells (Elite Trainer Box, Booster Bundle, UPC…): their titles need not name
+    /// the game or the set. Booster boxes, boosters, decks and the rest must.
+    /// </summary>
+    private static readonly HashSet<string> PokemonOnlyKinds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "etb", "pokemon-center-etb", "etb-booster-box-combo", "booster-bundle", "ultra-premium", "super-premium", "build-battle",
+        "checklane-blister", "ex-box", "binder-collection", "poster-collection", "premium-collection", "mini-tin",
+    };
+
     /// <summary>
     /// The product kind, MSRP and price limit of one title for one task.
     /// </summary>
@@ -59,8 +70,9 @@ internal static class StockTaskMatcher
     /// <param name="listing">The listing as the store returned it.</param>
     /// <param name="unmarkedLanguage">The store's policy for titles without a language marker.</param>
     /// <param name="msrp">The MSRP table (for <see cref="PriceRule.Msrp"/>); null = none.</param>
+    /// <param name="sets">The known sets, for the game check; null = no game check.</param>
     /// <returns>The outcome; <see cref="MatchOutcomeExtensions.IsMatch"/> tells whether it alerts.</returns>
-    public static MatchOutcome Evaluate(StockTask task, StoreListing listing, UnmarkedLanguagePolicy unmarkedLanguage, MsrpLookup? msrp = null)
+    public static MatchOutcome Evaluate(StockTask task, StoreListing listing, UnmarkedLanguagePolicy unmarkedLanguage, MsrpLookup? msrp = null, SetLookup? sets = null)
     {
         var normalizedTitle = string.Join(' ', TextNormalizer.Words(listing.Title));
 
@@ -75,6 +87,11 @@ internal static class StockTaskMatcher
         }
 
         var price = PriceFor(task, listing.Title, msrp);
+        if (sets is not null && !NamesGame(task, normalizedTitle, listing.Title, price.Kind, sets))
+        {
+            return MatchOutcome.OtherGame;
+        }
+
         if (task.Kinds.Count > 0 && !task.Kinds.Contains(price.Kind.Code, StringComparer.OrdinalIgnoreCase))
         {
             return MatchOutcome.OtherKind;
@@ -130,6 +147,32 @@ internal static class StockTaskMatcher
             ? MatchOutcome.MatchLanguageToConfirm
             : MatchOutcome.Match;
     }
+
+    /// <summary>
+    /// Whether a title is of the task's game: it names the game ("Pokémon", "PKM", "One Piece"…) or one of its known
+    /// sets, or it is a kind only that game sells. Games without known sets always pass.
+    /// </summary>
+    internal static bool NamesGame(StockTask task, string normalizedTitle, string title, ProductKind kind, SetLookup sets)
+    {
+        if (!sets.HasSets(task.Game) || (task.Game == TcgGame.Pokemon && PokemonOnlyKinds.Contains(kind.Code)))
+        {
+            return true;
+        }
+
+        var padded = $" {normalizedTitle} ";
+        return GameNames(task.Game).Any(name => padded.Contains($" {name} ", StringComparison.Ordinal)) || sets.Find(task.Game, title) is not null;
+    }
+
+    private static string[] GameNames(TcgGame game) => game switch
+    {
+        TcgGame.Pokemon => ["pokemon", "pkm"],
+        TcgGame.OnePiece => ["one piece"],
+        TcgGame.Riftbound => ["riftbound"],
+        TcgGame.Cyberpunk => ["cyberpunk"],
+        TcgGame.Lorcana => ["lorcana"],
+        TcgGame.Magic => ["magic", "mtg"],
+        _ => [],
+    };
 
     /// <summary>
     /// Whole-word phrase match, so "box" does not match "boxes". A keyword can list alternatives separated by "|"

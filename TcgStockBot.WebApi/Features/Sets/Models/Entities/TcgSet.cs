@@ -31,4 +31,8 @@ public sealed class TcgSet
     /// "Scarlet &amp; Violet"): it only counts when no other set of the game is named in the title.
     /// </summary>
     public bool Series { get; set; }
+
+    /// <summary>Gets or sets the release (releases.json) merged into this set, or null for a set only the app knows.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ReleaseId { get; set; }
 }

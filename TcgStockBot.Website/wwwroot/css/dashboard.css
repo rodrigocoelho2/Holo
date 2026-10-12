@@ -1748,3 +1748,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
   .price-store-meta .listing-title { flex-basis: 100%; }
   .ficha-cols { grid-template-columns: 1fr; }
 }
+
+.catalog-count-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.chip.small-chip { min-height: 32px; padding: 0 10px 0 12px; font-size: 13px; gap: 6px; }
+.chip.small-chip .icon { width: 14px; height: 14px; }

@@ -40,6 +40,12 @@ public enum MatchOutcome
 
     /// <summary>MSRP rule: there is no MSRP for this product kind and the task has no fixed maximum to fall back on.</summary>
     NoMsrp,
+
+    /// <summary>
+    /// A generic product (booster box, booster, deck…) whose title names neither the task's game nor one of its known
+    /// sets: probably another game ("Flesh &amp; Blood Booster Display" for a Pokémon task).
+    /// </summary>
+    OtherGame,
 }
 
 /// <summary>
@@ -62,5 +68,6 @@ public static class MatchOutcomeExtensions
     /// <param name="outcome">The outcome to test.</param>
     /// <returns>False for missing / excluded keywords and the wrong language.</returns>
     public static bool IsRelevant(this MatchOutcome outcome) =>
-        outcome is not (MatchOutcome.MissingKeyword or MatchOutcome.ExcludedKeyword or MatchOutcome.NotEnglish or MatchOutcome.NotJapanese or MatchOutcome.OtherKind);
+        outcome is not (MatchOutcome.MissingKeyword or MatchOutcome.ExcludedKeyword or MatchOutcome.NotEnglish or MatchOutcome.NotJapanese
+            or MatchOutcome.OtherKind or MatchOutcome.OtherGame);
 }

@@ -4,9 +4,10 @@ using TcgStockBot.Library.Enums;
 using TcgStockBot.Library.Services;
 using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Extensions.Http;
+using TcgStockBot.WebApi.Features.Msrps.Services;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
 using TcgStockBot.WebApi.Features.StockTasks.Services;
-using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Stores.Models.DTOs;
 using TcgStockBot.WebApi.Features.Stores.Models.Entities;
 using TcgStockBot.WebApi.Features.Stores.Repositories;
@@ -28,7 +29,8 @@ internal sealed class StoreHealthService(
     IStoreAdapterResolver storeAdapterResolver,
     IGlobalizationHelper globalizationHelper,
     TimeProvider timeProvider,
-    IMsrpService? msrpService = null) : IStoreHealthService
+    IMsrpService? msrpService = null,
+    ISetService? setService = null) : IStoreHealthService
 {
     /// <summary>The tag added to a store the bot turned off; removed when it is turned on again.</summary>
     internal const string FailingTag = "failing";
@@ -173,7 +175,8 @@ internal sealed class StoreHealthService(
             var listings = await _storeAdapterResolver.Resolve(store).SearchAsync(store, query, timeout.Token);
             var tasks = await _stockTaskRepository.ListAsync();
             var msrp = msrpService is null ? MsrpLookup.Empty : await msrpService.LookupAsync();
-            var outcomes = listings.Select(listing => tasks.Select(task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp)).ToList()).ToList();
+            var sets = setService is null ? null : await setService.LookupAsync();
+            var outcomes = listings.Select(listing => tasks.Select(task => StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp, sets)).ToList()).ToList();
 
             record.Status = listings.Count > 0 ? StoreTestStatus.Ok : StoreTestStatus.Empty;
             record.Results = listings.Count;

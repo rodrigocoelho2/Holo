@@ -58,7 +58,7 @@ function navigate() {
   if (route.view === "settings" || route.view === "alerts") refreshNotification();
   if (route.view === "products" || (route.view === "product" && changed)) loadCatalog();
   if (route.view === "product" && changed) { state.fichaHidden = []; state.fichaShowSoldOut = false; if (state.ficha?.key !== route.param) state.ficha = null; }
-  if (route.view === "releases") loadReleases();
+  if (route.view === "releases") { loadReleases(); if (state.compare === null) loadCatalog(); }
   if (route.view !== "watch") state.wizard = null;
   renderChrome();
   renderView(true);

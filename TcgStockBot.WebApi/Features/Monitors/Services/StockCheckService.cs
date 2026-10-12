@@ -4,11 +4,12 @@ using TcgStockBot.Library.Text;
 using TcgStockBot.WebApi.Extensions.Globalization;
 using TcgStockBot.WebApi.Features.Alerts.Models;
 using TcgStockBot.WebApi.Features.Alerts.Services;
-using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Monitors.Models.DTOs;
+using TcgStockBot.WebApi.Features.Msrps.Services;
 using TcgStockBot.WebApi.Features.Notifications.Services;
 using TcgStockBot.WebApi.Features.PriceHistories.Models.Entities;
 using TcgStockBot.WebApi.Features.PriceHistories.Services;
+using TcgStockBot.WebApi.Features.Sets.Services;
 using TcgStockBot.WebApi.Features.Settings.Repositories;
 using TcgStockBot.WebApi.Features.StockTasks.Models.Entities;
 using TcgStockBot.WebApi.Features.StockTasks.Repositories;
@@ -49,6 +50,7 @@ internal interface IStockCheckService
 /// <param name="globalizationHelper">Translations.</param>
 /// <param name="timeProvider">Clock.</param>
 /// <param name="logger">Logger.</param>
+/// <param name="setService">The known sets (the game check of generic products).</param>
 internal sealed class StockCheckService(
     IStockTaskRepository stockTaskRepository,
     IStoreRepository storeRepository,
@@ -62,7 +64,8 @@ internal sealed class StockCheckService(
     BotActivity activity,
     IGlobalizationHelper globalizationHelper,
     TimeProvider timeProvider,
-    ILogger<StockCheckService> logger) : IStockCheckService
+    ILogger<StockCheckService> logger,
+    ISetService? setService = null) : IStockCheckService
 {
     private int _cycleNumber;
 
@@ -79,6 +82,7 @@ internal sealed class StockCheckService(
         var failedSearches = 0;
         var lowestPrices = await priceHistoryService.LowestPricesAsync();
         var msrp = await msrpService.LookupAsync();
+        var sets = setService is null ? null : await setService.LookupAsync();
         var observations = new List<PriceObservation>();
         var storeOutcomes = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         var lastErrors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -100,7 +104,7 @@ internal sealed class StockCheckService(
                 }
 
                 var task = storeTasks[index];
-                var report = await SearchAsync(store, task, lowestPrices, msrp, cancellationToken);
+                var report = await SearchAsync(store, task, lowestPrices, msrp, sets, cancellationToken);
                 activity.SearchCompleted(report);
 
                 if (!report.Succeeded)
@@ -210,7 +214,7 @@ internal sealed class StockCheckService(
     private static bool RunsOn(StockTask task, Store store) =>
         task.Enabled && (task.StoreNames.Count == 0 || task.StoreNames.Contains(store.Name, StringComparer.OrdinalIgnoreCase));
 
-    private async Task<SearchReportDTO> SearchAsync(Store store, StockTask task, IReadOnlyDictionary<string, decimal> lowestPrices, MsrpLookup msrp, CancellationToken cancellationToken)
+    private async Task<SearchReportDTO> SearchAsync(Store store, StockTask task, IReadOnlyDictionary<string, decimal> lowestPrices, MsrpLookup msrp, SetLookup? sets, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
         var report = new SearchReportDTO { StoreName = store.Name, StockTaskId = task.Id };
@@ -231,7 +235,7 @@ internal sealed class StockCheckService(
                     Price = listing.Price,
                     InStock = listing.InStock,
                     Language = LanguageClassifier.Classify(listing.Title),
-                    Outcome = StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp),
+                    Outcome = StockTaskMatcher.Evaluate(task, listing, store.UnmarkedLanguage, msrp, sets),
                     ProductId = listing.ProductId,
                     Currency = listing.Currency,
                     Seller = listing.Seller,

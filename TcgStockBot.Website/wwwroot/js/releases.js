@@ -1,8 +1,9 @@
 "use strict";
 
 /* ==========================================================================
-   Releases — the launch calendar: what comes out when, when pre-orders open, and whether you already watch it
-   (and what the bot found for it). A list grouped by moment, or a month calendar.
+   Releases — the launch calendar: what comes out when, when pre-orders open, and what the stores have of each set.
+   Every set the app knows is in it by itself (built-in); a saved release adds pre-order dates, notes, a link and
+   other names for a set, or a set the app doesn't know yet. A list grouped by moment, or a month calendar.
    ========================================================================== */
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -16,6 +17,15 @@ async function loadReleases() {
     toast(errorText(error), "error");
   }
   if (state.route.view === "releases") renderView(true);
+}
+
+/** Shows the products of one set in Products. */
+function showSetProducts(release) {
+  state.catalogSet = release.setId;
+  state.catalogKind = "all";
+  state.catalogQuery = "";
+  if (state.game !== "all") { state.game = gameKey(release.game); writePreference("game", state.game); }
+  go("products");
 }
 
 /** "2026-11-14" → a local Date at midnight (DateOnly comes as yyyy-MM-dd). */
@@ -51,7 +61,7 @@ RENDERERS.releases = function viewReleases() {
     segmented([["list", "List"], ["calendar", "Calendar"]], state.releaseView, (value) => { state.releaseView = value; writePreference("releaseView", value); renderView(true); }, "View"),
     button("Add release", { iconName: "plus", kind: "primary", onClick: () => openReleaseDrawer(null) }),
   ];
-  const head = pageHead("Releases", "What's coming: release dates, when pre-orders open and whether you are watching it.", actions);
+  const head = pageHead("Releases", "Every set: when it comes out, when pre-orders open and what the stores have of it. Known sets are added by themselves.", actions);
   if (all === null) return [head, h("div", { class: "card soft" }, h("p", { class: "muted pad" }, "Loading…"))];
 
   const releases = all.filter((release) => inGameTab(release.game));
@@ -83,9 +93,23 @@ function releaseList(releases) {
   ];
 }
 
-/** What the bot knows about the linked task: status and best offer. */
+/** What the stores have of the set (from the catalogue), else what the linked task found. */
 function releaseWatch(release) {
+  const groups = release.setId ? (state.compare || []).filter((group) => group.setId === release.setId) : [];
+  if (groups.length) {
+    const items = groups.map(catalogItem);
+    const inStock = items.filter((item) => !item.soldOut);
+    const cheapest = inStock.map((item) => item.from).filter((price) => price !== null);
+    return h("a", { class: "release-watch", href: routeHash("products"), onclick: (event) => { event.preventDefault(); showSetProducts(release); } },
+      h("span", { class: `bot-dot ${inStock.length ? "on" : "off"}`, "aria-hidden": "true" }),
+      h("span", {}, h("strong", {}, `${groups.length} ${groups.length === 1 ? "product" : "products"}`),
+        inStock.length ? ` · ${inStock.length} in stock · from ${money(Math.min(...cheapest))}` : " · all sold out"),
+      icon("chevron"));
+  }
   const task = release.stockTaskId ? findTask(release.stockTaskId) : null;
+  if (!task && release.setId) {
+    return h("div", { class: "release-watch none" }, h("span", { class: "muted small" }, "Not found in the stores yet."));
+  }
   if (!task) {
     return h("div", { class: "release-watch none" },
       h("span", { class: "muted small" }, release.stockTaskId ? "The linked product no longer exists." : "You are not watching this release yet."),
@@ -112,7 +136,8 @@ function releaseCard(release) {
     h("div", { class: "release-body" },
       h("div", { class: "catalog-meta" }, gamePill(release.game),
         phase === "preorder" ? h("span", { class: "tag accent" }, "Pre-orders open") : null,
-        phase === "out" ? h("span", { class: "tag" }, "Out") : null),
+        phase === "out" ? h("span", { class: "tag" }, "Out") : null,
+        release.builtIn ? h("span", { class: "tag", title: "The app knows this set; edit it to add the pre-order date or notes" }, "Built-in") : null),
       h("h3", { class: "release-name" }, release.name),
       h("p", { class: "muted small" },
         `Out ${weekdayFormat.format(date)} · ${dayDistance(date)}`,
@@ -121,7 +146,7 @@ function releaseCard(release) {
       releaseWatch(release)),
     h("div", { class: "release-actions" },
       safeHref(release.url) ? linkButton("Page", release.url, { kind: "small", external: true, trailingIcon: "external" }) : null,
-      iconButton("edit", `Edit ${release.name}`, () => openReleaseDrawer(release))));
+      iconButton("edit", release.builtIn ? `Add details to ${release.name}` : `Edit ${release.name}`, () => openReleaseDrawer(release))));
 }
 
 function releaseCalendar(releases) {
@@ -176,8 +201,9 @@ function watchRelease(release) {
 }
 
 function openReleaseDrawer(release) {
+  const builtIn = Boolean(release?.builtIn);
   const draft = release
-    ? { ...release }
+    ? { ...release, id: builtIn ? "" : release.id, aliases: builtIn ? [] : release.aliases }
     : { id: "", name: "", game: state.game !== "all" ? state.game : "Pokemon", releaseDate: "", preOrderDate: "", url: "", notes: "", stockTaskId: "", aliases: [] };
   draft.aliasText = (draft.aliases || []).join(", ");
   const errors = h("div", {});
@@ -191,7 +217,7 @@ function openReleaseDrawer(release) {
         preOrderDate: draft.preOrderDate || null, url: draft.url?.trim() || null, notes: draft.notes?.trim() || null, stockTaskId: draft.stockTaskId || null,
         aliases: draft.aliasText.split(",").map((alias) => alias.trim()).filter(Boolean),
       });
-      toast(release ? "Release saved" : "Release added", "success");
+      toast(release && !builtIn ? "Release saved" : "Release added", "success");
       closeDrawer();
       await loadReleases();
     } catch (error) {
@@ -212,8 +238,8 @@ function openReleaseDrawer(release) {
   };
 
   openDrawer({
-    title: release ? "Edit release" : "New release",
-    subtitle: "Saved in the bot (data/releases.json).",
+    title: builtIn ? `Add details to ${release.name}` : release ? "Edit release" : "New release",
+    subtitle: builtIn ? "The app already knows this set. Saving keeps your pre-order date, notes and link in data/releases.json." : "Saved in the bot (data/releases.json).",
     body: [
       h("div", { class: "fields" },
         field("Name", textInput(draft.name, (value) => { draft.name = value; }, { placeholder: "e.g. Pokémon — Pitch Black" }), null, true),
@@ -232,7 +258,7 @@ function openReleaseDrawer(release) {
       errors,
     ],
     footer: [
-      release ? button("Delete", { iconName: "trash", kind: "ghost danger-text", onClick: remove }) : null,
+      release && !builtIn ? button("Delete", { iconName: "trash", kind: "ghost danger-text", onClick: remove }) : null,
       h("span", { class: "spacer" }),
       button("Cancel", { kind: "ghost", onClick: closeDrawer }),
       button(release ? "Save" : "Add", { kind: "primary", onClick: save }),

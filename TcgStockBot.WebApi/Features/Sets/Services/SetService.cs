@@ -24,6 +24,15 @@ internal sealed partial class SetService(ISetRepository setRepository, IReleaseR
     /// <inheritdoc />
     public async Task<SetLookup> LookupAsync()
     {
+        var (sets, taskSets) = await MergeAsync();
+        return new SetLookup(sets, taskSets);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<TcgSet>> ListAsync() => (await MergeAsync()).Sets;
+
+    private async Task<(List<TcgSet> Sets, Dictionary<string, TcgSet> TaskSets)> MergeAsync()
+    {
         var sets = await _setRepository.ListAsync();
         var builtIn = new SetLookup(sets);
         var taskSets = new Dictionary<string, TcgSet>(StringComparer.OrdinalIgnoreCase);
@@ -49,6 +58,7 @@ internal sealed partial class SetService(ISetRepository setRepository, IReleaseR
             }
 
             set.ReleaseDate = release.ReleaseDate;
+            set.ReleaseId = release.Id;
             set.Aliases = [.. set.Aliases.Concat(release.Aliases).Append(name).Where(static alias => !string.IsNullOrWhiteSpace(alias))
                 .DistinctBy(Phrase)];
 
@@ -58,7 +68,7 @@ internal sealed partial class SetService(ISetRepository setRepository, IReleaseR
             }
         }
 
-        return new SetLookup(sets, taskSets);
+        return (sets, taskSets);
     }
 
     /// <summary>"Pokémon — Delta Reign" → "Delta Reign"; "One Piece OP-15" → "OP-15".</summary>
