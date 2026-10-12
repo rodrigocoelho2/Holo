@@ -205,7 +205,7 @@ function normalizeImportedTask(raw) {
 }
 
 /** Shared body of the two JSON import drawers. */
-function importDrawerBody({ placeholder, help, switchLabel, switchValue, onSwitch, onText, results }) {
+function importDrawerBody({ placeholder, help, switchLabel, switchValue, onSwitch, onText, results, extra = null }) {
   const textarea = h("textarea", { rows: 16, spellcheck: "false", placeholder, class: "mono code", oninput: (event) => onText(event.target.value) });
   const fileInput = h("input", {
     type: "file", accept: ".json,application/json",
@@ -215,7 +215,8 @@ function importDrawerBody({ placeholder, help, switchLabel, switchValue, onSwitc
     drawerSection(null,
       field("File", fileInput, "Optional: load a .json instead of pasting.", true),
       field("JSON", textarea, help, true),
-      labelledSwitch(switchValue, switchLabel, onSwitch)),
+      switchLabel ? labelledSwitch(switchValue, switchLabel, onSwitch) : null,
+      extra),
     results,
   ];
 }
@@ -693,14 +694,27 @@ const hostOf = (url) => {
  */
 function openStoreImportDrawer() {
   let text = "";
-  let updateClassification = true;
+  let mode = "classification";     // existing stores: "skip" | "classification" | "replace"
+  let removeMissing = false;        // with "replace": delete the stores that are not in the JSON
   let running = false;
   const results = h("div", {});
+  const deleteBox = h("div", {});
 
   const runImport = async () => {
     if (running) return;
     let items;
     try { items = parseImportList(text, "stores"); } catch (error) { results.replaceChildren(errorList([`Invalid JSON: ${error.message}`])); return; }
+
+    const findExisting = (raw) => state.stores.find((store) => sameName(store.name, String(raw?.name || "")))
+      || (hostOf(raw?.baseUrl) && state.stores.find((store) => hostOf(store.baseUrl) === hostOf(raw.baseUrl)));
+    const missing = mode === "replace" && removeMissing
+      ? state.stores.filter((store) => !items.some((raw) => findExisting(raw) === store))
+      : [];
+    if (missing.length && !await confirmDialog({
+      title: `Delete ${missing.length} ${missing.length === 1 ? "store" : "stores"}?`,
+      message: `They are not in the JSON: ${missing.map((store) => store.name).join(", ")}. Their price history stays.`,
+      confirmLabel: "Import and delete",
+    })) return;
 
     running = true;
     const rows = [];
@@ -710,10 +724,9 @@ function openStoreImportDrawer() {
       const label = raw?.name || `#${index + 1}`;
       try {
         if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("not an object");
-        const existing = state.stores.find((store) => sameName(store.name, String(raw.name || "")))
-          || (hostOf(raw.baseUrl) && state.stores.find((store) => hostOf(store.baseUrl) === hostOf(raw.baseUrl)));
-        if (existing) {
-          if (!updateClassification) { skipped++; rows.push([label, "plain", `already exists (${existing.name}) — skipped`]); continue; }
+        const existing = findExisting(raw);
+        if (existing && mode === "skip") { skipped++; rows.push([label, "plain", `already exists (${existing.name}) — skipped`]); continue; }
+        if (existing && mode === "classification") {
           const merged = {
             ...existing, country: raw.country || existing.country, tier: raw.tier || existing.tier, type: raw.type || existing.type,
             tags: [...new Set([...(existing.tags || []), ...(Array.isArray(raw.tags) ? raw.tags : [])].filter((tag) => tag !== "por testar" && tag !== "untested"))],
@@ -723,6 +736,12 @@ function openStoreImportDrawer() {
           };
           await post("/store/save", storeToSaveRequest(merged, existing.name));
           updated++; rows.push([label, "blue", `classification updated (${existing.name})`]);
+          continue;
+        }
+        if (existing) {
+          // Replace: the JSON is the whole store (a name change renames it; tasks follow).
+          await post("/store/save", storeToSaveRequest({ ...existing, ...raw }, existing.name));
+          updated++; rows.push([label, "blue", existing.name === raw.name ? "replaced" : `replaced (was ${existing.name})`]);
           continue;
         }
         const draft = {
@@ -738,21 +757,40 @@ function openStoreImportDrawer() {
         rows.push([label, "red", errorText(error)]);
       }
     }
+    let deleted = 0;
+    for (const store of missing) {
+      try {
+        await post(`/store/delete?identifier=${encodeURIComponent(store.name)}`);
+        deleted++; rows.push([store.name, "amber", "deleted (not in the JSON)"]);
+      } catch (error) {
+        failed++; rows.push([store.name, "red", errorText(error)]);
+      }
+    }
     running = false;
     await reloadConfiguration();
     importSummary(results, rows, created, updated, skipped, failed);
-    if (failed === 0) toast(`Import done: ${created + updated} store(s)`, "success");
+    if (failed === 0) toast(`Import done: ${created + updated} store(s)${deleted ? `, ${deleted} deleted` : ""}`, "success");
   };
+
+  const renderDelete = () => deleteBox.replaceChildren(mode === "replace"
+    ? labelledSwitch(removeMissing, "Delete the stores that are not in the JSON", (checked) => { removeMissing = checked; })
+    : null);
+  renderDelete();
 
   openDrawer({
     title: "Import stores (JSON)",
-    subtitle: "Paste a list of stores or pick a file. The format is the same as “Export JSON”.",
-    body: importDrawerBody({
-      placeholder: '[\n  { "name": "Store", "platform": "Shopify", "baseUrl": "https://store.pt", "country": "Portugal", "tier": "A", "type": "Specialist", "tags": ["untested"], "enabled": false }\n]',
-      help: "Fields: name, platform (Shopify, WooCommerce, Html, Amazon, Fnac, Worten, ElCorteIngles, Awin, Manual), baseUrl, country (Portugal/Spain/Europe), tier (S/A/B/C), type (Retail/Specialist/Importer/Marketplace/Official), tags, notes, enabled, shippingCost, freeShippingFrom, shopifyCatalogPaths, wooCommerceProductsPath, html, awinFeedKey.",
-      switchLabel: "For the ones that already exist (same name or site), only update area, tier, type, tags and shipping", switchValue: updateClassification,
-      onSwitch: (checked) => { updateClassification = checked; }, onText: (value) => { text = value; }, results,
-    }),
+    subtitle: "Paste a list of stores or pick a file. The format is the same as “Export JSON”, so you can export, edit and import back.",
+    body: [
+      ...importDrawerBody({
+        placeholder: '[\n  { "name": "Store", "platform": "Shopify", "baseUrl": "https://store.pt", "country": "Portugal", "tier": "A", "type": "Specialist", "tags": ["untested"], "enabled": false }\n]',
+        help: "Fields: name, platform (Shopify, WooCommerce, Html, Amazon, Fnac, Worten, ElCorteIngles, Awin, Manual), baseUrl, country (Portugal/Spain/Europe), tier (S/A/B/C), type (Retail/Specialist/Importer/Marketplace/Official), tags, notes, enabled, unmarkedLanguage, shippingCost, freeShippingFrom, shopifyCatalogPaths, wooCommerceProductsPath, html, awinFeedKey.",
+        results,
+        onText: (value) => { text = value; },
+        extra: [field("Stores that already exist (same name or site)", segmented([
+          ["skip", "Skip them"], ["classification", "Update area, tier, tags, shipping"], ["replace", "Replace with the JSON"],
+        ], mode, (value) => { mode = value; renderDelete(); }, "Existing stores"), "“Replace” uses everything in the JSON: platform, settings, on/off, notes.", true), deleteBox],
+      }),
+    ],
     footer: [button("Close", { kind: "ghost", onClick: closeDrawer }), button("Import", { iconName: "check", kind: "primary", onClick: runImport })],
   });
 }
