@@ -97,9 +97,17 @@ async function enablePush({ quiet = false } = {}) {
   if (!state.push?.publicKey) await loadPush();
   if (!state.push?.publicKey) { if (!quiet) toast("Couldn't get the bot's push key.", "error"); return; }
 
+  // Ask first, in the same tap (iOS only shows the prompt for a tap, and only once per install).
   const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
   if (permission !== "granted") {
-    if (!quiet) toast("Notifications are blocked for Holo. Allow them in the browser's site settings and try again.", "error");
+    if (!quiet) {
+      toast(permission === "denied"
+        ? (isAppleMobile()
+          ? "Notifications are off for Holo. Turn them on in the iPhone Settings → Notifications → Holo, then try again."
+          : "Notifications are blocked for Holo. Allow them in the browser's site settings (the icon next to the address) and try again.")
+        : "The permission prompt was closed without an answer. Tap “Turn on for this device” again and choose Allow.", "error");
+    }
+    await loadPush();
     return;
   }
 
