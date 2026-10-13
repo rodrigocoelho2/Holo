@@ -191,7 +191,48 @@ function pushTile() {
       h("button", { type: "button", class: "text-link small", onclick: () => removePushDevice(device) }, "Remove")))) : null,
     h("p", { class: "muted small" }, "Alerts arrive as notifications on your phone or computer — tap one to open the store page. Nothing to set up in .env."),
     h("div", { class: "toolbar" }, action,
-      button("Send a test message", { kind: "small", disabled: !on, onClick: () => sendTest("Push") })));
+      button("Send a test message", { kind: "small", disabled: !on, onClick: () => sendTest("Push") })),
+    here ? null : pushDiagnostics());
+}
+
+/**
+ * "Check this device": what the browser reports about the things push needs (HTTPS, opened as an app, the app
+ * manifest, the service worker, the Push API), so a phone that can't subscribe says why.
+ */
+function pushDiagnostics() {
+  const list = h("dl", { class: "store-facts push-check" }, h("dt", {}, "Checking"), h("dd", { class: "muted" }, "…"));
+  const box = h("details", { class: "push-check-box" }, h("summary", { class: "text-link small" }, "Check this device"), list);
+  box.addEventListener("toggle", async () => {
+    if (!box.open) return;
+    const rows = [];
+    const add = (label, value, ok) => rows.push([label, value, ok]);
+    const mode = ["standalone", "minimal-ui", "fullscreen", "browser"].find((value) => window.matchMedia(`(display-mode: ${value})`).matches) || "unknown";
+    const ios = navigator.userAgent.match(/OS (\d+)[_.](\d+)/);
+    add("Address", location.origin, location.protocol === "https:");
+    add("Opened as", mode === "standalone" ? "Home Screen app" : mode === "browser" ? "browser tab" : `${mode} (not a full app)`, mode === "standalone");
+    if (isAppleMobile()) add("iOS", ios ? `${ios[1]}.${ios[2]}` : "?", ios ? Number(ios[1]) > 16 || (Number(ios[1]) === 16 && Number(ios[2]) >= 4) : null);
+    try {
+      const response = await fetch("/manifest.webmanifest", { credentials: "omit", cache: "no-store", redirect: "manual" });
+      const type = response.headers.get("content-type") || "";
+      let display = "";
+      if (response.ok && type.includes("json")) display = (await response.json()).display || "";
+      add("App manifest", response.ok ? `${response.status} · ${type.split(";")[0] || "?"}${display ? ` · ${display}` : ""}` : `HTTP ${response.status || "redirect"} (blocked?)`,
+        response.ok && type.includes("json") && display === "standalone");
+    } catch (error) {
+      add("App manifest", `can't load (${error.message})`, false);
+    }
+    try {
+      const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : null;
+      add("Service worker", registration ? "registered" : "not registered", Boolean(registration));
+    } catch {
+      add("Service worker", "error", false);
+    }
+    add("Push API", "PushManager" in window ? "yes" : "no", "PushManager" in window);
+    add("Notifications", "Notification" in window ? Notification.permission : "not available", "Notification" in window && Notification.permission !== "denied");
+    list.replaceChildren(...rows.flatMap(([label, value, ok]) => [h("dt", {}, label),
+      h("dd", { class: ok === false ? "amber" : "" }, ok === true ? "✓ " : ok === false ? "✗ " : "", value)]));
+  });
+  return box;
 }
 
 // The service worker asks for a new subscription when the browser rotates it.

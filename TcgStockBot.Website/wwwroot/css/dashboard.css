@@ -2031,3 +2031,7 @@ body { font-size: 15px; }
   .restock-list li { grid-template-columns: minmax(0, 1fr) auto; }
   .restock-list li > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
 }
+.push-check-box summary { cursor: pointer; list-style: none; width: fit-content; }
+.push-check-box summary::-webkit-details-marker { display: none; }
+.push-check { margin-top: 10px; }
+.push-check dd { word-break: break-all; }
