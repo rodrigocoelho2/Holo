@@ -1188,14 +1188,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
-    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    /* Like a native tab bar: the labels sit just above the home indicator instead of a full safe-area gap under it. */
+    padding: 6px 8px max(6px, calc(env(safe-area-inset-bottom) - 14px));
     background: color-mix(in srgb, var(--bg) 92%, transparent);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
   }
   .tabbar a {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    min-height: 56px; border-radius: 12px;
+    min-height: 50px; border-radius: 12px;
     color: var(--text-2); font-size: 12px; font-weight: 500;
   }
   .tabbar a .icon { width: 22px; height: 22px; }
