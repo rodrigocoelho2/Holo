@@ -29,7 +29,10 @@
 .logo { display: inline-flex; align-items: center; gap: 10px; font: 700 22px/1 var(--font-display); letter-spacing: -0.045em; text-transform: lowercase; text-decoration: none; }
 .logo:hover { text-decoration: none; }
 .logo img { width: 34px; height: 34px; border-radius: 10px; }
-.foil-text { background: var(--foil-grad); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: foil-sheen 6s linear infinite; }
+.foil-text { background: var(--foil-grad); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: foil-sheen 6s linear infinite;
+  /* The gradient only paints inside the box, and the tight titles (line-height under 1) make the box shorter than a
+     g or y: extend it down without moving anything, so descenders keep their colour. */
+  padding-bottom: 0.2em; margin-bottom: -0.2em; }
 @keyframes foil-sheen { to { background-position: -200% 0; } }
 
 .btn-f {
