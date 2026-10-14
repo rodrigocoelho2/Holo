@@ -1,12 +1,13 @@
-# Screenshots do Holo
+# Holo screenshots
 
-Esta pasta contém exemplos visuais do Holo (antes TcgStockBot).
+This folder holds full-size screenshots of Holo (formerly TcgStockBot). The README's composed images live in
+[`docs/images`](../images).
 
-## Imagens
+## Images
 
-Tiradas com dados de exemplo (nada real):
+Taken with example data (nothing real):
 
-- `dashboard-radar.png` — Radar: game tabs, new offers, offers, latest moves and stores
+- `dashboard-radar.png` — Deals: game tabs, new offers, offers, latest moves and stores
 - `dashboard-products.png` — Products: the catalogue
 - `dashboard-product.png` — a product page: stores, chart by period and history
 - `dashboard-releases.png` — Releases
@@ -16,28 +17,24 @@ Tiradas com dados de exemplo (nada real):
 - `dashboard-alerts.png` — alerts of the last 14 days
 - `dashboard-stores.png` — stores by area and tier
 - `dashboard-settings.png` — theme, checks, alert channels, daily summary and account
-- `dashboard-about.png`, `dashboard-about-phone.png` — the public page
-- `dashboard-sign-in.png`, `dashboard-sign-in-phone.png`, `dashboard-create-account.png` — sign in and first account
-- `dashboard-phone.png` — Radar on the phone
+- `dashboard-about.png`, `dashboard-about-phone.png` — the landing page
+- `dashboard-sign-in.png`, `dashboard-sign-in-phone.png`, `dashboard-create-account.png` — sign in and the first account
+- `dashboard-phone.png` — Products on the phone
 
-## Como adicionar as imagens:
+## Adding an image
 
-1. Captura a screenshot do dashboard
-2. **Remove informações sensíveis** (URLs internas, IPs, portas específicas, emails, telefones, etc.)
-3. Salva como PNG na pasta com o nome apropriado
-4. Faz commit e push
+1. Take the screenshot of the dashboard.
+2. **Remove anything sensitive** (internal URLs, IPs, specific ports, emails, phone numbers, and so on).
+3. Save it as PNG in this folder with a matching name.
+4. Commit and push.
 
-## Nota de Segurança:
+## Security note
 
-⚠️ **Nunca commites screenshots com:**
-- Emails reais
-- Números de telefone
-- IPs da rede local
-- Nomes de utilizadores
-- Tokens ou API keys
-- Dados pessoais
-- Qualquer informação sensível
-
-Se precisas de borrar partes de uma imagem:
-- Usa ferramentas como Paint, GIMP, ou https://www.pixlr.com/
-- Coloca retângulos pretos ou borra as áreas sensíveis
+⚠️ **Never commit screenshots with:**
+- Real emails
+- Phone numbers
+- Local network IPs
+- User names
+- Tokens or API keys
+- Personal data
+- Anything else sensitive
