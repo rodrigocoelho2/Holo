@@ -1,0 +1,693 @@
+<title>Holo Landing Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/* Layout: mock canvas with the landing page and the sign-in screens, each in a computer frame and phone frames; one markup,
+   container queries switch the layout. Direction "Foil": Holo's near-black with the icon's holographic foil
+   (mint → periwinkle → pink → peach) as the only loud thing; game colours only as small dots. Space Grotesk for display
+   and prices, Instrument Sans for reading. Dark first, light as the app's light mode. */
+:root{
+  --canvas:#050507; --bg:#0B0B0E; --surface:#15151A; --surface-2:#1C1C22; --line:#26262D; --line-2:#33333C;
+  --text:#F4F3EF; --text-2:#A2A1A8; --text-3:#6F6E76;
+  --good:#4FD7A2; --good-soft:rgba(79,215,162,.14); --red:#FF8A7A; --amber:#F5A524; --amber-soft:rgba(245,165,36,.14);
+  --foil:linear-gradient(110deg,#7CF2D6,#8FA8FF 36%,#F49BEA 70%,#FFD58A);
+  --foil-a:#7CF2D6; --foil-b:#8FA8FF; --foil-c:#F49BEA; --foil-d:#FFD58A;
+  --on-foil:#111114;
+  --g-pokemon:#F4C542; --g-onepiece:#F07B6B; --g-riftbound:#3CC8B4; --g-cyberpunk:#FF5FAE; --g-magic:#6AA8F0; --g-lorcana:#A08CFF;
+  --glass:rgba(255,255,255,.06); --glass-line:rgba(255,255,255,.09);
+  --shadow:0 30px 70px -30px rgba(0,0,0,.8);
+  --display:"Space Grotesk","Instrument Sans",system-ui,sans-serif;
+  --font:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --canvas:#E4E2DC; --bg:#F3F2EE; --surface:#FFFFFF; --surface-2:#EFEEE9; --line:#E4E2DC; --line-2:#D8D6CF;
+    --text:#111114; --text-2:#5F5F66; --text-3:#8A8A91; --good:#0F8A5F; --good-soft:#D9F5E8; --red:#D4523F; --amber:#B9770B; --amber-soft:#FBEBD0;
+    --glass:rgba(17,17,20,.04); --glass-line:rgba(17,17,20,.08); --shadow:0 30px 60px -30px rgba(40,40,60,.35);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --canvas:#E4E2DC; --bg:#F3F2EE; --surface:#FFFFFF; --surface-2:#EFEEE9; --line:#E4E2DC; --line-2:#D8D6CF;
+  --text:#111114; --text-2:#5F5F66; --text-3:#8A8A91; --good:#0F8A5F; --good-soft:#D9F5E8; --red:#D4523F; --amber:#B9770B; --amber-soft:#FBEBD0;
+  --glass:rgba(17,17,20,.04); --glass-line:rgba(17,17,20,.08); --shadow:0 30px 60px -30px rgba(40,40,60,.35);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--canvas); color:var(--text); font:15px/1.5 var(--font); padding-inline:16px; padding-block:28px 64px; -webkit-font-smoothing:antialiased}
+button,input{font:inherit; color:inherit}
+button{cursor:pointer}
+.num{font-family:var(--display); font-variant-numeric:tabular-nums}
+
+/* ---------- mock canvas ---------- */
+.canvas{max-width:1320px; margin:0 auto; display:flex; flex-direction:column; gap:44px}
+.intro{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:16px}
+.intro h1{font:700 42px/1 var(--display); margin:0; letter-spacing:-.035em}
+.intro p{margin:10px 0 0; color:var(--text-2); max-width:66ch}
+.switch{display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--surface)}
+.switch button{border:0; background:none; padding:7px 14px; border-radius:999px; font-weight:600; font-size:13px; color:var(--text-2)}
+.switch button[aria-pressed="true"]{background:var(--text); color:var(--bg)}
+.cap{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin-bottom:14px}
+.cap h2{font:700 23px/1.1 var(--display); margin:0; letter-spacing:-.025em}
+.cap p{margin:0; color:var(--text-2)}
+.browser{border-radius:16px; overflow:hidden; background:var(--bg); box-shadow:0 30px 70px -34px rgba(0,0,0,.6); border:1px solid var(--line)}
+.browser .bar{display:flex; align-items:center; gap:7px; padding:11px 14px; background:var(--surface); border-bottom:1px solid var(--line)}
+.browser .bar i{width:11px; height:11px; border-radius:50%; background:var(--line-2)}
+.browser .bar span{margin-left:12px; flex:1; max-width:420px; padding:5px 12px; border-radius:8px; background:var(--surface-2); color:var(--text-2); font-size:12px}
+.phones{display:flex; flex-wrap:wrap; gap:26px; align-items:flex-start}
+.pcol{display:flex; flex-direction:column; gap:10px; max-width:100%}
+.pcol>span{font-size:13px; color:var(--text-2)}
+.phone{width:390px; max-width:100%; height:844px; border-radius:44px; overflow:hidden; background:var(--bg); position:relative; box-shadow:0 30px 60px -28px rgba(0,0,0,.7); border:1px solid var(--line); display:flex; flex-direction:column}
+.pscroll{flex:1; min-height:0; overflow-y:auto; overflow-x:hidden}
+.pscroll::-webkit-scrollbar{display:none}
+.note{color:var(--text-2); font-size:13.5px; max-width:80ch; margin:0}
+
+/* ---------- shared ---------- */
+.logo{display:inline-flex; align-items:center; gap:10px; font:700 21px/1 var(--display); letter-spacing:-.045em; color:var(--text); text-decoration:none; text-transform:lowercase}
+.logo svg{width:34px; height:34px; border-radius:10px}
+.foil-text{background:var(--foil); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:sheen 6s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:14px; padding:13px 20px; font-weight:650; font-size:15px; text-decoration:none; white-space:nowrap; transition:transform .15s, filter .15s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:17px; height:17px}
+.btn.foil{background:var(--foil); background-size:150% 100%; color:var(--on-foil); box-shadow:0 12px 34px -12px rgba(143,168,255,.6); animation:sheen-btn 5s ease-in-out infinite alternate}
+@keyframes sheen-btn{to{background-position:100% 0}}
+.btn.ghost{background:var(--glass); color:var(--text); box-shadow:inset 0 0 0 1px var(--glass-line)}
+.btn.sm{padding:9px 15px; border-radius:11px; font-size:14px}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
+.chip{display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:var(--glass); box-shadow:inset 0 0 0 1px var(--glass-line); font-size:13px; font-weight:550; white-space:nowrap}
+.good{color:var(--good)}
+
+/* ---------- landing ---------- */
+.lp{container-type:inline-size; background:var(--bg); color:var(--text); overflow:hidden; position:relative}
+.lp-hero{position:relative; padding:18px 48px 64px; isolation:isolate; overflow:hidden}
+.aurora{position:absolute; inset:-20% -10% auto; height:120%; z-index:-1; pointer-events:none; filter:blur(70px); opacity:.5}
+.aurora i{position:absolute; border-radius:50%; mix-blend-mode:screen; animation:drift 18s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:46%; height:60%; left:48%; top:5%; background:var(--foil-b); animation-delay:-3s}
+.aurora i:nth-child(2){width:34%; height:50%; left:68%; top:28%; background:var(--foil-c); animation-delay:-8s}
+.aurora i:nth-child(3){width:30%; height:44%; left:40%; top:40%; background:var(--foil-a); animation-delay:-12s}
+.aurora i:nth-child(4){width:24%; height:36%; left:80%; top:0; background:var(--foil-d); opacity:.6}
+@keyframes drift{to{transform:translate(-8%,6%) scale(1.12)}}
+:root[data-theme="light"] .aurora{opacity:.32}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .aurora{opacity:.32} }
+.lp-hero::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.35; background-image:radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px); background-size:22px 22px; mask-image:linear-gradient(180deg, #000, transparent 80%)}
+.lp-nav{display:flex; align-items:center; justify-content:space-between; gap:16px}
+.lp-nav .links{display:flex; gap:26px; font-weight:550; font-size:14px}
+.lp-nav .links a{color:var(--text-2); text-decoration:none}
+.lp-nav .acts{display:flex; gap:10px}
+.lp-main{display:grid; grid-template-columns:1.05fr .95fr; gap:30px; align-items:center; padding-top:56px}
+.lp-copy{display:flex; flex-direction:column; gap:24px}
+.eyebrow{font:600 12px/1 var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--text-2); display:flex; align-items:center; gap:10px}
+.eyebrow .live{width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 0 0 rgba(79,215,162,.6); animation:live 2s infinite}
+@keyframes live{70%{box-shadow:0 0 0 9px rgba(79,215,162,0)}}
+.lp-h1{font:700 clamp(54px, 7.6cqi, 100px)/.92 var(--display); letter-spacing:-.045em; margin:0}
+.lp-h1 span{display:block}
+.lp-lede{font-size:18px; line-height:1.55; color:var(--text-2); max-width:46ch; margin:0}
+.lp-cta{display:flex; flex-wrap:wrap; gap:12px}
+.lp-cta .btn{padding:16px 24px; font-size:16px; border-radius:16px}
+.games{display:flex; flex-wrap:wrap; gap:8px}
+
+/* hero art: a holographic sealed box that tilts, with alerts landing around it */
+.lp-art{position:relative; height:560px; perspective:1100px}
+.box-wrap{position:absolute; left:38%; top:54%; width:290px; height:380px; margin:-205px 0 0 -145px; transform-style:preserve-3d; transition:transform .2s ease-out}
+.box{position:absolute; inset:0; border-radius:26px; overflow:hidden; background:#151A3A; box-shadow:0 50px 90px -30px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.08) inset; transform:translateZ(0)}
+.box .art{position:absolute; inset:0; background:
+  radial-gradient(120% 70% at 50% 110%, #2B3FA8, transparent 60%),
+  radial-gradient(80% 50% at 80% 0%, #3B2A7A, transparent 70%), linear-gradient(160deg, #1A2150, #0E1230)}
+.box .ring{position:absolute; left:50%; top:47%; width:150px; height:150px; margin:-75px 0 0 -75px; border-radius:50%; border:26px solid rgba(255,255,255,.92); box-shadow:0 0 60px rgba(143,168,255,.5)}
+.box .shine{position:absolute; inset:-40%; background:conic-gradient(from var(--a, 200deg), transparent 0 10%, rgba(124,242,214,.45), rgba(143,168,255,.5), rgba(244,155,234,.5), rgba(255,213,138,.45), transparent 50% 100%); mix-blend-mode:color-dodge; opacity:.55; transition:opacity .3s}
+.box .gloss{position:absolute; inset:0; background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 45%, transparent 55%); background-size:250% 100%; animation:gloss 4.5s ease-in-out infinite}
+@keyframes gloss{0%{background-position:150% 0} 60%,100%{background-position:-60% 0}}
+.box .lbl{position:absolute; left:20px; right:20px; bottom:18px; display:flex; flex-direction:column; gap:3px; color:#fff}
+.box .lbl small{font:600 11px/1 var(--display); letter-spacing:.16em; opacity:.75}
+.box .lbl b{font:700 30px/1 var(--display); letter-spacing:-.03em}
+.box .code{position:absolute; left:18px; top:18px; padding:5px 9px; border-radius:8px; background:rgba(0,0,0,.45); color:#fff; font:700 12px/1 var(--display)}
+.box .edge{position:absolute; top:4%; bottom:4%; right:-16px; width:16px; background:linear-gradient(90deg,#0A0D22,#1B2258); transform-origin:left; transform:rotateY(90deg); border-radius:0 6px 6px 0}
+.box-back{position:absolute; width:210px; height:280px; border-radius:22px; background:linear-gradient(160deg,#3A1838,#1B0F22); box-shadow:0 40px 70px -30px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.07); overflow:hidden}
+.box-back::before{content:""; position:absolute; inset:0; background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.15) 48%, transparent 58%)}
+.box-back .code{position:absolute; left:14px; top:14px; padding:4px 8px; border-radius:7px; background:rgba(0,0,0,.45); color:#fff; font:700 11px/1 var(--display)}
+.box-back b{position:absolute; left:16px; bottom:16px; color:#fff; font:700 19px/1.05 var(--display); letter-spacing:-.02em}
+.bb1{left:-2%; top:16%; transform:rotate(-12deg); background:linear-gradient(160deg,#5A2018,#22100C)}
+.bb2{right:4%; bottom:2%; transform:rotate(10deg); background:linear-gradient(160deg,#0F3B37,#08201D)}
+
+.alerts{position:absolute; right:-14px; top:-6px; width:290px; display:flex; flex-direction:column; gap:10px; z-index:3}
+.alert{display:flex; flex-direction:column; gap:3px; padding:12px 14px; border-radius:18px; background:rgba(28,28,34,.78); color:#F4F3EF; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 20px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.08); animation:land .55s cubic-bezier(.16,1,.3,1) both}
+.alert:nth-child(2){opacity:.75; transform:scale(.97)}
+.alert:nth-child(3){opacity:.4; transform:scale(.94)}
+@keyframes land{from{opacity:0; transform:translateY(-18px) scale(.96)}}
+.alert .hd{display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(244,243,239,.6)}
+.alert .hd svg{width:16px; height:16px; border-radius:5px}
+.alert .hd em{margin-left:auto; font-style:normal}
+.alert b{font-size:14px; font-weight:650}
+.alert .ln{font-size:12.5px; color:rgba(244,243,239,.72)}
+.alert .pr{font:700 15px/1.2 var(--display)}
+.alert .pr span{font-size:12px; font-weight:600; margin-left:6px}
+.alert .pr s{font-size:12px; opacity:.6; margin-left:6px; font-weight:500}
+.check{position:absolute; left:2%; bottom:6%; z-index:3; display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; background:rgba(28,28,34,.78); color:#F4F3EF; backdrop-filter:blur(16px); box-shadow:0 20px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.08); font-size:13px}
+.check .live{width:8px; height:8px; border-radius:50%; background:#4FD7A2; animation:live 2s infinite}
+.check b{font-family:var(--display)}
+.tag{position:absolute; z-index:3; right:12%; bottom:20%; padding:10px 14px; border-radius:14px; background:var(--foil); color:var(--on-foil); font:700 16px/1 var(--display); transform:rotate(6deg); box-shadow:0 18px 30px -12px rgba(143,168,255,.6); animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -8px}}
+
+/* ticker */
+.ticker{border-block:1px solid var(--line); background:var(--surface); overflow:hidden; padding:14px 0}
+.ticker .track{display:flex; width:max-content; animation:tick 46s linear infinite}
+.ticker span{display:inline-flex; align-items:center; gap:10px; padding-right:34px; white-space:nowrap; font:600 15px/1 var(--display); color:var(--text-2)}
+.ticker span b{color:var(--text)}
+.ticker span em{font-style:normal; font-size:12.5px; padding:4px 8px; border-radius:7px}
+.ticker .dn{background:var(--good-soft); color:var(--good)}
+.ticker .po{background:var(--amber-soft); color:var(--amber)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* sections */
+.lp-sec{padding:96px 48px 0; display:flex; flex-direction:column; gap:30px; max-width:1336px; margin:0 auto}
+.kick{font:600 12px/1 var(--display); letter-spacing:.14em; text-transform:uppercase; background:var(--foil); -webkit-background-clip:text; background-clip:text; color:transparent; align-self:flex-start}
+.lp-h2{font:700 clamp(34px, 4.6cqi, 58px)/.98 var(--display); letter-spacing:-.04em; margin:8px 0 0; max-width:17ch}
+.lede{color:var(--text-2); font-size:17px; max-width:58ch; margin:12px 0 0}
+.reveal{opacity:1; transform:none}
+.js .reveal{opacity:0; transform:translateY(26px); transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.16,1,.3,1); transition-delay:calc(var(--i,0) * 80ms)}
+.js .reveal.in{opacity:1; transform:none}
+
+/* steps */
+.steps{display:grid; grid-template-columns:repeat(3, 1fr); gap:14px}
+.step{background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:20px; display:flex; flex-direction:column; gap:8px}
+.step .n{font:700 13px/1 var(--display); color:var(--text-3)}
+.step h3{margin:0; font:700 21px/1.1 var(--display); letter-spacing:-.02em}
+.step p{margin:0; color:var(--text-2); font-size:14.5px}
+
+/* the price demo */
+.demo{display:grid; grid-template-columns:.9fr 1.1fr; gap:14px}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:26px; padding:22px; display:flex; flex-direction:column; gap:16px; min-width:0}
+.prod{display:flex; gap:14px; align-items:center}
+.mini-box{width:58px; height:74px; border-radius:12px; background:linear-gradient(160deg,#1A2150,#0E1230); position:relative; overflow:hidden; flex:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.mini-box::before{content:""; position:absolute; left:50%; top:46%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; border:6px solid rgba(255,255,255,.9)}
+.mini-box::after{content:""; position:absolute; inset:0; background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.2) 48%,transparent 60%)}
+.prod b{display:block; font:700 19px/1.15 var(--display); letter-spacing:-.02em}
+.prod span{font-size:13px; color:var(--text-2)}
+.limit{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.limit .big{font:700 58px/.9 var(--display); letter-spacing:-.04em}
+.limit .big small{font-size:22px; letter-spacing:0; color:var(--text-2); margin-right:4px}
+.limit .rule{font-size:13.5px; color:var(--text-2); text-align:right}
+.limit .rule b{color:var(--text); font-family:var(--display)}
+.range{position:relative; height:44px; display:flex; align-items:center}
+.range input{width:100%; appearance:none; -webkit-appearance:none; background:transparent; height:44px; margin:0}
+.range input::-webkit-slider-runnable-track{height:10px; border-radius:5px; background:linear-gradient(90deg, var(--track-fill, #8FA8FF) var(--p, 50%), var(--line-2) var(--p, 50%))}
+.range input::-moz-range-track{height:10px; border-radius:5px; background:var(--line-2)}
+.range input::-moz-range-progress{height:10px; border-radius:5px; background:#8FA8FF}
+.range input::-webkit-slider-thumb{-webkit-appearance:none; width:28px; height:28px; margin-top:-9px; border-radius:50%; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.4), 0 0 0 5px rgba(143,168,255,.35)}
+.range input::-moz-range-thumb{width:28px; height:28px; border:0; border-radius:50%; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.4), 0 0 0 5px rgba(143,168,255,.35)}
+.range input:focus-visible{outline:none}
+.range input:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 6px rgba(143,168,255,.6)}
+.ticks{display:flex; justify-content:space-between; font:600 11.5px/1 var(--display); color:var(--text-3); margin-top:-6px}
+.presets{display:flex; flex-wrap:wrap; gap:8px}
+.presets button{border:0; padding:8px 12px; border-radius:11px; background:var(--glass); box-shadow:inset 0 0 0 1px var(--glass-line); font-size:13px; font-weight:600}
+.presets button[aria-pressed="true"]{background:var(--text); color:var(--bg)}
+.sum{display:flex; align-items:center; gap:12px; padding:14px; border-radius:18px; background:var(--glass); box-shadow:inset 0 0 0 1px var(--glass-line)}
+.sum .count{font:700 36px/1 var(--display); letter-spacing:-.03em; min-width:1.2ch}
+.sum p{margin:0; font-size:14px; color:var(--text-2)}
+.sum p b{color:var(--text)}
+.offers{display:flex; flex-direction:column; gap:6px}
+.offer{display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; padding:11px 14px; border-radius:15px; background:var(--surface-2); transition:background .3s, box-shadow .3s, opacity .3s}
+.offer .st{display:flex; flex-direction:column; min-width:0}
+.offer .st b{font-size:14.5px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.offer .st span{font-size:12px; color:var(--text-3)}
+.offer .p{font:700 17px/1 var(--display); text-align:right}
+.offer .p small{display:block; font-size:11.5px; font-weight:600; margin-top:3px}
+.offer .pill{font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:8px; background:var(--glass); color:var(--text-3); min-width:78px; text-align:center}
+.offer.hit{background:color-mix(in srgb, var(--surface-2) 70%, #8FA8FF 12%); box-shadow:inset 0 0 0 1.5px rgba(143,168,255,.55)}
+.offer.hit .pill{background:var(--foil); color:var(--on-foil)}
+.offer.out{opacity:.55}
+.preview{margin-top:auto}
+.preview .alert{position:relative; animation:none}
+.preview .alert.pop{animation:land .5s cubic-bezier(.16,1,.3,1) both}
+
+/* bento */
+.bento{display:grid; grid-template-columns:repeat(6, 1fr); gap:14px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:28px; padding:24px; display:flex; flex-direction:column; gap:12px; position:relative; overflow:hidden; min-height:270px}
+.tile h3{margin:0; font:700 24px/1.05 var(--display); letter-spacing:-.03em}
+.tile p{margin:0; font-size:14.5px; color:var(--text-2); max-width:40ch}
+.t-cat{grid-column:span 4}
+.t-low{grid-column:span 2}
+.t-rel{grid-column:span 2}
+.t-alr{grid-column:span 2}
+.t-sto{grid-column:span 2}
+.t-fair{grid-column:span 6; min-height:0; display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:22px; align-items:center}
+.cards{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:auto}
+.pc{background:var(--surface-2); border-radius:16px; overflow:hidden; display:flex; flex-direction:column}
+.pc .img{height:84px; position:relative; background:linear-gradient(160deg,var(--c1),var(--c2))}
+.pc .img::before{content:""; position:absolute; left:50%; top:52%; width:34px; height:34px; margin:-17px 0 0 -17px; border-radius:50%; border:7px solid rgba(255,255,255,.9)}
+.pc .img em{position:absolute; left:8px; top:8px; font:700 10.5px/1 var(--display); font-style:normal; padding:4px 6px; border-radius:6px; background:rgba(0,0,0,.45); color:#fff}
+.pc .bd{padding:10px; display:flex; flex-direction:column; gap:4px}
+.pc b{font:700 14px/1.1 var(--display)}
+.pc small{font-size:11px; color:var(--text-3)}
+.pc .pr{display:flex; justify-content:space-between; align-items:center; font:700 15px/1 var(--display)}
+.pc .pr span{font-size:10.5px; font-weight:700; padding:3px 6px; border-radius:6px; background:var(--good-soft); color:var(--good)}
+.pc .bars{display:flex; gap:3px}
+.pc .bars i{flex:1; height:4px; border-radius:2px; background:var(--line-2)}
+.pc .bars i.on{background:var(--good)}
+.chart{margin-top:auto; position:relative}
+.chart svg{width:100%; height:120px; display:block}
+.low-badge{position:absolute; right:6px; top:-6px; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:8px; background:var(--good-soft); color:var(--good)}
+.cal{margin-top:auto; display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; text-align:center; font:600 11.5px/1 var(--display); color:var(--text-3)}
+.cal span{aspect-ratio:1; display:grid; place-items:center; border-radius:9px; background:var(--surface-2); color:var(--text-2); position:relative}
+.cal span.h{color:var(--text-3); background:none}
+.cal span.out{background:var(--foil); color:var(--on-foil); font-weight:700}
+.cal span.pre::after{content:""; position:absolute; bottom:4px; width:5px; height:5px; border-radius:50%; background:var(--amber)}
+.legend{display:flex; gap:12px; font-size:12px; color:var(--text-2)}
+.legend i{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px}
+.chans{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:auto}
+.chans span{display:flex; align-items:center; gap:9px; padding:11px 12px; border-radius:14px; background:var(--surface-2); font-size:13.5px; font-weight:600}
+.chans svg{width:18px; height:18px}
+.stores{margin-top:auto; display:flex; flex-direction:column; gap:8px}
+.area{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; background:var(--surface-2); font-size:13.5px}
+.area b{font-family:var(--display); font-size:15px; min-width:28px}
+.area .health{margin-left:auto; display:flex; gap:3px}
+.area .health i{width:7px; height:16px; border-radius:3px; background:var(--good)}
+.area .health i.w{background:var(--amber)}
+.fair{display:flex; gap:12px; align-items:flex-start}
+.fair .ic{width:40px; height:40px; border-radius:13px; display:grid; place-items:center; background:var(--glass); box-shadow:inset 0 0 0 1px var(--glass-line); flex:none}
+.fair .ic svg{width:20px; height:20px}
+.fair b{display:block; font-weight:650}
+.fair span{font-size:13.5px; color:var(--text-2)}
+
+/* final */
+.lp-final{margin:96px 48px 0; border-radius:34px; padding:2px; background:var(--foil); background-size:200% 100%; animation:sheen 8s linear infinite}
+.lp-final>div{border-radius:32px; background:var(--bg); padding:56px; display:grid; grid-template-columns:1.3fr 1fr; gap:30px; align-items:center; position:relative; overflow:hidden; isolation:isolate}
+.lp-final>div::before{content:""; position:absolute; right:-120px; top:-140px; width:440px; height:440px; border-radius:50%; background:conic-gradient(from 90deg, #7CF2D6, #8FA8FF, #F49BEA, #FFD58A, #7CF2D6); filter:blur(80px); opacity:.35; z-index:-1}
+.lp-final h2{font:700 clamp(38px, 5.2cqi, 70px)/.95 var(--display); letter-spacing:-.045em; margin:0}
+.lp-final p{color:var(--text-2); font-size:17px; margin:14px 0 0; max-width:44ch}
+.lp-final .acts{display:flex; flex-direction:column; gap:12px; align-items:flex-start}
+.lp-final .acts small{color:var(--text-3); font-size:13px}
+.lp-foot{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:34px 48px 40px; color:var(--text-3); font-size:13px; max-width:1336px; margin:0 auto}
+.lp-foot span{display:inline-flex; align-items:center; gap:8px}
+.lp-foot svg{width:18px; height:18px; border-radius:5px}
+
+@container (max-width: 760px){
+  .lp-hero{padding:14px 20px 40px}
+  .lp-nav .links{display:none}
+  .lp-nav .acts .ghost{display:none}
+  .lp-main{grid-template-columns:1fr; padding-top:30px; gap:6px}
+  .lp-copy{gap:20px}
+  .lp-h1{font-size:clamp(48px, 15cqi, 66px)}
+  .lp-lede{font-size:16px}
+  .lp-cta .btn{flex:1}
+  .lp-art{height:470px; margin:0 -20px}
+  .box-wrap{width:220px; height:290px; margin:-150px 0 0 -110px; top:60%; left:50%}
+  .box .ring{width:110px; height:110px; margin:-55px 0 0 -55px; border-width:20px}
+  .box .lbl b{font-size:23px}
+  .box-back{width:150px; height:200px}
+  .alerts{width:250px; right:12px; top:4px}
+  .alert:nth-child(n+2){display:none}
+  .bb1{left:2%; top:30%}
+  .bb2{right:2%; bottom:4%}
+  .check{left:12px; bottom:2%}
+  .tag{right:8%; bottom:14%}
+  .ticker span{font-size:13.5px}
+  .lp-sec{padding:64px 20px 0; gap:22px}
+  .steps{grid-template-columns:1fr}
+  .demo{grid-template-columns:1fr}
+  .limit .big{font-size:48px}
+  .bento{grid-template-columns:1fr}
+  .tile{grid-column:auto !important; min-height:230px; padding:20px}
+  .cards{grid-template-columns:repeat(2, 1fr)}
+  .t-fair{grid-template-columns:1fr; gap:16px}
+  .lp-final{margin:64px 20px 0; border-radius:30px}
+  .lp-final>div{padding:32px 24px; grid-template-columns:1fr; border-radius:28px}
+  .lp-final .acts{align-items:stretch}
+  .lp-foot{padding:28px 20px 34px}
+}
+
+/* ---------- sign in ---------- */
+.au{container-type:inline-size; background:var(--bg); color:var(--text); min-height:100%}
+.au-wrap{display:grid; grid-template-columns:1fr 1fr; min-height:760px}
+.au-side{position:relative; padding:34px 44px; display:flex; flex-direction:column; gap:26px; overflow:hidden; isolation:isolate; border-right:1px solid var(--line)}
+.au-side .aurora{inset:-30% -30% auto; opacity:.42}
+.au-side h2{font:700 clamp(40px, 4.4cqi, 60px)/.95 var(--display); letter-spacing:-.045em; margin:auto 0 0}
+.au-side p{margin:0; color:var(--text-2); font-size:16px; max-width:40ch}
+.au-stack{display:flex; flex-direction:column; gap:10px; max-width:360px}
+.au-stack .alert:nth-child(2){margin-left:24px}
+.au-stack .alert:nth-child(3){margin-left:10px}
+.au-side .check{position:static; align-self:flex-start}
+.au-main{position:relative; z-index:1; display:flex; align-items:center; justify-content:center; padding:40px}
+.au-form{width:100%; max-width:400px; display:flex; flex-direction:column; gap:18px}
+.au-form h1{font:700 38px/1 var(--display); letter-spacing:-.04em; margin:0}
+.au-form .lead2{color:var(--text-2); margin:6px 0 0}
+.seg{display:grid; grid-template-columns:1fr 1fr; background:var(--surface); border-radius:15px; padding:4px; box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{border:0; background:none; border-radius:11px; padding:10px; font-weight:650; font-size:14px; color:var(--text-2)}
+.seg button[aria-selected="true"]{background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--line-2)}
+.fld{display:flex; flex-direction:column; gap:7px; font-weight:600; font-size:13.5px}
+.fld .in{display:flex; align-items:center; background:var(--surface); border-radius:15px; box-shadow:inset 0 0 0 1.5px var(--line); transition:box-shadow .15s}
+.fld .in:focus-within{box-shadow:inset 0 0 0 2px #8FA8FF, 0 0 0 4px rgba(143,168,255,.18)}
+.fld .in svg.li{width:19px; height:19px; margin-left:14px; color:var(--text-3); flex:none}
+.fld input{flex:1; min-width:0; border:0; background:none; outline:none; padding:15px 14px; font-size:16px; font-weight:500}
+.fld .eye{border:0; background:none; padding:0 14px; color:var(--text-2); display:grid; place-items:center}
+.fld .eye svg{width:19px; height:19px}
+.fld small{font-weight:500; color:var(--text-3); font-size:12.5px}
+.fld small code{font-family:ui-monospace,Menlo,monospace; font-size:12px; padding:1px 5px; border-radius:5px; background:var(--surface-2); color:var(--text-2)}
+.chk{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text-2)}
+.chk i{width:22px; height:22px; border-radius:7px; background:var(--foil); display:grid; place-items:center; color:var(--on-foil)}
+.chk i svg{width:12px; height:12px}
+.chk small{color:var(--text-3)}
+.au-form .btn.foil{padding:16px; font-size:16px; border-radius:16px}
+.fine{font-size:13px; color:var(--text-3); text-align:center; margin:0}
+.fine a{color:var(--text); font-weight:600; text-decoration:none}
+.first{display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:15px; background:var(--amber-soft); color:var(--amber); font-size:13px; font-weight:600}
+.first svg{width:18px; height:18px; flex:none; margin-top:1px}
+.phone-chips{display:none; gap:8px; flex-wrap:wrap}
+@container (max-width: 760px){
+  .au-wrap{grid-template-columns:1fr; grid-template-rows:auto 1fr; min-height:100%}
+  .au-side{padding:18px 20px 64px; gap:16px; flex-shrink:0; border-right:0}
+  .au-side h2{font-size:clamp(34px, 10.5cqi, 44px); margin:8px 0 0}
+  .au-side p{font-size:14.5px}
+  .au-stack, .au-side .desk-only{display:none}
+  .phone-chips{display:flex}
+  .au-main{padding:0 0 24px; align-items:flex-start}
+  .au-form{background:var(--bg); margin-top:-44px; border-radius:30px 30px 0 0; padding:24px 20px 0; gap:16px; max-width:none; box-shadow:0 -1px 0 var(--line)}
+  .au-form h1{font-size:30px}
+}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+</style>
+
+<div class="canvas">
+  <header class="intro">
+    <div>
+      <h1>Holo · Welcome</h1>
+      <p>A new front door for Holo, in the same spirit as Milo's: the landing page and sign-in on a computer and a phone. Move the mouse over the box, and in "Set your price" drag the slider to see which stores would ping you. Prices and store names are examples.</p>
+    </div>
+    <div class="switch" role="group" aria-label="Theme">
+      <button type="button" data-t="dark" aria-pressed="true">Dark</button>
+      <button type="button" data-t="light" aria-pressed="false">Light</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="h1a">
+    <div class="cap"><h2 id="h1a">Landing · computer</h2><p>A holographic box that follows the mouse, alerts landing beside it, and the next check counting down.</p></div>
+    <div class="browser"><div class="bar"><i></i><i></i><i></i><span>holo.example.com</span></div><div data-landing></div></div>
+  </section>
+
+  <section aria-labelledby="h1b">
+    <div class="cap"><h2 id="h1b">Landing · phone</h2><p>Same page, stacked. The second and third phones start scrolled down.</p></div>
+    <div class="phones">
+      <div class="pcol"><div class="phone"><div class="pscroll" data-landing></div></div><span>Top of the page</span></div>
+      <div class="pcol"><div class="phone"><div class="pscroll" data-landing data-scroll="how"></div></div><span>Set your price: drag the slider</span></div>
+      <div class="pcol"><div class="phone"><div class="pscroll" data-landing data-scroll="features"></div></div><span>Features</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h2a">
+    <div class="cap"><h2 id="h2a">Sign in · computer</h2><p>The tabs switch between Sign in and Create account.</p></div>
+    <div class="browser"><div class="bar"><i></i><i></i><i></i><span>holo.example.com/sign-in</span></div><div data-auth="signin" style="height:760px"></div></div>
+  </section>
+
+  <section aria-labelledby="h2b">
+    <div class="cap"><h2 id="h2b">Sign in · phone</h2><p>Foil header, the form slides up over it.</p></div>
+    <div class="phones">
+      <div class="pcol"><div class="phone"><div class="pscroll" data-auth="signin"></div></div><span>Sign in</span></div>
+      <div class="pcol"><div class="phone"><div class="pscroll" data-auth="signup"></div></div><span>Create account</span></div>
+      <div class="pcol"><div class="phone"><div class="pscroll" data-auth="first"></div></div><span>Set up Holo: the first account, with the setup key</span></div>
+    </div>
+  </section>
+
+  <p class="note">Everything the real pages say stays true: sign-in only (no public sign-up unless it's turned on), the setup key for the first account, "keep me signed in", and the note that Holo only uses what stores make public.</p>
+</div>
+
+<script>
+'use strict';
+(() => {
+  document.documentElement.classList.add('js');
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  let seq = 0;
+  const logo = () => { const id = 'f' + (++seq); return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7CF2D6"/><stop offset=".35" stop-color="#8FA8FF"/><stop offset=".7" stop-color="#F49BEA"/><stop offset="1" stop-color="#FFD58A"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="#111114"/><g transform="rotate(-10 32 32)"><rect x="19" y="12" width="26" height="40" rx="5" fill="url(#${id})"/></g><path d="M32 23.5l2.3 6.2 6.2 2.3-6.2 2.3-2.3 6.2-2.3-6.2-6.2-2.3 6.2-2.3z" fill="#fff"/></svg>`; };
+  const brand = () => `<a class="logo" href="#" onclick="return false">${logo()}holo</a>`;
+  const I = {
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c.3 2.2 2.3 4.3 4.5 4.8l1.3-1.2 1.7.8-.4 1.6c-3.6.4-7.5-3.3-7.2-7l1.6-.4.8 1.7z" fill="#25D366" stroke="none"/></svg>',
+    tg: '<svg viewBox="0 0 24 24" fill="none" stroke="#2AABEE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4 3 11l6 2 2 6 3-4 5 4z"/><path d="m9 13 8-6"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="7" rx="2.5"/><rect x="3.5" y="13" width="17" height="7" rx="2.5"/><path d="M7.5 7.5h.01M7.5 16.5h.01"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>',
+    key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2 2M14 9l2 2"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>',
+  };
+  const GAMES = [['Pokémon', 'var(--g-pokemon)'], ['One Piece', 'var(--g-onepiece)'], ['Riftbound', 'var(--g-riftbound)'], ['Cyberpunk', 'var(--g-cyberpunk)'], ['Magic', 'var(--g-magic)'], ['Lorcana…', 'var(--g-lorcana)']];
+  const ALERTS = [
+    { t: 'now', b: '🟢 In stock at your price', l: 'Pitch Black · Elite Trainer Box · Porto TCG', p: '€52.90', s: '<span class="good">−12% vs MSRP</span>' },
+    { t: '4 min ago', b: '🔻 Price drop', l: 'OP-13 · Booster Box · Madrid Games', p: '€119.90', s: '<s>€134.90</s>' },
+    { t: '1 h ago', b: '🕒 Pre-orders open', l: 'Mega Evolution 6 · Booster Display · out 21 Nov', p: '', s: '' },
+    { t: '2 h ago', b: '🔁 Back in stock', l: 'Riftbound · Origins Display · Lisbon Cards', p: '€104.90', s: '<span class="good">at MSRP</span>' },
+    { t: 'yesterday', b: '🟢 In stock at your price', l: 'Chaos Rising · Booster Bundle · Valencia Hobby', p: '€28.50', s: '<span class="good">−5% vs MSRP</span>' },
+  ];
+  const alertHTML = a => `<div class="alert"><div class="hd">${logo()}HOLO<em>${a.t}</em></div><b>${a.b}</b><span class="ln">${a.l}</span>${a.p ? `<span class="pr">${a.p}${a.s}</span>` : ''}</div>`;
+  const TICK = [
+    ['var(--g-pokemon)', '<b>Pitch Black ETB</b> €52.90', '<em class="dn">−12%</em>'],
+    ['var(--g-onepiece)', '<b>OP-13 Booster Box</b> €119.90', '<em class="dn">−11%</em>'],
+    ['var(--g-pokemon)', '<b>Mega Evolution 6</b> pre-orders', '<em class="po">21 Nov</em>'],
+    ['var(--g-riftbound)', '<b>Origins Display</b> €104.90', '<em class="dn">in stock</em>'],
+    ['var(--g-magic)', '<b>Avatar Collector Box</b> €239.00', '<em class="dn">−6%</em>'],
+    ['var(--g-cyberpunk)', '<b>Cyberpunk Starter</b> €17.90', '<em class="dn">restock</em>'],
+    ['var(--g-pokemon)', '<b>Chaos Rising Bundle</b> €28.50', '<em class="dn">−5%</em>'],
+  ];
+
+  /* ---------------- landing ---------------- */
+  const MSRP = 59.99;
+  const OFFERS = [
+    { s: 'Porto TCG', a: 'PT · shipping €3.90', p: 52.90, st: 'in' },
+    { s: 'Lisbon Cards', a: 'PT · free shipping', p: 54.99, st: 'in' },
+    { s: 'Madrid Games', a: 'ES · shipping €4.95', p: 56.50, st: 'in' },
+    { s: 'Online PT', a: 'PT · free shipping', p: 57.90, st: 'out' },
+    { s: 'Valencia Hobby', a: 'ES · shipping €5.50', p: 61.95, st: 'in' },
+    { s: 'Braga Collect', a: 'PT · shipping €3.50', p: 64.90, st: 'in' },
+    { s: 'Sevilla Cartas', a: 'ES · pre-order', p: 69.00, st: 'pre' },
+  ];
+
+  function landing(root) {
+    const tick = TICK.map(([c, a, b]) => `<span><i class="dot" style="background:${c}"></i>${a}${b}</span>`).join('');
+    root.innerHTML = `<div class="lp">
+      <section class="lp-hero">
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <nav class="lp-nav">${brand()}
+          <div class="links"><a href="#">How it works</a><a href="#">Features</a><a href="#">Self-hosted</a></div>
+          <div class="acts"><a class="btn ghost sm" href="#">What's new</a><a class="btn foil sm" href="#">Sign in</a></div>
+        </nav>
+        <div class="lp-main">
+          <div class="lp-copy">
+            <span class="eyebrow"><i class="live"></i>Sealed TCG monitor · Portugal &amp; Spain</span>
+            <h1 class="lp-h1"><span>Catch it</span><span>before it's</span><span class="foil-text">gone.</span></h1>
+            <p class="lp-lede">Holo checks Portuguese and Spanish stores every few minutes for the sealed product you want, and pings your phone the moment it's in stock at your price.</p>
+            <div class="lp-cta"><a class="btn foil" href="#">Sign in ${I.arrow}</a><a class="btn ghost" href="#">How it works ${I.down}</a></div>
+            <div class="games">${GAMES.map(([g, c]) => `<span class="chip"><i class="dot" style="background:${c}"></i>${g}</span>`).join('')}</div>
+          </div>
+          <div class="lp-art" aria-hidden="true">
+            <div class="box-back bb1"><span class="code">OP-13</span><b>Booster<br>Box</b></div>
+            <div class="box-back bb2"><span class="code">RB01</span><b>Origins<br>Display</b></div>
+            <div class="box-wrap" data-tilt><div class="box"><div class="art"></div><div class="ring"></div><span class="code">ME05</span><div class="shine"></div><div class="gloss"></div>
+              <div class="lbl"><small>ELITE TRAINER BOX</small><b>Pitch Black</b></div></div></div>
+            <div class="alerts" data-alerts></div>
+            <div class="check"><i class="live"></i>Next check in <b class="num" data-count>01:41</b></div>
+            <div class="tag">−12% vs MSRP</div>
+          </div>
+        </div>
+      </section>
+      <div class="ticker" aria-hidden="true"><div class="track">${tick}${tick}</div></div>
+
+      <section class="lp-sec" data-sec="how">
+        <div class="reveal"><div class="kick">How it works</div><h2 class="lp-h2">Pick it. Price it. Get pinged.</h2>
+          <p class="lede">Tell Holo what you're after and what it's worth to you. It searches every store, checks again every few minutes, and only bothers you when it matters.</p></div>
+        <div class="steps">
+          <div class="step reveal"><span class="n">1</span><h3>Pick the product</h3><p>A set or a single product. Holo searches every store at once and shows what it found.</p></div>
+          <div class="step reveal" style="--i:1"><span class="n">2</span><h3>Set your price</h3><p>MSRP plus a margin, or a fixed maximum. Each type gets its own limit: an ETB, a bundle, a display.</p></div>
+          <div class="step reveal" style="--i:2"><span class="n">3</span><h3>Get the alert</h3><p>Push, WhatsApp, Telegram or email, with the price, the store and a link straight to it.</p></div>
+        </div>
+        <div class="demo reveal">
+          <div class="panel">
+            <div class="prod"><span class="mini-box"></span><div><b>Pitch Black · Elite Trainer Box</b><span><i class="dot" style="background:var(--g-pokemon)"></i> Pokémon · ME05 · MSRP <span class="num">€59.99</span></span></div></div>
+            <div class="limit"><div><div style="font-size:13px;color:var(--text-2);font-weight:600;margin-bottom:6px">Alert me up to</div><div class="big num" data-limit><small>€</small>59.99</div></div>
+              <div class="rule" data-rule>MSRP <b>+0%</b><br>shipping included</div></div>
+            <div><div class="range"><input type="range" min="-15" max="20" step="1" value="0" aria-label="Margin over MSRP" data-margin></div>
+              <div class="ticks"><span>−15%</span><span>MSRP</span><span>+20%</span></div></div>
+            <div class="presets" data-presets><button type="button" data-m="-10">Bargain · −10%</button><button type="button" data-m="0" aria-pressed="true">At MSRP</button><button type="button" data-m="10">MSRP +10%</button></div>
+            <div class="sum"><span class="count num" data-hits>3</span><p data-sumtext><b>stores at your price right now.</b> Holo would ping you for the cheapest first.</p></div>
+            <div class="preview" data-preview></div>
+          </div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b style="font:700 18px/1 var(--display)">7 stores, cheapest first</b><span class="chip" style="font-size:12px"><i class="dot" style="background:var(--good)"></i>checked 2 min ago</span></div>
+            <div class="offers" data-offers></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-sec" data-sec="features">
+        <div class="reveal"><div class="kick">Features</div><h2 class="lp-h2">Every store. Every set. One place.</h2></div>
+        <div class="bento">
+          <div class="tile t-cat reveal"><h3>The whole catalogue</h3><p>Pick a game and a format and see it across every set, newest first: the cheapest price, how it compares to MSRP and how many stores have it.</p>
+            <div class="cards">${[['ME05', 'Pitch Black', 'Elite Trainer Box', '54.99', '−8%', 4, '#1A2150', '#0E1230'], ['OP13', 'OP-13', 'Booster Box', '119.90', '−11%', 3, '#5A2018', '#22100C'], ['RB01', 'Origins', 'Booster Display', '104.90', 'MSRP', 5, '#0F3B37', '#08201D'], ['ME04', 'Chaos Rising', 'Booster Bundle', '28.50', '−5%', 2, '#3A1838', '#1B0F22']]
+              .map(([c, n, f, p, d, on, c1, c2]) => `<div class="pc"><div class="img" style="--c1:${c1};--c2:${c2}"><em>${c}</em></div><div class="bd"><b>${n}</b><small>${f}</small><div class="pr num">€${p}<span>${d}</span></div><div class="bars">${[0, 1, 2, 3, 4].map(k => `<i class="${k < on ? 'on' : ''}"></i>`).join('')}</div></div></div>`).join('')}</div></div>
+          <div class="tile t-low reveal" style="--i:1"><h3>Lowest price ever</h3><p>A price chart from 7 days to a year, and a badge when today beats them all.</p>
+            <div class="chart"><span class="low-badge">Lowest price ever</span><svg viewBox="0 0 300 120" preserveAspectRatio="none" data-chart></svg></div></div>
+          <div class="tile t-rel reveal"><h3>Releases</h3><p>Upcoming sets, when pre-orders open, and what's already in the stores.</p>
+            <div class="cal">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<span class="h">${d}</span>`).join('')}${Array.from({ length: 21 }, (_, k) => { const d = k + 10; const cls = d === 21 ? 'out' : [12, 14, 26].includes(d) ? 'pre' : ''; return `<span class="${cls}">${d}</span>`; }).join('')}</div>
+            <div class="legend"><span><i style="background:var(--amber)"></i>pre-orders open</span><span><i style="background:#8FA8FF"></i>out</span></div></div>
+          <div class="tile t-alr reveal" style="--i:1"><h3>Alerts where you are</h3><p>Once per product while it stays in stock, again if the price drops. A daily summary if you like.</p>
+            <div class="chans"><span>${I.bell}Push</span><span>${I.wa}WhatsApp</span><span>${I.tg}Telegram</span><span>${I.mail}Email</span></div></div>
+          <div class="tile t-sto reveal" style="--i:2"><h3>Stores in PT and ES</h3><p>Grouped by area and tier, with how each search went on the last check.</p>
+            <div class="stores"><div class="area"><b>PT</b>8 stores<span class="health">${'<i></i>'.repeat(7)}<i class="w"></i></span></div><div class="area"><b>ES</b>5 stores<span class="health">${'<i></i>'.repeat(5)}</span></div></div></div>
+          <div class="tile t-fair reveal">
+            <h3>Plays fair, runs at home.</h3>
+            <div class="fair"><span class="ic">${I.shield}</span><div><b>Only what's public</b><span>Public search, official APIs and feeds. Never gets around protections.</span></div></div>
+            <div class="fair"><span class="ic">${I.clock}</span><div><b>Gentle on stores</b><span>Pauses between requests and per-site limits.</span></div></div>
+            <div class="fair"><span class="ic">${I.server}</span><div><b>Your server</b><span>Runs on your NAS; your watches and alerts stay there.</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-final reveal"><div>
+        <div><h2>The next restock won't wait for you.</h2><p>Sign in, add what you're hunting for, and let Holo keep watch while you get on with your day.</p></div>
+        <div class="acts"><a class="btn foil" href="#">Sign in ${I.arrow}</a><small>Install it from the browser menu: Add to Home Screen.</small></div>
+      </div></section>
+      <footer class="lp-foot"><span>${logo()}Holo 3.4</span><span>A private bot: your data stays on your own server.</span></footer>
+    </div>`;
+
+    // Tilt the box with the pointer (and drift on its own when idle).
+    const wrap = root.querySelector('[data-tilt]');
+    const art = root.querySelector('.lp-art');
+    const shine = wrap.querySelector('.shine');
+    let idle = true, t0 = performance.now();
+    const set = (rx, ry) => { wrap.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`; shine.style.setProperty('--a', `${200 + ry * 6 + rx * 3}deg`); };
+    art.addEventListener('pointermove', e => {
+      idle = false;
+      const r = art.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      set(-y * 18, x * 22);
+    });
+    art.addEventListener('pointerleave', () => { idle = true; t0 = performance.now(); });
+    (function drift(now) {
+      if (!root.isConnected) return;
+      if (idle) { const k = (now - t0) / 1000; set(Math.sin(k * .7) * 6 - 2, Math.cos(k * .5) * 10 - 8); }
+      requestAnimationFrame(drift);
+    })(performance.now());
+
+    // Alerts land one after another.
+    const box = root.querySelector('[data-alerts]');
+    let n = 0;
+    const show = () => {
+      const list = [0, 1, 2].map(k => ALERTS[(n - k + ALERTS.length * 10) % ALERTS.length]);
+      list[0] = Object.assign({}, list[0], { t: 'now' });
+      box.innerHTML = list.map(alertHTML).join('');
+      n++;
+    };
+    show();
+    setInterval(() => { if (root.isConnected) show(); }, 3400);
+
+    // Next check counts down.
+    const cnt = root.querySelector('[data-count]');
+    let sec = 101;
+    setInterval(() => { sec = sec <= 0 ? 180 : sec - 1; cnt.textContent = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; }, 1000);
+
+    // Set your price.
+    const range = root.querySelector('[data-margin]');
+    const paint = () => {
+      const m = Number(range.value);
+      const limit = Math.round(MSRP * (1 + m / 100) * 100) / 100;
+      range.style.setProperty('--p', `${(m + 15) / 35 * 100}%`);
+      root.querySelector('[data-limit]').innerHTML = `<small>€</small>${limit.toFixed(2)}`;
+      root.querySelector('[data-rule]').innerHTML = `MSRP <b>${m > 0 ? '+' : m < 0 ? '−' : '+'}${Math.abs(m)}%</b><br>shipping included`;
+      root.querySelectorAll('[data-presets] button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.m) === m)));
+      const hits = OFFERS.filter(o => o.st === 'in' && o.p <= limit);
+      root.querySelector('[data-hits]').textContent = hits.length;
+      root.querySelector('[data-sumtext]').innerHTML = hits.length
+        ? `<b>${hits.length === 1 ? 'store' : 'stores'} at your price right now.</b> Holo would ping you for the cheapest first.`
+        : `<b>stores at your price right now.</b> Holo keeps watching and pings you when one gets there.`;
+      root.querySelector('[data-offers]').innerHTML = OFFERS.map(o => {
+        const hit = o.st === 'in' && o.p <= limit;
+        const pct = Math.round((o.p / MSRP - 1) * 100);
+        const pill = hit ? 'Alert' : o.st === 'out' ? 'Sold out' : o.st === 'pre' ? 'Pre-order' : 'Above';
+        return `<div class="offer${hit ? ' hit' : ''}${o.st === 'out' ? ' out' : ''}"><div class="st"><b>${o.s}</b><span>${o.a}</span></div><div class="p num">€${o.p.toFixed(2)}<small class="${pct <= 0 ? 'good' : ''}" style="${pct > 0 ? 'color:var(--text-3)' : ''}">${pct === 0 ? 'MSRP' : (pct > 0 ? '+' : '−') + Math.abs(pct) + '%'}</small></div><span class="pill">${pill}</span></div>`;
+      }).join('');
+      const best = hits[0];
+      const prev = root.querySelector('[data-preview]');
+      const html = best ? alertHTML({ t: 'now', b: '🟢 In stock at your price', l: `Pitch Black · Elite Trainer Box · ${best.s}`, p: `€${best.p.toFixed(2)}`, s: `<span class="good">−${Math.round((1 - best.p / MSRP) * 100)}% vs MSRP</span>` })
+        : alertHTML({ t: 'waiting', b: '⏳ Watching 7 stores', l: 'Nothing at your price yet · next check in a few minutes', p: '', s: '' });
+      if (prev.dataset.last !== html) { prev.innerHTML = html; prev.firstElementChild.classList.add('pop'); prev.dataset.last = html; }
+    };
+    range.addEventListener('input', paint);
+    root.querySelectorAll('[data-presets] button').forEach(b => b.addEventListener('click', () => { range.value = b.dataset.m; paint(); }));
+    paint();
+
+    // The price chart, with its lowest point today.
+    const pts = [64.9, 63.5, 64.9, 62.0, 61.5, 62.9, 60.9, 59.99, 61.2, 58.9, 57.5, 58.4, 56.9, 55.5, 54.99, 52.9];
+    const lo = 50, hi = 66, W = 300, H = 120;
+    const xy = pts.map((v, k) => [6 + k * (W - 12) / (pts.length - 1), 8 + (hi - v) / (hi - lo) * (H - 16)]);
+    const d = xy.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+    const last = xy.at(-1);
+    const msrpY = 8 + (hi - MSRP) / (hi - lo) * (H - 16);
+    root.querySelector('[data-chart]').innerHTML = `<defs><linearGradient id="lg${seq}" x1="0" x2="1"><stop offset="0" stop-color="#7CF2D6"/><stop offset=".5" stop-color="#8FA8FF"/><stop offset="1" stop-color="#F49BEA"/></linearGradient></defs>
+      <line x1="0" x2="${W}" y1="${msrpY}" y2="${msrpY}" stroke="currentColor" stroke-opacity=".25" stroke-dasharray="4 5" vector-effect="non-scaling-stroke"/>
+      <path d="${d} L${last[0]} ${H} L6 ${H}Z" fill="url(#lg${seq})" opacity=".14"/>
+      <path d="${d}" fill="none" stroke="url(#lg${seq})" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="#4FD7A2"/>`;
+
+    // Reveal on scroll inside whichever box scrolls (the phone frames scroll on their own).
+    const scroller = root.closest('.pscroll');
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { root: scroller || null, threshold: .12 });
+    root.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  }
+
+  /* ---------------- sign in ---------------- */
+  function auth(root, mode) {
+    const signup = mode === 'signup', first = mode === 'first';
+    root.innerHTML = `<div class="au"><div class="au-wrap">
+      <aside class="au-side">
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        ${brand()}
+        <h2>${first ? 'Set up <span class="foil-text">your Holo.</span>' : signup ? 'Start <span class="foil-text">hunting.</span>' : 'Welcome back. <span class="foil-text">Something\'s in stock.</span>'}</h2>
+        <p>${first ? 'Create the first account. It becomes the admin and can add everyone else.' : signup ? 'Pick what you want, set your price, and let Holo watch the stores.' : 'While you were away, Holo found three offers at your price.'}</p>
+        <div class="phone-chips">${first ? '<span class="chip">First account · admin</span>' : '<span class="chip"><i class="dot" style="background:var(--good)"></i>3 at your price</span><span class="chip">Next check 01:41</span>'}</div>
+        <div class="au-stack">${ALERTS.slice(0, 3).map(alertHTML).join('')}</div>
+        <div class="check desk-only"><i class="live"></i>Next check in <b class="num">01:41</b></div>
+      </aside>
+      <main class="au-main">
+        <form class="au-form" onsubmit="return false" novalidate>
+          <div><h1>${first ? 'Set up Holo' : signup ? 'Create your account' : 'Sign in'}</h1><p class="lead2">${first ? 'This account will be the admin.' : signup ? 'Pick a user name and a password.' : "See what's in stock at your price."}</p></div>
+          ${first ? '' : `<div class="seg" role="tablist"><button type="button" role="tab" data-mode="signin" aria-selected="${!signup}">Sign in</button><button type="button" role="tab" data-mode="signup" aria-selected="${signup}">Create account</button></div>`}
+          ${first ? `<div class="first">${I.info}<span>A new Holo: the first account becomes the admin.</span></div>
+          <label class="fld">Setup key<span class="in">${I.key.replace('<svg', '<svg class="li"')}<input type="password" value="••••••••••" aria-label="Setup key"><button type="button" class="eye" aria-label="Show">${I.eye}</button></span><small>The <code>DASHBOARD_PASSWORD</code> from the <code>.env</code> file on the NAS. Only for this first account.</small></label>` : ''}
+          <label class="fld">User name<span class="in">${I.user.replace('<svg', '<svg class="li"')}<input value="trainer" autocapitalize="off" spellcheck="false"></span>${signup || first ? '<small>3 to 32 letters, digits, dots, dashes or underscores.</small>' : ''}</label>
+          <label class="fld">Password<span class="in">${I.lock.replace('<svg', '<svg class="li"')}<input type="password" value="example-pass"><button type="button" class="eye" aria-label="Show password" data-eye>${I.eye}</button></span>${signup || first ? '<small>At least 8 characters.</small>' : ''}</label>
+          ${signup || first ? `<label class="fld">Confirm password<span class="in">${I.lock.replace('<svg', '<svg class="li"')}<input type="password" value="example-pass"></span></label>` : ''}
+          <label class="chk"><i>${I.check}</i>Keep me signed in on this device <small>(30 days)</small></label>
+          <button type="submit" class="btn foil">${first ? 'Create admin account' : signup ? 'Create account' : 'Sign in'} ${I.arrow}</button>
+          <p class="fine">${first ? 'You can turn off new accounts later in Settings.' : signup ? 'Already have an account? <a href="#">Sign in</a>' : 'No account yet? <a href="#">Create one</a>'}</p>
+        </form>
+      </main>
+    </div></div>`;
+    root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => auth(root, b.dataset.mode)));
+    const eye = root.querySelector('[data-eye]');
+    if (eye) eye.addEventListener('click', () => { const i = eye.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; });
+  }
+
+  $$('[data-landing]').forEach(el => landing(el));
+  $$('[data-auth]').forEach(el => auth(el, el.dataset.auth));
+  requestAnimationFrame(() => $$('[data-scroll]').forEach(el => {
+    const t = el.querySelector(`[data-sec="${el.dataset.scroll}"]`);
+    if (t) el.scrollTop = t.offsetTop - 10;
+  }));
+
+  $$('[data-t]').forEach(b => b.addEventListener('click', () => {
+    document.documentElement.dataset.theme = b.dataset.t;
+    $$('[data-t]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+  if (matchMedia('(prefers-color-scheme: light)').matches && !document.documentElement.dataset.theme) {
+    document.documentElement.dataset.theme = 'dark';   // Holo opens dark, like the app
+  }
+})();
+</script>
