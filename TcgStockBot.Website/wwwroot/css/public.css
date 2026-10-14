@@ -72,6 +72,18 @@
 .alert .pr span { font-size: 12px; font-weight: 600; margin-left: 6px; color: #4FD7A2; }
 .alert .pr s { font-size: 12px; opacity: 0.6; margin-left: 6px; font-weight: 500; }
 
+/* The light/dark switch (landing nav and the sign-in side): a quiet round button. */
+.theme-toggle { width: 38px; height: 38px; flex: none; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--glass); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--glass-line); transition: color 0.15s, background 0.15s, transform 0.15s; }
+.theme-toggle:hover { color: var(--text); background: color-mix(in srgb, var(--text) 9%, transparent); }
+.theme-toggle:active { transform: scale(0.92); }
+.theme-toggle:focus-visible { outline: none; box-shadow: var(--focus); }
+.theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle .tt-moon { display: none; }
+:root[data-mode="light"] .theme-toggle .tt-sun { display: none; }
+:root[data-mode="light"] .theme-toggle .tt-moon { display: block; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.35s; }
+
 /* ---------------------------------------------------------------- landing -- */
 
 .lp { min-height: 100vh; overflow: hidden; position: relative; }
@@ -83,6 +95,7 @@
 .lp-nav .links { display: flex; gap: 26px; font-weight: 550; font-size: 14px; }
 .lp-nav .links a { color: var(--text-2); text-decoration: none; }
 .lp-nav .links a:hover { color: var(--text); }
+.lp-acts { display: flex; align-items: center; gap: 10px; }
 .lp-main { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 30px; align-items: center; padding-top: 56px; max-width: 1336px; margin: 0 auto; }
 .lp-copy { display: flex; flex-direction: column; gap: 24px; }
 .lp-copy > * { animation: lp-rise 0.8s var(--lp-ease) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
@@ -308,6 +321,7 @@
 .au-back:hover { color: var(--text); text-decoration: none; }
 .au-back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .au-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.au-acts { display: flex; align-items: center; gap: 14px; }
 .au-main { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
 .au-form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 18px; }
 .au-form h1 { font: 700 38px/1 var(--font-display); letter-spacing: -0.04em; margin: 0; }

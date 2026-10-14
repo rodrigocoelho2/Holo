@@ -10,10 +10,13 @@
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <div class="au-top">
         <a class="logo" href="/"><img src="@logo" width="34" height="34" alt="" />holo</a>
-        <a class="au-back" href="/">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-            What is Holo?
-        </a>
+        <div class="au-acts">
+            <a class="au-back" href="/">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+                What is Holo?
+            </a>
+            <partial name="_ThemeToggle" />
+        </div>
     </div>
     @if (first)
     {

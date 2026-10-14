@@ -35,7 +35,10 @@
         <nav class="lp-nav" aria-label="Holo">
             <a class="logo" href="/about"><img src="@logo" width="34" height="34" alt="" />holo</a>
             <div class="links"><a href="#how-it-works">How it works</a><a href="#features">Features</a><a href="#self-hosted">Self-hosted</a></div>
-            <a class="btn-f foil sm" href="@cta">@ctaLabel</a>
+            <div class="lp-acts">
+                <partial name="_ThemeToggle" />
+                <a class="btn-f foil sm" href="@cta">@ctaLabel</a>
+            </div>
         </nav>
 
         <div class="lp-main">
@@ -218,4 +221,5 @@
 
 @section Scripts {
     <script src="~/js/landing.js" asp-append-version="true"></script>
+    <script src="~/js/theme-toggle.js" asp-append-version="true"></script>
 }
