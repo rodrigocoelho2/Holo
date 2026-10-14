@@ -101,7 +101,7 @@
 .lp-acts { display: flex; align-items: center; gap: 10px; }
 .lp-main { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 30px; align-items: center; padding-top: 56px; max-width: 1336px; margin: 0 auto; }
 .lp-copy { display: flex; flex-direction: column; gap: 24px; }
-.lp-copy > * { animation: lp-rise 0.8s var(--lp-ease) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+.lp-copy > * { animation: lp-rise 0.8s var(--lp-ease) backwards; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
 @keyframes lp-rise { from { opacity: 0; transform: translateY(18px); } }
 .lp-eyebrow { font: 600 12px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-2); display: flex; align-items: center; gap: 10px; }
 .ping { width: 8px; height: 8px; border-radius: 50%; background: #4FD7A2; box-shadow: 0 0 0 0 rgba(79, 215, 162, 0.6); animation: live-ping 2s infinite; flex: none; }
