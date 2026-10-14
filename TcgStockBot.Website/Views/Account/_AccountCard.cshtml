@@ -3,24 +3,17 @@
     var active = (string)ViewData["Tab"]!;
     var query = Model.ReturnUrl == "/" ? string.Empty : $"?returnUrl={Uri.EscapeDataString(Model.ReturnUrl)}";
 }
-<a class="login-back" href="/">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-    What is Holo?
-</a>
-<div class="login-brand">
-    <img class="login-logo" src="~/img/holo.svg" width="64" height="64" alt="" />
-    <span>Holo</span>
-</div>
+@* Inside the form: the Sign in / Create account tabs (when anyone may create an account) and the messages. *@
 @if (Model.CanCreateAccount && !Model.IsFirstAccount)
 {
-    <nav class="login-tabs" aria-label="Account">
+    <nav class="au-tabs" aria-label="Account">
         <a href="/sign-in@(query)" class="@(active == "sign-in" ? "on" : "")" aria-current="@(active == "sign-in" ? "page" : null)">Sign in</a>
         <a href="/create-account@(query)" class="@(active == "create" ? "on" : "")" aria-current="@(active == "create" ? "page" : null)">Create account</a>
     </nav>
 }
 @if (Model.Errors.Count > 0)
 {
-    <div class="login-error" role="alert">
+    <div class="au-error" role="alert">
         @foreach (var error in Model.Errors)
         {
             <p>@error</p>
@@ -29,5 +22,5 @@
 }
 else if (Model.Unavailable is not null)
 {
-    <div class="login-error" role="alert"><p>@Model.Unavailable</p></div>
+    <div class="au-error" role="alert"><p>@Model.Unavailable</p></div>
 }

@@ -1,0 +1,42 @@
+@model TcgStockBot.Website.Model.Account.AccountPageModel
+@{
+    var active = (string)ViewData["Tab"]!;
+    var first = Model.IsFirstAccount && active == "create";
+    var create = active == "create" && !first;
+    var logo = Url.Content("~/img/holo.svg");
+}
+@* The foil side of the sign-in and create-account pages: brand, a headline and example alerts (a header on the phone). *@
+<aside class="au-side">
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="au-top">
+        <a class="logo" href="/"><img src="@logo" width="34" height="34" alt="" />holo</a>
+        <a class="au-back" href="/">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            What is Holo?
+        </a>
+    </div>
+    @if (first)
+    {
+        <h2>Set up <span class="foil-text">your Holo.</span></h2>
+        <p>Create the first account. It becomes the admin and can add everyone else.</p>
+        <div class="au-chips"><span class="chip-g"><i class="dot" style="background:var(--amber)"></i>First account · admin</span></div>
+    }
+    else if (create)
+    {
+        <h2>Start <span class="foil-text">hunting.</span></h2>
+        <p>Pick what you want, set your price, and let Holo watch the stores.</p>
+        <div class="au-chips"><span class="chip-g"><i class="dot" style="background:#4FD7A2"></i>PT &amp; ES stores</span><span class="chip-g">Push · WhatsApp · Telegram · Email</span></div>
+    }
+    else
+    {
+        <h2>Welcome back. <span class="foil-text">See what's in stock.</span></h2>
+        <p>Sign in to see what's in stock at your price, and what Holo found while you were away.</p>
+        <div class="au-chips"><span class="chip-g"><i class="dot" style="background:#4FD7A2"></i>PT &amp; ES stores</span><span class="chip-g">Checks every few minutes</span></div>
+    }
+    <div class="au-stack" aria-hidden="true">
+        <div class="alert"><div class="hd"><img src="@logo" alt="" />HOLO<em>now</em></div><b>🟢 In stock at your price</b><span class="ln">Pitch Black · Elite Trainer Box · Porto TCG</span><span class="pr">€52.90<span>−12% vs MSRP</span></span></div>
+        <div class="alert"><div class="hd"><img src="@logo" alt="" />HOLO<em>4 min ago</em></div><b>🔻 Price drop</b><span class="ln">OP-13 · Booster Box · Madrid Games</span><span class="pr">€119.90<s>€134.90</s></span></div>
+        <div class="alert"><div class="hd"><img src="@logo" alt="" />HOLO<em>1 h ago</em></div><b>🕒 Pre-orders open</b><span class="ln">Mega Evolution 6 · Booster Display · out 21 Nov</span></div>
+    </div>
+    <small class="ex">Example alerts.</small>
+</aside>

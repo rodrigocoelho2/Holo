@@ -3,124 +3,219 @@
     ViewData["Title"] = "Holo";
     var cta = Model.SignedIn ? "/" : "/sign-in";
     var ctaLabel = Model.SignedIn ? "Open Holo" : "Sign in";
+    var logo = Url.Content("~/img/holo.svg");
+    var games = new[] { ("Pokémon", "pokemon"), ("One Piece", "onepiece"), ("Riftbound", "riftbound"), ("Cyberpunk", "cyberpunk"), ("Magic", "magic"), ("Lorcana…", "lorcana") };
+    // Example ticker: invented prices, the same ones the hero and the price demo use.
+    var ticker = new[]
+    {
+        ("pokemon", "Pitch Black ETB", "€52.90", "dn", "−12%"),
+        ("onepiece", "OP-13 Booster Box", "€119.90", "dn", "−11%"),
+        ("pokemon", "Mega Evolution 6", "pre-orders", "po", "21 Nov"),
+        ("riftbound", "Origins Display", "€104.90", "dn", "in stock"),
+        ("magic", "Avatar Collector Box", "€239.00", "dn", "−6%"),
+        ("cyberpunk", "Cyberpunk Starter", "€17.90", "dn", "restock"),
+        ("pokemon", "Chaos Rising Bundle", "€28.50", "dn", "−5%"),
+    };
+    var cards = new[]
+    {
+        ("ME05", "Pitch Black", "Elite Trainer Box", "54.99", "−8%", 4, "#1A2150", "#0E1230"),
+        ("OP13", "OP-13", "Booster Box", "119.90", "−11%", 3, "#5A2018", "#22100C"),
+        ("RB01", "Origins", "Booster Display", "104.90", "MSRP", 5, "#0F3B37", "#08201D"),
+        ("ME04", "Chaos Rising", "Booster Bundle", "28.50", "−5%", 2, "#3A1838", "#1B0F22"),
+    };
+    const string arrow = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg>";
 }
 @section Head {
     <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
 }
 
-<div class="landing">
-    <header class="landing-bar">
-        <a class="landing-brand" href="/about">
-            <img src="~/img/holo.svg" width="36" height="36" alt="" />
-            <span>Holo</span>
-        </a>
-        <a class="landing-cta small" href="@cta">@ctaLabel</a>
-    </header>
+<div class="lp" data-logo="@logo">
+    <section class="lp-hero">
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <nav class="lp-nav" aria-label="Holo">
+            <a class="logo" href="/about"><img src="@logo" width="34" height="34" alt="" />holo</a>
+            <div class="links"><a href="#how-it-works">How it works</a><a href="#features">Features</a><a href="#self-hosted">Self-hosted</a></div>
+            <a class="btn-f foil sm" href="@cta">@ctaLabel</a>
+        </nav>
 
-    <main>
-        <section class="lp-hero">
-            <div class="lp-hero-text">
-                <p class="eyebrow">Sealed TCG monitor · Portugal &amp; Spain</p>
-                <h1>Catch sealed product <span class="ember">at the right price.</span></h1>
-                <p class="lead">Holo watches Portuguese and Spanish stores for you — stock, prices and pre-orders — and pings your
-                    phone the minute the product you want shows up at your price.</p>
-                <div class="lp-hero-actions">
-                    <a class="landing-cta" href="@cta">@ctaLabel</a>
-                    <a class="landing-link" href="#how-it-works">How it works ↓</a>
+        <div class="lp-main">
+            <div class="lp-copy">
+                <span class="lp-eyebrow"><i class="ping"></i>Sealed TCG monitor · Portugal &amp; Spain</span>
+                <h1 class="lp-h1" style="--i:1"><span>Catch it</span><span>before it's</span><span class="foil-text">gone.</span></h1>
+                <p class="lp-lede" style="--i:2">Holo checks Portuguese and Spanish stores every few minutes for the sealed product you want, and pings your phone the moment it's in stock at your price.</p>
+                <div class="lp-cta" style="--i:3">
+                    <a class="btn-f foil" href="@cta">@ctaLabel @Html.Raw(arrow)</a>
+                    <a class="btn-f ghost" href="#how-it-works">How it works <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" /></svg></a>
                 </div>
-                <ul class="game-row" aria-label="Games">
-                    <li class="g-pokemon">Pokémon</li>
-                    <li class="g-onepiece">One Piece</li>
-                    <li class="g-riftbound">Riftbound</li>
-                    <li class="g-cyberpunk">Cyberpunk</li>
-                    <li class="g-magic">Magic</li>
-                    <li class="g-more">Lorcana…</li>
+                <ul class="lp-games" style="--i:4" aria-label="Games">
+                    @foreach (var (name, key) in games)
+                    {
+                        <li class="chip-g"><i class="dot" style="background:var(--game-@key)"></i>@name</li>
+                    }
                 </ul>
             </div>
 
-            <figure class="phone" aria-label="Example alerts">
-                <div class="phone-screen">
-                    <div class="phone-top"><span>09:41</span><span class="phone-pill"></span><span>5G</span></div>
-                    <div class="notif">
-                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>now</span></div>
-                        <strong>🟢 In stock at your price</strong>
-                        <p>Elite Trainer Box · Example store</p>
-                        <p class="notif-price">€54.90 <span class="good">−8% vs MSRP</span></p>
-                    </div>
-                    <div class="notif dim">
-                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>2 h ago</span></div>
-                        <strong>🔻 Price drop</strong>
-                        <p>Booster Bundle · Another store</p>
-                        <p class="notif-price">€27.50 <s>€32.90</s></p>
-                    </div>
-                    <div class="notif dim">
-                        <div class="notif-head"><img src="~/img/holo.svg" width="20" height="20" alt="" /> Holo <span>yesterday</span></div>
-                        <strong>🕒 Pre-orders open</strong>
-                        <p>Booster Display · out on 14 Nov</p>
+            <figure class="lp-art" aria-label="Example alerts and prices">
+                <div class="box-back bb1" aria-hidden="true"><span class="code">OP-13</span><b>Booster<br />Box</b></div>
+                <div class="box-back bb2" aria-hidden="true"><span class="code">RB01</span><b>Origins<br />Display</b></div>
+                <div class="box-wrap" data-tilt aria-hidden="true">
+                    <div class="box">
+                        <div class="art"></div><div class="ring"></div><span class="code">ME05</span><div class="shine"></div><div class="gloss"></div>
+                        <div class="lbl"><small>ELITE TRAINER BOX</small><b>Pitch Black</b></div>
                     </div>
                 </div>
-                <figcaption>Example alerts (WhatsApp, Telegram or email).</figcaption>
+                <div class="lp-alerts" data-alerts>
+                    <div class="alert"><div class="hd"><img src="@logo" alt="" />HOLO<em>now</em></div><b>🟢 In stock at your price</b><span class="ln">Pitch Black · Elite Trainer Box · Porto TCG</span><span class="pr">€52.90<span>−12% vs MSRP</span></span></div>
+                </div>
+                <div class="lp-check" aria-hidden="true"><i class="ping"></i>Next check in <b class="num" data-count>01:41</b></div>
+                <div class="lp-tag" aria-hidden="true">−12% vs MSRP</div>
+                <figcaption>Example alerts and prices.</figcaption>
             </figure>
-        </section>
+        </div>
+    </section>
 
-        <section class="features" aria-labelledby="features-h">
-            <h2 id="features-h">Everything you need to never miss a release</h2>
-            <div class="feature-grid">
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5" /></svg></span>
-                    <h3>Offer radar</h3>
-                    <p>What is in stock right now, at your price and in the right language. The last 24 hours come first.</p>
-                </article>
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.9 5 3.4 5 1.6 5 3.6-2.2 3-5 3-5-1.1-5-3" /></svg></span>
-                    <h3>Fair price (MSRP)</h3>
-                    <p>Say “up to MSRP + 10%” and every product type — ETB, bundle, display — gets its own limit. No maths.</p>
-                </article>
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-5 4 3 6-7" /></svg></span>
-                    <h3>Catalogue and history</h3>
-                    <p>Every product across every store: the cheapest, who has stock, and a price chart from 7 days to 1 year.</p>
-                </article>
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" /></svg></span>
-                    <h3>Releases</h3>
-                    <p>A calendar of upcoming sets, with when pre-orders open and how each one is doing.</p>
-                </article>
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0" /></svg></span>
-                    <h3>Alerts where you want them</h3>
-                    <p>WhatsApp, Telegram or email: restocks, price drops and pre-orders. Plus a daily summary, if you like.</p>
-                </article>
-                <article>
-                    <span class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4" /></svg></span>
-                    <h3>Plays fair with stores</h3>
-                    <p>Only uses what stores make available (public search, official APIs and feeds), with pauses between requests. Never gets around protections.</p>
-                </article>
+    <div class="lp-ticker" aria-hidden="true">
+        <div class="track">
+            @for (var copy = 0; copy < 2; copy++)
+            {
+                foreach (var (game, name, price, kind, note) in ticker)
+                {
+                    <span><i class="dot" style="background:var(--game-@game)"></i><b>@name</b> @price<em class="@kind">@note</em></span>
+                }
+            }
+        </div>
+    </div>
+
+    <section class="lp-sec" id="how-it-works">
+        <div class="reveal">
+            <div class="lp-kick">How it works</div>
+            <h2 class="lp-h2">Pick it. Price it. Get pinged.</h2>
+            <p class="lp-sub">Tell Holo what you're after and what it's worth to you. It searches every store, checks again every few minutes, and only bothers you when it matters.</p>
+        </div>
+        <div class="lp-steps">
+            <div class="lp-step reveal"><span class="n">1</span><h3>Pick the product</h3><p>A set or a single product. Holo searches every store at once and shows what it found.</p></div>
+            <div class="lp-step reveal" style="--i:1"><span class="n">2</span><h3>Set your price</h3><p>MSRP plus a margin, or a fixed maximum. Each type gets its own limit: an ETB, a bundle, a display.</p></div>
+            <div class="lp-step reveal" style="--i:2"><span class="n">3</span><h3>Get the alert</h3><p>Push, WhatsApp, Telegram or email, with the price, the store and a link straight to it.</p></div>
+        </div>
+
+        <div class="lp-demo reveal">
+            <div class="lp-panel">
+                <div class="lp-prod">
+                    <span class="mini-box" aria-hidden="true"></span>
+                    <div><b>Pitch Black · Elite Trainer Box</b><span><i class="dot" style="background:var(--game-pokemon)"></i> Pokémon · ME05 · MSRP <span class="num">€59.99</span></span></div>
+                </div>
+                <div class="lp-limit">
+                    <div><div class="cap">Alert me up to</div><div class="big num" data-limit><small>€</small>59.99</div></div>
+                    <div class="rule" data-rule>MSRP <b>+0%</b><br />shipping included</div>
+                </div>
+                <div>
+                    <div class="lp-range"><input type="range" min="-15" max="20" step="1" value="0" aria-label="Margin over MSRP" data-margin /></div>
+                    <div class="lp-ticks" aria-hidden="true"><span>−15%</span><span>MSRP</span><span>+20%</span></div>
+                </div>
+                <div class="lp-presets" data-presets>
+                    <button type="button" data-m="-10" aria-pressed="false">Bargain · −10%</button>
+                    <button type="button" data-m="0" aria-pressed="true">At MSRP</button>
+                    <button type="button" data-m="10" aria-pressed="false">MSRP +10%</button>
+                </div>
+                <div class="lp-sum" aria-live="polite"><span class="count num" data-hits>3</span><p data-sumtext><b>stores at your price right now.</b> Holo would ping you for the cheapest first.</p></div>
+                <div class="lp-preview" data-preview></div>
             </div>
-        </section>
+            <div class="lp-panel">
+                <div class="lp-offers-head"><b>7 stores, cheapest first</b><span class="chip-g"><i class="dot" style="background:var(--good)"></i>example prices</span></div>
+                <div class="lp-offers" data-offers></div>
+            </div>
+        </div>
+    </section>
 
-        <section class="how" id="how-it-works" aria-labelledby="steps-h">
-            <h2 id="steps-h">How it works</h2>
-            <ol>
-                <li><span>1</span><div><h3>Pick the product</h3><p>Search for a set or a product. Holo looks for it in every store and shows you what it found.</p></div></li>
-                <li><span>2</span><div><h3>Set the price</h3><p>MSRP + a margin, or a max price. Pick the language and the product types you care about.</p></div></li>
-                <li><span>3</span><div><h3>Get the alert</h3><p>Every few minutes the bot checks the stores. When it shows up at your price, your phone buzzes.</p></div></li>
-            </ol>
-        </section>
+    <section class="lp-sec" id="features">
+        <div class="reveal">
+            <div class="lp-kick">Features</div>
+            <h2 class="lp-h2">Every store. Every set. One place.</h2>
+        </div>
+        <div class="lp-bento">
+            <div class="lp-tile t-cat reveal">
+                <h3>The whole catalogue</h3>
+                <p>Pick a game and a format and see it across every set, newest first: the cheapest price, how it compares to MSRP and how many stores have it.</p>
+                <div class="lp-cards" aria-hidden="true">
+                    @foreach (var (code, name, format, price, diff, on, c1, c2) in cards)
+                    {
+                        <div class="lp-pc">
+                            <div class="img" style="--c1:@c1;--c2:@c2"><em>@code</em></div>
+                            <div class="bd">
+                                <b>@name</b><small>@format</small>
+                                <div class="pr num">€@(price)<span>@diff</span></div>
+                                <div class="meter">@for (var k = 0; k < 5; k++) {<i class="@(k < on ? "on" : "")"></i>}</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="lp-tile t-low reveal" style="--i:1">
+                <h3>Lowest price ever</h3>
+                <p>A price chart from 7 days to a year, and a badge when today beats them all.</p>
+                <div class="lp-chart" aria-hidden="true"><span class="lp-low">Lowest price ever</span><svg viewBox="0 0 300 120" preserveAspectRatio="none" data-chart></svg></div>
+            </div>
+            <div class="lp-tile t-rel reveal">
+                <h3>Releases</h3>
+                <p>Upcoming sets, when pre-orders open, and what's already in the stores.</p>
+                <div class="lp-cal" aria-hidden="true">
+                    @foreach (var d in new[] { "M", "T", "W", "T", "F", "S", "S" })
+                    {
+                        <span class="h">@d</span>
+                    }
+                    @for (var day = 10; day <= 30; day++)
+                    {
+                        <span class="@(day == 21 ? "out" : day is 12 or 14 or 26 ? "pre" : "")">@day</span>
+                    }
+                </div>
+                <div class="lp-legend"><span><i style="background:var(--amber)"></i>pre-orders open</span><span><i style="background:#8FA8FF"></i>out</span></div>
+            </div>
+            <div class="lp-tile t-alr reveal" style="--i:1">
+                <h3>Alerts where you are</h3>
+                <p>Once per product while it stays in stock, again if the price drops. A daily summary if you like.</p>
+                <div class="lp-chans">
+                    <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0" /></svg>Push</span>
+                    <span><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#25D366"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z" /><path d="M9 9.5c.3 2.2 2.3 4.3 4.5 4.8l1.3-1.2 1.7.8-.4 1.6c-3.6.4-7.5-3.3-7.2-7l1.6-.4.8 1.7z" fill="currentColor" stroke="none" /></svg>WhatsApp</span>
+                    <span><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#2AABEE"><path d="M21 4 3 11l6 2 2 6 3-4 5 4z" /><path d="m9 13 8-6" /></svg>Telegram</span>
+                    <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="m4 7 8 6 8-6" /></svg>Email</span>
+                </div>
+            </div>
+            <div class="lp-tile t-sto reveal" style="--i:2">
+                <h3>Stores in PT and ES</h3>
+                <p>Grouped by area and tier, with how each search went on the last check.</p>
+                <div class="lp-stores" aria-hidden="true">
+                    <div class="lp-area"><b>PT</b>Portugal<span class="health"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i></span></div>
+                    <div class="lp-area"><b>ES</b>Spain<span class="health"><i></i><i></i><i></i><i></i><i></i></span></div>
+                </div>
+            </div>
+            <div class="lp-tile t-fair reveal" id="self-hosted">
+                <h3>Plays fair, runs at home.</h3>
+                <div class="lp-fair"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4" /></svg></span><div><b>Only what's public</b><span>Public search, official APIs and feeds. Never gets around protections.</span></div></div>
+                <div class="lp-fair"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg></span><div><b>Gentle on stores</b><span>Pauses between requests and per-site limits.</span></div></div>
+                <div class="lp-fair"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="7" rx="2.5" /><rect x="3.5" y="13" width="17" height="7" rx="2.5" /><path d="M7.5 7.5h.01M7.5 16.5h.01" /></svg></span><div><b>Your server</b><span>Runs on your NAS; your watches and alerts stay there.</span></div></div>
+            </div>
+        </div>
+    </section>
 
-        <section class="install" aria-labelledby="install-h">
-            <img src="~/img/icon-192.png" width="64" height="64" alt="" />
+    <section class="lp-final reveal">
+        <div class="lp-final-in">
             <div>
-                <h2 id="install-h">Install it on your phone</h2>
-                <p><strong>iPhone:</strong> in Safari, tap Share → <em>Add to Home Screen</em>.
-                    <strong>Android:</strong> in Chrome, ⋮ → <em>Add to Home screen</em> or <em>Install app</em>.</p>
+                <h2>The next restock won't wait for you.</h2>
+                <p>Sign in, add what you're hunting for, and let Holo keep watch while you get on with your day.</p>
             </div>
-            <a class="landing-cta" href="@cta">@ctaLabel</a>
-        </section>
-    </main>
+            <div class="acts">
+                <a class="btn-f foil" href="@cta">@ctaLabel @Html.Raw(arrow)</a>
+                <small>Install it from the browser menu: Add to Home Screen.</small>
+            </div>
+        </div>
+    </section>
 
-    <footer class="landing-foot">
-        <span><img src="~/img/holo.svg" width="18" height="18" alt="" /> Holo @Model.Version</span>
+    <footer class="lp-foot">
+        <span><img src="@logo" width="18" height="18" alt="" />Holo @Model.Version</span>
         <span>A private bot: your data stays on your own server.</span>
     </footer>
 </div>
+
+@section Scripts {
+    <script src="~/js/landing.js" asp-append-version="true"></script>
+}
