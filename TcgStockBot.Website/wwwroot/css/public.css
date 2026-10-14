@@ -276,7 +276,7 @@
 
 @media (max-width: 760px) {
   .lp-hero { padding: 14px 20px 40px; padding-top: max(14px, env(safe-area-inset-top)); }
-  .lp-nav .links, .lp-nav .ghost { display: none; }
+  .lp-nav .links, .lp-nav .lp-create { display: none; }   /* phone: the switch and Sign in; Create account is on the sign-in page */
   .lp-main { grid-template-columns: 1fr; padding-top: 30px; gap: 6px; }
   .lp-copy { gap: 20px; }
   .lp-h1 { font-size: clamp(48px, 15vw, 66px); }

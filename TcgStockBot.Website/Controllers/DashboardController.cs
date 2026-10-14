@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using TcgStockBot.Sdk;
 using TcgStockBot.Website.Model.Dashboard;
+using TcgStockBot.Website.Security;
 
 namespace TcgStockBot.Website.Controllers;
 
@@ -9,7 +11,8 @@ namespace TcgStockBot.Website.Controllers;
 /// The dashboard page, and the public page that explains the app.
 /// </summary>
 /// <param name="apiClient">The API client.</param>
-public partial class DashboardController(TcgStockBotClient apiClient) : WebsiteBaseController(apiClient)
+/// <param name="options">The sign-in settings (whether anyone may create an account).</param>
+public partial class DashboardController(TcgStockBotClient apiClient, IOptions<DashboardOptions> options) : WebsiteBaseController(apiClient)
 {
     /// <summary>
     /// Signed in: the dashboard shell (its data is loaded by the JSON actions of the other controllers).
@@ -22,7 +25,7 @@ public partial class DashboardController(TcgStockBotClient apiClient) : WebsiteB
     {
         if (User.Identity?.IsAuthenticated != true)
         {
-            return View("Landing", new LandingModel());
+            return View("Landing", new LandingModel { CanCreateAccount = options.Value.AllowRegistration });
         }
 
         return View(new DashboardModel { UserName = User.Identity.Name ?? string.Empty, IsAdmin = User.IsInRole("Admin") });
@@ -34,7 +37,11 @@ public partial class DashboardController(TcgStockBotClient apiClient) : WebsiteB
     /// <returns>The view.</returns>
     [HttpGet("/about")]
     [AllowAnonymous]
-    public IActionResult Landing() => View("Landing", new LandingModel { SignedIn = User.Identity?.IsAuthenticated == true });
+    public IActionResult Landing() => View("Landing", new LandingModel
+    {
+        SignedIn = User.Identity?.IsAuthenticated == true,
+        CanCreateAccount = options.Value.AllowRegistration,
+    });
 
     /// <summary>Old address of the public page.</summary>
     /// <returns>A redirect.</returns>

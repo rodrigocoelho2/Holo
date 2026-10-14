@@ -37,7 +37,19 @@
             <div class="links"><a href="#how-it-works">How it works</a><a href="#features">Features</a><a href="#self-hosted">Self-hosted</a></div>
             <div class="lp-acts">
                 <partial name="_ThemeToggle" />
-                <a class="btn-f foil sm" href="@cta">@ctaLabel</a>
+                @if (Model.SignedIn)
+                {
+                    <a class="btn-f foil sm" href="/">Open Holo</a>
+                }
+                else if (Model.CanCreateAccount)
+                {
+                    <a class="btn-f ghost sm lp-signin" href="/sign-in">Sign in</a>
+                    <a class="btn-f foil sm lp-create" href="/create-account">Create account</a>
+                }
+                else
+                {
+                    <a class="btn-f foil sm" href="/sign-in">Sign in</a>
+                }
             </div>
         </nav>
 
