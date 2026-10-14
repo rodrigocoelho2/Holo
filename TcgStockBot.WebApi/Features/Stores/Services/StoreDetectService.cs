@@ -50,7 +50,7 @@ internal sealed partial class StoreDetectService(IHttpClientFactory httpClientFa
         var text = (item.Url ?? string.Empty).Trim();
         if (text.Length > 0 && !text.Contains("://", StringComparison.Ordinal))
         {
-            text = $"https://{text}";   // "loja.pt" is what people paste
+            text = $"https://{text}";   // "store.pt" is what people paste
         }
 
         if (!Uri.TryCreate(text, UriKind.Absolute, out var address) || (address.Scheme != Uri.UriSchemeHttp && address.Scheme != Uri.UriSchemeHttps))
@@ -247,7 +247,7 @@ internal sealed partial class StoreDetectService(IHttpClientFactory httpClientFa
         }
     }
 
-    /// <summary>og:site_name, else the first part of the page title ("Loja X | Cartas" → "Loja X").</summary>
+    /// <summary>og:site_name, else the first part of the page title ("Store X | Cards" → "Store X").</summary>
     internal static string? SiteName(string html)
     {
         var siteName = OgSiteName().Match(html);

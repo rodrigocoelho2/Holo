@@ -10,7 +10,7 @@ services:
     env_file:
       - .env                                # Email__*, WhatsApp__*, Telegram__*, Amazon__*, AwinFeeds__* and OutboundHttp__* live here
     environment:
-      TcgStockBot__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
+      TcgStockBot__ApiKey: ${TCG_API_KEY:?Set TCG_API_KEY in .env}
     volumes:
       - tcgstockbot-data:/data              # same volume as v2: configuration and history are kept
     logging: &logging
@@ -19,7 +19,7 @@ services:
         max-size: "5m"
         max-file: "3"
 
-  # Holo (o painel): http://<IP-do-NAS>:5080
+  # Holo (the dashboard): http://<nas-ip>:5080
   website:
     build:
       context: .
@@ -33,14 +33,14 @@ services:
       - "5080:8080"
     environment:
       TcgStockBotApi__Url: http://webapi:8080/
-      TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Define TCG_API_KEY no .env}
-      Dashboard__Password: ${DASHBOARD_PASSWORD:?Define DASHBOARD_PASSWORD no .env}   # chave para criar a primeira conta
-      Dashboard__AllowRegistration: ${ALLOW_REGISTRATION:-true}                          # false = só o admin cria contas
+      TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Set TCG_API_KEY in .env}
+      Dashboard__Password: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env}   # key to create the first account
+      Dashboard__AllowRegistration: ${ALLOW_REGISTRATION:-true}                          # false = only the admin creates accounts
     volumes:
-      - tcgstockbot-keys:/keys              # chaves das sessões: "manter sessão" sobrevive às atualizações
+      - tcgstockbot-keys:/keys              # session keys: "keep me signed in" survives updates
     networks:
-      - default                             # fala com o webapi
-      - nas-net                             # o Nginx Proxy Manager chega aqui por http://tcgstockbot-website:8080
+      - default                             # talks to the webapi
+      - nas-net                             # Nginx Proxy Manager reaches it at http://tcgstockbot-website:8080
     logging: *logging
 
 volumes:
@@ -49,4 +49,4 @@ volumes:
 
 networks:
   nas-net:
-    external: true                          # rede já criada no NAS, partilhada com o Nginx Proxy Manager
+    external: true                          # network already created on the NAS, shared with Nginx Proxy Manager

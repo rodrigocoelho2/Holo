@@ -280,7 +280,7 @@ internal sealed class AwinFeedCatalog(
                     "Awin could not find this feed (HTTP 404). Create a new URL in Create-a-Feed.");
             case HttpStatusCode.TooManyRequests:
             case >= HttpStatusCode.InternalServerError:
-                response.EnsureSuccessStatusCode();   // → "pede para abrandar" / "erro do lado da loja"
+                response.EnsureSuccessStatusCode();   // → "asked to slow down" / "error on the store's side"
                 break;
             case var status when (int)status >= 400:
                 throw new StoreIntegrationException(provider, StoreIntegrationProblem.ApiError, $"Awin answered HTTP {(int)status} to the feed download.");

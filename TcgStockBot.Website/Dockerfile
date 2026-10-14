@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
 
-# /keys keeps the login cookie keys, so "manter sessão" survives updates. Owned by the non-root "app" user so a
+# /keys keeps the login cookie keys, so "keep me signed in" survives updates. Owned by the non-root "app" user so a
 # named volume inherits that ownership.
 RUN mkdir -p /keys && chown "$APP_UID" /keys
 VOLUME /keys

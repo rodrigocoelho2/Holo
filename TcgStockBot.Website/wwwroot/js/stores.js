@@ -93,7 +93,7 @@ function storesMenu() {
       item("Import JSON", "upload", openStoreImportDrawer)));
 }
 
-/** Whether a store passes the Lojas page filters (area, tier, type, tag, last test, text). */
+/** Whether a store passes the Stores page filters (area, tier, type, tag, last test, text). */
 function storeMatchesFilters(store) {
   if (state.storeCountry !== "all" && store.country !== state.storeCountry) return false;
   if (state.storeTier !== "all" && (store.tier || "None") !== state.storeTier) return false;
@@ -191,7 +191,7 @@ function searchSquares(health) {
 
 const hostLabel = (url) => { try { return new URL(url).host.replace(/^www\./, ""); } catch { return url; } };
 
-/* ----- Testar loja (one search in one store, with the verdict for every product) ----- */
+/* ----- Test a store (one search in one store, with the verdict for every product) ----- */
 
 RENDERERS["test-store"] = function viewProbe() {
   const probe = state.probe;

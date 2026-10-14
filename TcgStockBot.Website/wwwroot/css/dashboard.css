@@ -903,7 +903,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
 .msrp-delta.amber { color: var(--amber); }
 .msrp-delta.red { color: var(--red); }
 
-/* ----------------------------------------------------------------- lojas -- */
+/* ---------------------------------------------------------------- stores -- */
 
 .health-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 220px)); gap: 14px; }
 .health-tile {

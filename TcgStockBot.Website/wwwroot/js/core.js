@@ -615,7 +615,7 @@ function segmented(options, value, onChange, label) {
   return container;
 }
 
-/** A native select styled as a pill: "Loja  Todas ▾". */
+/** A native select styled as a pill: "Store  All ▾". */
 function selectPill(label, value, options, onChange) {
   const select = h("select", { "aria-label": label, onchange: (event) => onChange(event.target.value) },
     options.map(([optionValue, optionLabel]) => h("option", { value: optionValue, selected: optionValue === value }, optionLabel)));

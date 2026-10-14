@@ -20,7 +20,7 @@ x-api-key: {{apiKey}}
     "query": "elite trainer box"
 }
 
-### Probe Store — Amazon.es (Creators API; needs Amazon__* credentials, else "integração não configurada")
+### Probe Store — Amazon.es (Creators API; needs Amazon__* credentials, else "integration not configured")
 POST {{HostAddress}}/store/probe
 Content-Type: application/json
 x-api-key: {{apiKey}}

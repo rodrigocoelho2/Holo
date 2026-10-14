@@ -180,7 +180,7 @@ internal sealed partial class AmazonCreatorsStoreAdapter(
 
         if (response.StatusCode is HttpStatusCode.TooManyRequests || (int)response.StatusCode >= 500)
         {
-            response.EnsureSuccessStatusCode();   // → "pede para abrandar" / "erro da loja"; the outbound handler already backed off
+            response.EnsureSuccessStatusCode();   // → "asked to slow down" / "store error"; the outbound handler already backed off
         }
 
         var content = await response.Content.ReadAsStreamAsync(cancellationToken);

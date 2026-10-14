@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Radar no telemóvel · TcgStockBot (mock)</title>
+<title>Radar on the phone · TcgStockBot (mock)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 body{margin:0;background:#0E0F12}
@@ -21,12 +21,12 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
 <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -0.025em">Radar</h1>
 <button type="button" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A2E37; background: #15171C; color: #ECEEF2; font: 500 13px 'Geist', sans-serif">
-<span style="width: 8px; height: 8px; border-radius: 50%; background: #8C96F0"></span>A correr · <span style="font-family: 'Geist Mono', monospace">01:42</span></button>
+<span style="width: 8px; height: 8px; border-radius: 50%; background: #8C96F0"></span>Running · <span style="font-family: 'Geist Mono', monospace">01:42</span></button>
 </header>
 
 <section aria-labelledby="m-stock" style="display: flex; flex-direction: column; gap: 12px">
 <div style="display: flex; align-items: baseline; gap: 10px">
-<h2 id="m-stock" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700">Em stock agora</h2>
+<h2 id="m-stock" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700">In stock now</h2>
 <span style="font-family: 'Geist Mono', monospace; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #8C96F0; color: #111318">3</span>
 </div>
 <div style="display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px">
@@ -42,9 +42,9 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 </div>
 <div style="padding: 0 4px; display: flex; align-items: baseline; justify-content: space-between">
 <span style="font-family: 'Geist Mono', monospace; font-size: 22px">{{p.price}}</span>
-<span style="font-size: 12px; color: #A3A9B5">máx. {{p.max}}</span>
+<span style="font-size: 12px; color: #A3A9B5">max {{p.max}}</span>
 </div>
-<a href="#" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 12px; background: #8C96F0; color: #111318; font: 600 15px 'Geist', sans-serif; text-decoration: none">Abrir na loja</a>
+<a href="#" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 12px; background: #8C96F0; color: #111318; font: 600 15px 'Geist', sans-serif; text-decoration: none">Open in store</a>
 </article>
 </sc-for>
 </div>
@@ -52,8 +52,8 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 
 <section aria-labelledby="m-watch" style="display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; align-items: baseline; justify-content: space-between">
-<h2 id="m-watch" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700">Ainda à procura</h2>
-<a href="#" style="font-size: 14px; text-decoration: none">Ver todos</a>
+<h2 id="m-watch" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700">Still searching</h2>
+<a href="#" style="font-size: 14px; text-decoration: none">See all</a>
 </div>
 <sc-for list="{{watching}}" as="w" hint-placeholder-count="4">
 <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 14px; background: #15171C; border: 1px solid #23262E; text-decoration: none; color: #ECEEF2">
@@ -111,17 +111,17 @@ class Component extends DCLogic {
   renderVals() {
     return {
       inStock: [
-        { title: '30th Celebration Elite Trainer Box', store: 'Trap Card TCG', when: 'há 4 min', price: '54,99 €', max: '60,00 €', ...art('pokemon', 'box') },
-        { title: '30th Celebration Booster Bundle', store: 'Panda Collecting', when: 'há 22 min', price: '32,90 €', max: '35,00 €', ...art('pokemon', 'bundle') },
-        { title: 'One Piece Card Game Booster Box', store: 'CentroXogo', when: 'há 1 h', price: '109,90 €', max: '115,00 €', ...art('onepiece', 'display') }
+        { title: '30th Celebration Elite Trainer Box', store: 'Trap Card TCG', when: '4 min ago', price: '€54.99', max: '€60.00', ...art('pokemon', 'box') },
+        { title: '30th Celebration Booster Bundle', store: 'Panda Collecting', when: '22 min ago', price: '€32.90', max: '€35.00', ...art('pokemon', 'bundle') },
+        { title: 'One Piece Card Game Booster Box', store: 'CentroXogo', when: '1 h ago', price: '€109.90', max: '€115.00', ...art('onepiece', 'display') }
       ],
       watching: [
-        { name: '30th Ultra Premium Collection', status: '139,90 € na Versus · acima do máximo', statusC: '#F5A524', ...art('pokemon', 'premium') },
-        { name: '30th Booster Box', status: 'Esgotado em 6 lojas', statusC: '#A3A9B5', ...art('pokemon', 'display') },
-        { name: 'Play Booster Box', status: '154,90 € na Amazon · acima do máximo', statusC: '#F5A524', ...art('magic', 'display') },
-        { name: 'Illumineer’s Trove', status: 'Ainda sem resultados', statusC: '#A3A9B5', ...art('lorcana', 'tin') }
+        { name: '30th Ultra Premium Collection', status: '€139.90 at Versus · above your maximum', statusC: '#F5A524', ...art('pokemon', 'premium') },
+        { name: '30th Booster Box', status: 'Sold out at 6 stores', statusC: '#A3A9B5', ...art('pokemon', 'display') },
+        { name: 'Play Booster Box', status: '€154.90 at Amazon · above your maximum', statusC: '#F5A524', ...art('magic', 'display') },
+        { name: 'Illumineer’s Trove', status: 'No results yet', statusC: '#A3A9B5', ...art('lorcana', 'tin') }
       ],
-      tabs: [['radar', 'Radar', true], ['eye', 'A vigiar'], ['plus', 'Vigiar'], ['bell', 'Alertas'], ['store', 'Lojas']].map(([ic, label, on]) => ({
+      tabs: [['radar', 'Radar', true], ['eye', 'Watching'], ['plus', 'Watch'], ['bell', 'Alerts'], ['store', 'Stores']].map(([ic, label, on]) => ({
         label, icon: ICON[ic],
         color: on ? '#ECEEF2' : '#A3A9B5',
         bg: on ? '#1C1F26' : 'transparent'

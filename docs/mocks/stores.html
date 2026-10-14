@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lojas · TcgStockBot (mock)</title>
+<title>Stores · TcgStockBot (mock)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 body{margin:0;background:#0E0F12}
@@ -19,7 +19,7 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 <aside style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: #0A0B0E; border-right: 1px solid #1F222A; display: flex; flex-direction: column; gap: 28px">
 <a href="radar.html" style="display: flex; align-items: center; gap: 12px; padding: 0 8px; text-decoration: none; color: #ECEEF2">
 <span style="width: 36px; height: 36px; border-radius: 10px; background: #8C96F0; color: #111318; display: flex; align-items: center; justify-content: center"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M12 12l6.5-6.5"></path></svg></span>
-<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.01em">TcgStock Bot</span><span style="font-size: 12px; color: #A3A9B5">monitor de stock · v2</span></span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.01em">TcgStock Bot</span><span style="font-size: 12px; color: #A3A9B5">stock monitor · v2</span></span>
 </a>
 <nav aria-label="Principal" style="display: flex; flex-direction: column; gap: 4px">
 <sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
@@ -31,10 +31,10 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 </sc-for>
 </nav>
 <div style="margin-top: auto; padding: 16px; border-radius: 14px; background: #15171C; border: 1px solid #23262E; display: flex; flex-direction: column; gap: 12px">
-<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #8C96F0; box-shadow: 0 0 0 4px rgba(140,150,240,0.15)"></span>Bot a correr</div>
-<div style="font-size: 13px; line-height: 1.6; color: #A3A9B5">Próxima verificação em <span style="font-family: 'Geist Mono', monospace; color: #ECEEF2">01:42</span><br>Último ciclo: 41 s · 48 pesquisas</div>
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #8C96F0; box-shadow: 0 0 0 4px rgba(140,150,240,0.15)"></span>Bot running</div>
+<div style="font-size: 13px; line-height: 1.6; color: #A3A9B5">Next check in <span style="font-family: 'Geist Mono', monospace; color: #ECEEF2">01:42</span><br>Last cycle: 41 s · 48 searches</div>
 <div style="height: 4px; border-radius: 4px; background: #23262E; overflow: hidden"><div style="width: 62%; height: 100%; background: #8C96F0"></div></div>
-<button type="button" style="min-height: 40px; border-radius: 10px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Pausar o bot</button>
+<button type="button" style="min-height: 40px; border-radius: 10px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Pause the bot</button>
 </div>
 </aside>
 
@@ -42,18 +42,18 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 
 <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px">
 <div>
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: -0.025em; line-height: 1">Lojas</h1>
-<p style="margin: 10px 0 0; font-size: 16px; color: #A3A9B5">Onde o bot procura, e se cada loja está a responder bem.</p>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: -0.025em; line-height: 1">Stores</h1>
+<p style="margin: 10px 0 0; font-size: 16px; color: #A3A9B5">Where the bot searches, and whether each store is answering well.</p>
 </div>
 <button type="button" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #8C96F0; color: #111318; font: 600 15px 'Geist', sans-serif; cursor: pointer">
-<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Adicionar loja</button>
+<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add store</button>
 </header>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px">
-<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">A responder</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #8C96F0">8</div></div>
-<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Lentas</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #F5A524">1</div></div>
-<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Com erro</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #FF8A7A">1</div></div>
-<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Desligadas</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px">1</div></div>
+<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Answering</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #8C96F0">8</div></div>
+<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Slow</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #F5A524">1</div></div>
+<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">With errors</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px; color: #FF8A7A">1</div></div>
+<div style="padding: 16px 18px; border-radius: 16px; background: #15171C; border: 1px solid #23262E"><div style="font-size: 13px; color: #A3A9B5">Off</div><div style="font-family: 'Geist Mono', monospace; font-size: 28px; margin-top: 6px">1</div></div>
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px">
@@ -76,12 +76,12 @@ a{color:#8C96F0}a:hover{color:#B3BAF7}
 <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px" aria-label="Últimas 24 horas">
 <sc-for list="{{s.hours}}" as="h" hint-placeholder-count="24"><span style="height: 18px; border-radius: 2px; background: {{h}}"></span></sc-for>
 </div>
-<div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #8A919E"><span>há 24 h</span><span>agora</span></div>
+<div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #8A919E"><span>24 h ago</span><span>now</span></div>
 </div>
-<div style="padding: 10px 12px; border-radius: 10px; background: #1C1F26; font-size: 13px; line-height: 1.45; color: #A3A9B5">Sem marcador de idioma: <span style="color: #ECEEF2">{{s.lang}}</span></div>
+<div style="padding: 10px 12px; border-radius: 10px; background: #1C1F26; font-size: 13px; line-height: 1.45; color: #A3A9B5">No language marker: <span style="color: #ECEEF2">{{s.lang}}</span></div>
 <div style="display: flex; gap: 8px">
-<button type="button" style="flex: 1; min-height: 40px; border-radius: 10px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Testar pesquisa</button>
-<button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #2A2E37; background: transparent; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Editar</button>
+<button type="button" style="flex: 1; min-height: 40px; border-radius: 10px; border: 1px solid #2A2E37; background: #1C1F26; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Test search</button>
+<button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #2A2E37; background: transparent; color: #ECEEF2; font: 500 14px 'Geist', sans-serif; cursor: pointer">Edit</button>
 </div>
 </article>
 </sc-for>
@@ -108,10 +108,10 @@ const ICON = {
 function nav(active) {
   return [
     ['radar', 'Radar', 'radar.html', 'radar', ''],
-    ['watch', 'A vigiar', 'a-vigiar.html', 'eye', '12'],
-    ['alerts', 'Alertas', 'alertas.html', 'bell', '3'],
-    ['stores', 'Lojas', 'lojas.html', 'store', '11'],
-    ['settings', 'Definições', 'definicoes.html', 'sliders', '']
+    ['watch', 'Watching', 'watching.html', 'eye', '12'],
+    ['alerts', 'Alerts', 'alerts.html', 'bell', '3'],
+    ['stores', 'Stores', 'stores.html', 'store', '11'],
+    ['settings', 'Settings', 'settings.html', 'sliders', '']
   ].map(([id, label, href, ic, count]) => ({
     label, href, icon: ICON[ic], count, hasCount: count !== '',
     color: id === active ? '#ECEEF2' : '#A3A9B5',
@@ -122,18 +122,18 @@ function nav(active) {
 }
 const C = { o: '#8C96F0', s: '#F5A524', e: '#FF8A7A', x: '#23262E' };
 const LANG = {
-  skip: 'não avisar',
-  en: 'contar como inglês',
-  confirm: 'avisar e pedir para confirmares'
+  skip: 'don’t alert',
+  en: 'count as English',
+  confirm: 'alert and ask you to check'
 };
 const STATUS = {
-  ok: { status: 'A responder', statusC: '#8C96F0' },
-  slow: { status: 'Lenta', statusC: '#F5A524' },
-  err: { status: 'Sem resposta desde as 16:40', statusC: '#FF8A7A' },
-  off: { status: 'Desligada', statusC: '#8A919E' }
+  ok: { status: 'Answering', statusC: '#8C96F0' },
+  slow: { status: 'Slow', statusC: '#F5A524' },
+  err: { status: 'No answer since 16:40', statusC: '#FF8A7A' },
+  off: { status: 'Off', statusC: '#8A919E' }
 };
 const STORES = [
-  ['Notel', 'Site próprio (HTML)', 'err', 'timeout', 'ooooooooooooooooooosseee', 'skip'],
+  ['Notel', 'Own site (HTML)', 'err', 'timeout', 'ooooooooooooooooooosseee', 'skip'],
   ['Areias Porto', 'WooCommerce', 'slow', '1,8 s', 'oooossoooosssooooossssss', 'en'],
   ['Trap Card TCG', 'Shopify', 'ok', '312 ms', 'oooooooooooooooooooooooo', 'skip'],
   ['Versus Gamecenter', 'Shopify', 'ok', '288 ms', 'oooooooooooooooooooooooo', 'skip'],
@@ -141,9 +141,9 @@ const STORES = [
   ['CentroXogo', 'Shopify', 'ok', '301 ms', 'oooooooooooooooooooooooo', 'confirm'],
   ['Continente', 'Shopify', 'ok', '420 ms', 'oooooooooooooooooooooooo', 'en'],
   ['Amazon', 'Amazon Creators API', 'ok', '690 ms', 'oooooooooooooooooooooooo', 'skip'],
-  ['Fnac', 'Feed Awin · atualizado há 3 h', 'ok', 'feed', 'oooooooooooooooooooooooo', 'skip'],
-  ['Worten', 'Feed Awin · atualizado há 3 h', 'ok', 'feed', 'oooooooooooooooooooooooo', 'skip'],
-  ['El Corte Inglés', 'Feed Awin', 'off', '—', 'xxxxxxxxxxxxxxxxxxxxxxxx', 'skip']
+  ['Fnac', 'Awin feed · updated 3 h ago', 'ok', 'feed', 'oooooooooooooooooooooooo', 'skip'],
+  ['Worten', 'Awin feed · updated 3 h ago', 'ok', 'feed', 'oooooooooooooooooooooooo', 'skip'],
+  ['El Corte Inglés', 'Awin feed', 'off', '—', 'xxxxxxxxxxxxxxxxxxxxxxxx', 'skip']
 ];
 
 class Component extends DCLogic {

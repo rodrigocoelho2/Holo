@@ -678,7 +678,7 @@ function exportStores() {
   downloadJson(json, `holo-stores-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
-/** The site of a store URL ("loja.pt"); a URL with a query (a search link) keeps it, so two searches are not one site. */
+/** The site of a store URL ("store.pt"); a URL with a query (a search link) keeps it, so two searches are not one site. */
 const hostOf = (url) => {
   try {
     const parsed = new URL(url);

@@ -16,7 +16,7 @@ internal static class StoreFailure
     /// </summary>
     /// <param name="exception">The failure.</param>
     /// <param name="globalizationHelper">Translations.</param>
-    /// <returns>"A loja recusou o pedido (HTTP 403)…" and similar.</returns>
+    /// <returns>"The store refused the request (HTTP 403)…" and similar.</returns>
     public static Task<string> DescribeAsync(Exception exception, IGlobalizationHelper globalizationHelper) => exception switch
     {
         StoreWithoutIntegrationException manual =>

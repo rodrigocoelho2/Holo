@@ -13,7 +13,7 @@ public sealed class StoreDetectResult
     /// <summary>Gets or sets the suggested platform (Manual when nothing searchable was found).</summary>
     public StorePlatform Platform { get; set; } = StorePlatform.Manual;
 
-    /// <summary>Gets or sets the store root after redirects (https://loja.pt).</summary>
+    /// <summary>Gets or sets the store root after redirects (https://store.pt).</summary>
     public string BaseUrl { get; set; } = string.Empty;
 
     /// <summary>Gets or sets a name suggested from the site (og:site_name or the page title).</summary>

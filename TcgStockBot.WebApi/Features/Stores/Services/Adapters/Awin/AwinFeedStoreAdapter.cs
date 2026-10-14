@@ -8,7 +8,7 @@ namespace TcgStockBot.WebApi.Features.Stores.Services.Adapters.Awin;
 /// <summary>
 /// A store read through its Awin affiliate product feed — the authorized source for retailers that have no public
 /// product API. Searching filters the cached feed locally: the retailer's own site is never contacted.
-/// Without a configured feed, every search reports "integração não configurada" with <see cref="NotConfiguredHint"/>.
+/// Without a configured feed, every search reports "integration not configured" with <see cref="NotConfiguredHint"/>.
 /// </summary>
 /// <param name="options">Feed settings.</param>
 /// <param name="catalog">Shared feed cache.</param>
