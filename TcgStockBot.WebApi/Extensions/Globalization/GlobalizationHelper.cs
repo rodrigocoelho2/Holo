@@ -79,9 +79,14 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.ShippingRange)] = "must be between 0 and 500 €.",
         [nameof(TranslationKeys.PushEndpointNotAllowed)] = "must be the address of a browser push service (Google, Mozilla, Apple or Microsoft).",
         [nameof(TranslationKeys.PushKeysInvalid)] = "are not the keys of a browser push subscription.",
+        [nameof(TranslationKeys.DiscordNotLinked)] = "No account here is linked to that Discord account. Sign in with your password and link it in Settings.",
+        [nameof(TranslationKeys.DiscordTaken)] = "That Discord account is already linked to another account.",
+        [nameof(TranslationKeys.DiscordInvalid)] = "isn't a Discord account.",
+        [nameof(TranslationKeys.DiscordNeedsPassword)] = "Discord is the only way into this account. Set a password before unlinking it.",
 
         // Field labels
         ["Identifier"] = "Id",
+        ["DiscordId"] = "Discord account",
         ["Name"] = "Name",
         ["SearchQuery"] = "Search text",
         ["MaxPrice"] = "Max price",

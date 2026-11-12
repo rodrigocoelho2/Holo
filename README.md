@@ -118,7 +118,7 @@
   and text in Instrument Sans (served by the app itself), green for "in stock" and "below MSRP", and a "box" in the
   set's colours when the store has no photo.
 - **Themes:** Holo, Coral, Lavender and Ocean, in dark (the default), light or automatic mode.
-- **Accounts:** everyone signs in with their own user (Sign in / Create account), with "Keep me signed in"; the admin manages the accounts. A **landing page** for visitors who aren't signed in.
+- **Accounts:** everyone signs in with their own user (Sign in / Create account, or **Sign in with Discord**), with "Keep me signed in"; the admin manages the accounts. A **landing page** for visitors who aren't signed in.
 - **In English**, with prices in euros (€54.99) and European dates.
 - **Phone app:** tab bar at the bottom, and it installs on the home screen with the Holo icon.
 - Shortcuts: `1`–`7` switch pages, `N` watches a new product, `/` jumps to search and `R` checks now.
@@ -231,6 +231,11 @@ The app is in **English**. The addresses are `#/products` (the home page), `#/ra
 - **Keep me signed in on this device** keeps the session for 30 days (`Dashboard__RememberDays`). Changing the password
   ends the sessions on other devices. Five wrong passwords in a row from the same address block attempts for 5 minutes.
 - **Settings → Account:** change the password, **Sign out** and, for the admin, the list of accounts (add and delete).
+- **Sign in with Discord** (optional): put `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` from your Discord application
+  in `.env`, and add `https://<where you open Holo>/signin-discord` under its OAuth2 **Redirects**. An existing account
+  links Discord in **Settings → Account → Link Discord** (the password keeps working). Someone new presses **Sign in
+  with Discord**, picks a user name and gets an account with no password (they can add one in Settings; until then
+  Discord can't be unlinked). With `ALLOW_REGISTRATION=false`, an unlinked Discord account can't get in.
 - Signed out, `/` shows the **landing page** (what Holo does), also at `/about`.
 - **Install on the phone:** on iPhone, in Safari, Share → *Add to Home Screen*; on Android, in Chrome,
   ⋮ → *Add to Home screen*. It gets the Holo icon and name and opens full screen. Over HTTPS (for example the NAS's

@@ -1,0 +1,43 @@
+@model TcgStockBot.Website.Model.Account.AccountPageModel
+@* A new account with Discord: Discord already said who this is, so only the user name is left to pick. *@
+@{
+    ViewData["Title"] = "Create account";
+    ViewData["Tab"] = "create";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="au">
+    <div class="au-wrap">
+        <partial name="_AccountSide" model="Model" />
+
+        <main class="au-main">
+            <form class="au-form" method="post" action="/create-account/discord" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+                <div>
+                    <h1>Almost there</h1>
+                    <p class="lead2">You're signed in to Discord as <b>@Model.DiscordName</b>. Pick a user name for Holo.</p>
+                </div>
+
+                <partial name="_AccountCard" model="Model" />
+
+                <label class="au-field">
+                    User name
+                    <span class="au-in">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg>
+                        <input name="userName" type="text" value="@Model.UserName" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9._\-]{3,32}" required autofocus />
+                    </span>
+                </label>
+
+                <button class="btn-f discord" type="submit"><span class="discord-mark" aria-hidden="true"></span>Create account with Discord</button>
+
+                <p class="au-fine">Already have an account here? <a href="/sign-in">Sign in with your password</a>, then link Discord in Settings to keep your watches.</p>
+            </form>
+        </main>
+    </div>
+</div>
+
+<script src="~/js/theme-toggle.js" asp-append-version="true"></script>

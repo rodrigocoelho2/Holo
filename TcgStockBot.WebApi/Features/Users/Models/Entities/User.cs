@@ -27,4 +27,10 @@ public sealed class User
 
     /// <summary>Gets or sets a random value that changes with the password, so other sessions end.</summary>
     public string SecurityStamp { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the linked Discord account's id (null: none). An account made with Discord has no password hash until one is set.</summary>
+    public string? DiscordId { get; set; }
+
+    /// <summary>Gets or sets the linked Discord account's name when it was linked.</summary>
+    public string? DiscordName { get; set; }
 }

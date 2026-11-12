@@ -142,11 +142,13 @@ function accountCard() {
   const draft = { current: "", next: "", confirm: "" };
   const errors = h("div", {});
 
+  const me = { hasPassword: true };
   const changePassword = async () => {
     errors.replaceChildren();
     if (draft.next !== draft.confirm) { errors.replaceChildren(errorList(["The two new passwords are different."])); return; }
     try {
       await post("/user/password", { currentPassword: draft.current, newPassword: draft.next });
+      if (!me.hasPassword) { location.reload(); return; }   // the first password (an account made with Discord): show the full form
       toast("Password changed. Other devices are signed out.", "success");
       draft.current = draft.next = draft.confirm = "";
       box.querySelectorAll("input[type=password]").forEach((input) => { input.value = ""; });
@@ -155,6 +157,9 @@ function accountCard() {
     }
   };
   const passwordInput = (key, autocomplete) => h("input", { type: "password", autocomplete, oninput: (event) => { draft[key] = event.target.value; } });
+  const currentField = field("Current password", passwordInput("current", "current-password"));
+  const passwordButton = button("Change password", { kind: "primary", onClick: changePassword });
+  const discordBox = h("div", {});
 
   append(box, [
     h("div", { class: "card-head-row" },
@@ -162,17 +167,57 @@ function accountCard() {
       h("div", { class: "account-who" }, h("span", { class: "avatar-initial", "aria-hidden": "true" }, (userName[0] || "?").toUpperCase()),
         h("span", {}, "Signed in as ", h("strong", {}, userName || "—")), isAdmin ? pill("admin", "accent") : null)),
     h("div", { class: "fields three" },
-      field("Current password", passwordInput("current", "current-password")),
+      currentField,
       field("New password", passwordInput("next", "new-password"), "At least 8 characters."),
       field("Confirm new password", passwordInput("confirm", "new-password"))),
     errors,
     h("div", { class: "card-actions" },
       linkButton("About Holo", "/about", { iconName: "info", kind: "ghost" }),
       button("Sign out", { iconName: "logout", onClick: signOut }),
-      button("Change password", { kind: "primary", onClick: changePassword })),
+      passwordButton),
+    discordBox,
     isAdmin ? usersSection() : null,
   ]);
+
+  api("/user/me").then((account) => {
+    me.hasPassword = account.hasPassword !== false;
+    if (!me.hasPassword) {
+      currentField.hidden = true;
+      passwordButton.textContent = "Set password";
+    }
+    if (account.discordEnabled) discordBox.replaceChildren(discordRow(account));
+  }).catch(() => { /* the card works without it */ });
   return box;
+}
+
+/** Discord: link it (a real form post: the browser goes to Discord and back), or unlink it once there's a password. */
+function discordRow(account) {
+  const row = h("div", { class: "discord-row", id: "discord" });
+  if (!account.discordLinked) {
+    return append(row, [
+      h("p", { class: "muted small" }, "Link your Discord account to sign in with it instead of your password. Nothing you watch changes."),
+      h("form", { method: "post", action: "/settings/discord" },
+        h("input", { type: "hidden", name: "__RequestVerificationToken", value: ANTIFORGERY_TOKEN }),
+        h("button", { type: "submit", class: "btn discord" }, h("span", { class: "discord-mark", "aria-hidden": "true" }), "Link Discord")),
+    ]);
+  }
+  const who = account.discordName || "your Discord account";
+  if (!account.hasPassword) {
+    return append(row, [h("p", { class: "muted small" }, `Signed in with Discord (${who}). It's the only way into this account until you set a password above.`)]);
+  }
+  const unlink = async () => {
+    try {
+      await post("/user/discordunlink");
+      toast("Discord is unlinked. Sign in with your password.", "success");
+      row.replaceWith(discordRow({ ...account, discordLinked: false, discordName: null }));
+    } catch (error) {
+      toast(errorText(error), "error");
+    }
+  };
+  return append(row, [
+    h("p", { class: "muted small" }, `Linked to ${who}. "Sign in with Discord" opens this account; your password still works too.`),
+    button("Unlink", { kind: "ghost", onClick: unlink }),
+  ]);
 }
 
 /** Admins: every account, add one, delete one. */

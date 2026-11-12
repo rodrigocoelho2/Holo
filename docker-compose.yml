@@ -36,6 +36,8 @@ services:
       TcgStockBotApi__ApiKey: ${TCG_API_KEY:?Set TCG_API_KEY in .env}
       Dashboard__Password: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env}   # key to create the first account
       Dashboard__AllowRegistration: ${ALLOW_REGISTRATION:-true}                          # false = only the admin creates accounts
+      Dashboard__DiscordClientId: ${DISCORD_CLIENT_ID:-}                                 # Sign in with Discord (optional)
+      Dashboard__DiscordClientSecret: ${DISCORD_CLIENT_SECRET:-}
     volumes:
       - tcgstockbot-keys:/keys              # session keys: "keep me signed in" survives updates
     networks:

@@ -48,7 +48,7 @@ internal static class DashboardAuthentication
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<LoginThrottle>();
 
-        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        var authentication = services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(cookie =>
             {
                 cookie.Cookie.Name = CookieName;
@@ -84,6 +84,11 @@ internal static class DashboardAuthentication
                 };
                 cookie.Events.OnValidatePrincipal = ValidateAsync;
             });
+
+        if (options.DiscordEnabled)
+        {
+            authentication.AddHoloDiscord(options);
+        }
 
         services.AddAuthorization();
         return services;

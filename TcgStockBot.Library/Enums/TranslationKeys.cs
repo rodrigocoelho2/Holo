@@ -74,6 +74,18 @@ public enum TranslationKeys
     /// <summary>A store has no integration (Manual platform): it is never searched.</summary>
     StoreWithoutIntegration,
 
+    /// <summary>No account is linked to that Discord account.</summary>
+    DiscordNotLinked,
+
+    /// <summary>That Discord account is linked to another account.</summary>
+    DiscordTaken,
+
+    /// <summary>A Discord id that isn't one.</summary>
+    DiscordInvalid,
+
+    /// <summary>Discord is the only way into the account, so it can't be unlinked before a password is set.</summary>
+    DiscordNeedsPassword,
+
     /// <summary>An unknown kind of product code.</summary>
     UnknownProductKind,
 

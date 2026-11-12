@@ -22,8 +22,30 @@ public partial class UserController(TcgStockBotClient apiClient, IOptions<Dashbo
     public async Task<IActionResult> MeAsync()
     {
         var model = new UserModel(ApiClient);
-        return Json(await model.MeAsync(DashboardAuthentication.UserId(User), options.Value.AllowRegistration));
+        return Json(await model.MeAsync(DashboardAuthentication.UserId(User), options.Value.AllowRegistration, options.Value.DiscordEnabled));
     }
+
+    /// <summary>Sends the browser to Discord to link a Discord account to this account (a plain form post).</summary>
+    /// <returns>A redirect to Discord.</returns>
+    [HttpPost("/settings/discord")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DiscordLink()
+    {
+        if (!options.Value.DiscordEnabled)
+        {
+            return NotFound();
+        }
+
+        var properties = new AuthenticationProperties { RedirectUri = "/sign-in/discord/done" };
+        properties.Items[DiscordAuthentication.ModeKey] = "link";
+        return Challenge(properties, DiscordAuthentication.Scheme);
+    }
+
+    /// <summary>Unlinks Discord (only when the account has a password to sign in with).</summary>
+    /// <returns>JSON <c>AjaxDataResult</c>.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DiscordUnlinkAsync() => Json(await new UserModel(ApiClient).DiscordUnlinkAsync(DashboardAuthentication.UserId(User)));
 
     /// <summary>Changes the signed-in account's password and keeps this browser signed in.</summary>
     /// <param name="item">Current and new password.</param>

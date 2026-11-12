@@ -154,7 +154,23 @@ async function refresh() {
   }
 }
 
+/** Back from Discord (Settings › Link Discord): one note, then a clean address. */
+function discordNote() {
+  const query = new URLSearchParams(location.search);
+  const note = query.get("discord");
+  if (!note) return;
+  const notes = {
+    linked: ["Discord is linked. Next time, use \"Sign in with Discord\".", "success"],
+    taken: ["That Discord account is already linked to another account here.", "error"],
+    failed: ["Discord didn't finish. Try again.", "error"],
+  };
+  const [text, tone] = notes[note] || notes.failed;
+  toast(text, tone);
+  history.replaceState(null, "", location.pathname + location.hash);
+}
+
 async function start() {
+  discordNote();
   applyTheme();
   try {
     [state.tasks, state.stores, state.settings, state.monitor, state.alerts] = await Promise.all([

@@ -19,6 +19,18 @@ public sealed class MeModel
 
     /// <summary>Gets or sets a value indicating whether anyone may create an account (Dashboard__AllowRegistration).</summary>
     public bool AllowRegistration { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether Discord sign-in is set up on this Holo.</summary>
+    public bool DiscordEnabled { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether this account has a Discord account linked.</summary>
+    public bool DiscordLinked { get; set; }
+
+    /// <summary>Gets or sets the linked Discord account's name.</summary>
+    public string? DiscordName { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the account has a password (one made with Discord may not).</summary>
+    public bool HasPassword { get; set; } = true;
 }
 
 /// <summary>A new password for the signed-in account.</summary>
@@ -40,12 +52,28 @@ public sealed class UserModel(TcgStockBotClient apiClient) : WebsiteBaseModel(ap
     /// <summary>The signed-in account.</summary>
     /// <param name="userId">The account id from the cookie.</param>
     /// <param name="allowRegistration">Whether registration is open.</param>
+    /// <param name="discordEnabled">Whether Discord sign-in is set up.</param>
     /// <returns>The account.</returns>
-    public Task<AjaxDataResult<MeModel>> MeAsync(string userId, bool allowRegistration) => CallAsync(async () =>
+    public Task<AjaxDataResult<MeModel>> MeAsync(string userId, bool allowRegistration, bool discordEnabled) => CallAsync(async () =>
     {
         var user = await ApiClient.UserGetAsync(userId);
-        return new MeModel { Id = user.Id, UserName = user.UserName, Role = user.Role, AllowRegistration = allowRegistration };
+        return new MeModel
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Role = user.Role,
+            AllowRegistration = allowRegistration,
+            DiscordEnabled = discordEnabled,
+            DiscordLinked = user.DiscordLinked,
+            DiscordName = user.DiscordName,
+            HasPassword = user.HasPassword,
+        };
     });
+
+    /// <summary>Unlinks Discord from the signed-in account (refused while it's the only way in).</summary>
+    /// <param name="userId">The account id from the cookie.</param>
+    /// <returns>Done, or the problem.</returns>
+    public Task<AjaxDataResult<bool>> DiscordUnlinkAsync(string userId) => CallAsync(() => ApiClient.UserDiscordLinkAsync(new UserDiscordLinkRequest { Id = userId }));
 
     /// <summary>Changes the signed-in account's password.</summary>
     /// <param name="userId">The account id from the cookie.</param>

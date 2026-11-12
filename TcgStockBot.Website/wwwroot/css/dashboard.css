@@ -2036,3 +2036,11 @@ body { font-size: 15px; }
 .push-check-box summary::-webkit-details-marker { display: none; }
 .push-check { margin-top: 10px; }
 .push-check dd { word-break: break-all; }
+
+/* Discord: its own blurple for its buttons; its mark (Simple Icons, CC0; a trademark of Discord) drawn in the text colour. */
+.btn-f.discord, .btn.discord { background: #5865F2; border-color: #5865F2; color: #fff; }
+.btn-f.discord:hover, .btn.discord:hover { background: #4752C4; border-color: #4752C4; color: #fff; }
+.discord-mark { display: inline-block; flex: none; width: 20px; height: 20px; background: currentColor; -webkit-mask: url("/img/discord.svg") center / contain no-repeat; mask: url("/img/discord.svg") center / contain no-repeat; }
+.discord-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; justify-content: space-between; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.discord-row p { margin: 0; flex: 1 1 260px; }
+.discord-row form { margin: 0; }
