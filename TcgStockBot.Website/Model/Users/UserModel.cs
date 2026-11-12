@@ -73,7 +73,7 @@ public sealed class UserModel(TcgStockBotClient apiClient) : WebsiteBaseModel(ap
     /// <summary>Unlinks Discord from the signed-in account (refused while it's the only way in).</summary>
     /// <param name="userId">The account id from the cookie.</param>
     /// <returns>Done, or the problem.</returns>
-    public Task<AjaxDataResult<bool>> DiscordUnlinkAsync(string userId) => CallAsync(() => ApiClient.UserDiscordLinkAsync(new UserDiscordLinkRequest { Id = userId }));
+    public Task<AjaxDataResult<bool>> DiscordUnlinkAsync(string userId) => CallAsync(async () => { await ApiClient.UserDiscordLinkAsync(new UserDiscordLinkRequest { Id = userId }); });
 
     /// <summary>Changes the signed-in account's password.</summary>
     /// <param name="userId">The account id from the cookie.</param>
